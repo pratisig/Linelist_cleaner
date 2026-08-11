@@ -33,11 +33,21 @@ def df_to_json_records(df: pd.DataFrame, limit: int = 100) -> List[Dict[str, Any
     return sub_obj.to_dict(orient="records")
 
 
+def get_excel_sheets_if_any(contents: bytes) -> List[str]:
+    """Inspects byte content and returns sheet names if Excel, or empty list if CSV."""
+    try:
+        f = pd.ExcelFile(io.BytesIO(contents), engine="openpyxl")
+        return list(f.sheet_names)
+    except Exception:
+        return []
+
+
 class CleanRequest(BaseModel):
     session_id: str
     config: Optional[CleaningConfig] = None
     column_mapping: Optional[Dict[str, str]] = None
     spatial_mapping: Optional[Dict[str, str]] = None
+    skiprows: int = 0
 
 
 @router.get("/dictionary")
@@ -47,11 +57,17 @@ async def get_dictionary():
 
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...), session_id: Optional[str] = Form(None)):
-    """Uploads raw line list CSV or Excel file."""
+async def upload_file(
+    file: UploadFile = File(...),
+    session_id: Optional[str] = Form(None),
+    skiprows: int = Form(0),
+    sheet_name: Optional[str] = Form(None)
+):
+    """Uploads raw line list CSV or Excel file with optional header offset (skiprows) and sheet selection."""
     try:
         contents = await file.read()
-        df = load_dataset(contents)
+        sheets = get_excel_sheets_if_any(contents)
+        df = load_dataset(contents, skiprows=skiprows, sheet_name=sheet_name)
 
         active_session_id = session_id if (session_id and session_id in SESSIONS) else f"sess_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S_%f')}"
         mapping_res = map_linelist_columns(df)
@@ -64,6 +80,8 @@ async def upload_file(file: UploadFile = File(...), session_id: Optional[str] = 
             "raw_df": df,
             "filename": file.filename,
             "mapping": mapped_dict,
+            "skiprows": skiprows,
+            "sheet_name": sheet_name,
             "ref_df": existing_ref,
             "ref_filename": existing_ref_fn
         }
@@ -76,6 +94,9 @@ async def upload_file(file: UploadFile = File(...), session_id: Optional[str] = 
             "rows_count": len(df),
             "columns_count": len(df.columns),
             "columns": list(df.columns),
+            "sheets": sheets,
+            "selected_sheet": sheet_name or (sheets[0] if sheets else None),
+            "skiprows": skiprows,
             "detected_mappings": mapping_res,
             "preview": preview,
             "has_reference": existing_ref is not None,
@@ -87,17 +108,23 @@ async def upload_file(file: UploadFile = File(...), session_id: Optional[str] = 
 
 
 @router.post("/upload_reference")
-async def upload_reference(file: UploadFile = File(...), session_id: Optional[str] = Form(None)):
+async def upload_reference(
+    file: UploadFile = File(...),
+    session_id: Optional[str] = Form(None),
+    skiprows: int = Form(0),
+    sheet_name: Optional[str] = Form(None)
+):
     """
     Uploads custom P-Code reference dataset (Excel .xlsx/.xls or CSV) independently.
-    Automatically detects administrative columns and P-Codes.
+    Supports multi-sheet selection and skipping title header lines.
     """
     try:
         contents = await file.read()
-        ref_df = load_dataset(contents)
+        sheets = get_excel_sheets_if_any(contents)
+        ref_df = load_dataset(contents, skiprows=skiprows, sheet_name=sheet_name)
 
         if ref_df.empty:
-            raise ValueError("Le fichier de référentiel est vide.")
+            raise ValueError("Le fichier de référentiel est vide ou toutes les lignes ont été ignorées.")
 
         active_session_id = session_id if (session_id and session_id in SESSIONS) else f"sess_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S_%f')}"
         if active_session_id not in SESSIONS:
@@ -109,6 +136,8 @@ async def upload_reference(file: UploadFile = File(...), session_id: Optional[st
 
         SESSIONS[active_session_id]["ref_df"] = ref_df
         SESSIONS[active_session_id]["ref_filename"] = file.filename
+        SESSIONS[active_session_id]["ref_skiprows"] = skiprows
+        SESSIONS[active_session_id]["ref_sheet_name"] = sheet_name
 
         auto_ref_mapping = auto_detect_reference_mapping(ref_df)
 
@@ -118,6 +147,9 @@ async def upload_reference(file: UploadFile = File(...), session_id: Optional[st
             "ref_filename": file.filename,
             "reference_rows": len(ref_df),
             "reference_columns": list(ref_df.columns),
+            "sheets": sheets,
+            "selected_sheet": sheet_name or (sheets[0] if sheets else None),
+            "skiprows": skiprows,
             "detected_spatial_mapping": auto_ref_mapping,
             "reference_preview": df_to_json_records(ref_df, 15)
         }
@@ -142,7 +174,12 @@ async def execute_clean(request: CleanRequest):
 
     try:
         cleaner = LinelistCleaner(config=config)
-        df_clean, report = cleaner.clean(raw_df, custom_mapping=custom_mapping, reference_pcode_df=ref_df)
+        df_clean, report = cleaner.clean(
+            raw_df,
+            custom_mapping=custom_mapping,
+            reference_pcode_df=ref_df,
+            skiprows=0
+        )
 
         tag_to_col = {v: k for k, v in report.columns_mapped.items()}
         epi = EpiAnalytics(df_clean, tag_to_col)
