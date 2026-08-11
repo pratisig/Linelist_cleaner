@@ -1,0 +1,101 @@
+ID_Epid,Nom_Enfant,Sexe,Age,District,Date_Debut_Eruption,Date_Notification,Fievre,Eruption_Cutanee,Toux,Conjonctivite,Vaccine_Rougeole,Statut,Evolution
+MEA-2023-0001,Child_1,F,48 mois,District Est,07/03/2023,2023-03-08,Yes,Oui,Non,NA,Inconnu,Confirme,Gueri
+MEA-2023-0002,Child_2,Male,9 mois,District Nord,13/04/2023,2023-04-13,O,Oui,N,NA,2 doses,Epidemiologiquement lie,Gueri
+MEA-2023-0003,Child_3,garcon,13 ans,District Est,11/04/2023,2023-04-12,O,Oui,O,Non,1 dose,Suspect,Gueri
+MEA-2023-0004,Child_4,fille,46 mois,District Est,13/04/2023,2023-04-15,Yes,Oui,Non,Oui,2 doses,Suspect,Decede
+MEA-2023-0005,Child_5,M,23 mois,District Ouest,13/04/2023,2023-04-15,Yes,Oui,Oui,0,Inconnu,Confirme,Inconnu
+MEA-2023-0006,Child_6,M,59 mois,District Nord,18/04/2023,2023-04-20,Yes,Oui,N,Non,1 dose,Suspect,Gueri
+MEA-2023-0007,Child_7,Female,10 ans,District Sud,06/03/2023,2023-03-09,O,Oui,Non,0,0 dose,Confirme,Gueri
+MEA-2023-0008,Child_8,garcon,26 mois,District Ouest,13/03/2023,2023-03-14,Oui,Oui,Non,Oui,2 doses,Epidemiologiquement lie,Decede
+MEA-2023-0009,Child_9,F,34 mois,District Nord,13/04/2023,2023-04-14,O,Oui,Oui,Oui,0 dose,Descarte,Gueri
+MEA-2023-0010,Child_10,garcon,5 ans,District Ouest,28/03/2023,2023-03-29,Yes,Oui,Oui,0,0 dose,Suspect,Decede
+MEA-2023-0011,Child_11,M,54 mois,District Nord,19/04/2023,2023-04-21,Yes,Oui,Oui,0,2 doses,Descarte,Decede
+MEA-2023-0012,Child_12,F,11 ans,District Ouest,04/04/2023,2023-04-05,1,Oui,O,Non,Inconnu,Descarte,Gueri
+MEA-2023-0013,Child_13,Female,10 ans,District Ouest,06/04/2023,2023-04-06,O,Oui,Oui,Non,1 dose,Epidemiologiquement lie,Decede
+MEA-2023-0014,Child_14,garcon,11 ans,District Nord,15/04/2023,2023-04-17,Yes,Oui,O,Oui,2 doses,Descarte,Inconnu
+MEA-2023-0015,Child_15,fille,11 ans,District Est,13/03/2023,2023-03-16,Yes,Oui,Oui,Non,1 dose,Epidemiologiquement lie,Gueri
+MEA-2023-0016,Child_16,Male,27 mois,District Ouest,20/03/2023,2023-03-22,1,Oui,O,Non,Inconnu,Suspect,Gueri
+MEA-2023-0017,Child_17,garcon,11 ans,District Est,13/03/2023,2023-03-16,O,Oui,Non,0,Inconnu,Suspect,Inconnu
+MEA-2023-0018,Child_18,fille,5 ans,District Est,22/03/2023,2023-03-25,Oui,Oui,Non,0,2 doses,Descarte,Gueri
+MEA-2023-0019,Child_19,Female,22 mois,District Sud,09/04/2023,2023-04-10,1,Oui,O,NA,Inconnu,Suspect,Inconnu
+MEA-2023-0020,Child_20,garcon,3 mois,District Ouest,31/03/2023,2023-03-31,1,Oui,N,Oui,1 dose,Descarte,Inconnu
+MEA-2023-0021,Child_21,M,4 mois,District Sud,08/04/2023,2023-04-09,Oui,Oui,Oui,Oui,0 dose,Confirme,Gueri
+MEA-2023-0022,Child_22,garcon,15 mois,District Ouest,22/03/2023,2023-03-25,O,Oui,N,Oui,Inconnu,Descarte,Gueri
+MEA-2023-0023,Child_23,garcon,5 mois,District Sud,12/04/2023,2023-04-14,Yes,Oui,Oui,Non,Inconnu,Epidemiologiquement lie,Gueri
+MEA-2023-0024,Child_24,garcon,26 mois,District Sud,12/04/2023,2023-04-13,1,Oui,Non,Non,Inconnu,Epidemiologiquement lie,Inconnu
+MEA-2023-0025,Child_25,F,42 mois,District Nord,20/04/2023,2023-04-22,Oui,Oui,Oui,Oui,0 dose,Descarte,Inconnu
+MEA-2023-0026,Child_26,garcon,17 mois,District Nord,14/03/2023,2023-03-16,1,Oui,Oui,NA,2 doses,Epidemiologiquement lie,Gueri
+MEA-2023-0027,Child_27,fille,10 ans,District Est,21/03/2023,2023-03-23,1,Oui,Non,0,0 dose,Epidemiologiquement lie,Gueri
+MEA-2023-0028,Child_28,garcon,37 mois,District Ouest,26/03/2023,2023-03-27,Yes,Oui,Non,0,1 dose,Confirme,Inconnu
+MEA-2023-0029,Child_29,Female,11 ans,District Sud,10/04/2023,2023-04-12,Yes,Oui,N,Oui,0 dose,Confirme,Decede
+MEA-2023-0030,Child_30,F,55 mois,District Sud,03/03/2023,2023-03-06,1,Oui,Non,Oui,2 doses,Descarte,Gueri
+MEA-2023-0031,Child_31,Male,28 mois,District Est,15/04/2023,2023-04-16,Oui,Oui,O,Non,2 doses,Descarte,Decede
+MEA-2023-0032,Child_32,F,43 mois,District Nord,15/04/2023,2023-04-16,Oui,Oui,O,Oui,Inconnu,Suspect,Inconnu
+MEA-2023-0033,Child_33,Male,14 ans,District Sud,06/03/2023,2023-03-06,O,Oui,Oui,0,0 dose,Epidemiologiquement lie,Decede
+MEA-2023-0034,Child_34,M,41 mois,District Est,24/03/2023,2023-03-25,1,Oui,N,Non,1 dose,Descarte,Inconnu
+MEA-2023-0035,Child_35,fille,9 ans,District Est,08/03/2023,2023-03-11,O,Oui,O,NA,2 doses,Confirme,Gueri
+MEA-2023-0036,Child_36,M,10 ans,District Est,31/03/2023,2023-04-02,Yes,Oui,Oui,0,Inconnu,Epidemiologiquement lie,Gueri
+MEA-2023-0037,Child_37,Male,48 mois,District Sud,14/03/2023,2023-03-15,Oui,Oui,O,Oui,0 dose,Confirme,Gueri
+MEA-2023-0038,Child_38,F,32 mois,District Nord,06/03/2023,2023-03-09,Yes,Oui,O,Oui,0 dose,Confirme,Decede
+MEA-2023-0039,Child_39,fille,59 mois,District Ouest,06/04/2023,2023-04-09,Yes,Oui,O,Non,2 doses,Epidemiologiquement lie,Gueri
+MEA-2023-0040,Child_40,Female,52 mois,District Sud,05/03/2023,2023-03-08,Yes,Oui,N,Oui,1 dose,Epidemiologiquement lie,Inconnu
+MEA-2023-0041,Child_41,Male,26 mois,District Est,03/03/2023,2023-03-04,1,Oui,O,Oui,0 dose,Confirme,Decede
+MEA-2023-0042,Child_42,Female,44 mois,District Nord,18/04/2023,2023-04-21,O,Oui,Non,Oui,2 doses,Suspect,Gueri
+MEA-2023-0043,Child_43,M,49 mois,District Sud,25/03/2023,2023-03-28,1,Oui,Non,0,1 dose,Descarte,Gueri
+MEA-2023-0044,Child_44,Female,52 mois,District Nord,20/03/2023,2023-03-23,Yes,Oui,N,NA,1 dose,Descarte,Decede
+MEA-2023-0045,Child_45,M,13 ans,District Est,11/04/2023,2023-04-11,Yes,Oui,N,0,1 dose,Epidemiologiquement lie,Gueri
+MEA-2023-0046,Child_46,fille,14 ans,District Ouest,15/03/2023,2023-03-18,1,Oui,O,Non,Inconnu,Suspect,Decede
+MEA-2023-0047,Child_47,Male,58 mois,District Nord,21/03/2023,2023-03-23,Oui,Oui,O,0,0 dose,Descarte,Gueri
+MEA-2023-0048,Child_48,M,13 ans,District Est,11/04/2023,2023-04-13,Oui,Oui,O,Oui,Inconnu,Confirme,Gueri
+MEA-2023-0049,Child_49,garcon,34 mois,District Est,02/04/2023,2023-04-03,Oui,Oui,N,0,1 dose,Confirme,Gueri
+MEA-2023-0050,Child_50,Male,11 ans,District Sud,19/04/2023,2023-04-20,1,Oui,N,Oui,2 doses,Confirme,Gueri
+MEA-2023-0051,Child_51,Male,13 ans,District Est,29/03/2023,2023-03-31,Yes,Oui,Oui,Non,0 dose,Confirme,Gueri
+MEA-2023-0052,Child_52,Male,40 mois,District Nord,23/03/2023,2023-03-23,Oui,Oui,Non,Non,2 doses,Confirme,Gueri
+MEA-2023-0053,Child_53,M,12 ans,District Ouest,18/03/2023,2023-03-20,1,Oui,N,NA,0 dose,Descarte,Inconnu
+MEA-2023-0054,Child_54,Female,34 mois,District Ouest,17/04/2023,2023-04-18,O,Oui,Oui,0,0 dose,Confirme,Inconnu
+MEA-2023-0055,Child_55,M,34 mois,District Nord,05/03/2023,2023-03-08,1,Oui,N,Non,1 dose,Suspect,Decede
+MEA-2023-0056,Child_56,F,22 mois,District Est,31/03/2023,2023-04-02,Yes,Oui,Non,0,1 dose,Confirme,Gueri
+MEA-2023-0057,Child_57,M,58 mois,District Ouest,21/03/2023,2023-03-22,O,Oui,Oui,NA,1 dose,Confirme,Gueri
+MEA-2023-0058,Child_58,Female,7 mois,District Sud,02/04/2023,2023-04-02,Yes,Oui,Non,Oui,0 dose,Confirme,Gueri
+MEA-2023-0059,Child_59,F,47 mois,District Ouest,11/03/2023,2023-03-13,1,Oui,N,NA,0 dose,Confirme,Decede
+MEA-2023-0060,Child_60,Male,52 mois,District Est,16/03/2023,2023-03-18,Yes,Oui,Non,Oui,2 doses,Epidemiologiquement lie,Gueri
+MEA-2023-0061,Child_61,Female,7 ans,District Est,07/04/2023,2023-04-07,Yes,Oui,N,Non,1 dose,Confirme,Inconnu
+MEA-2023-0062,Child_62,fille,30 mois,District Ouest,23/03/2023,2023-03-25,O,Oui,O,NA,1 dose,Suspect,Gueri
+MEA-2023-0063,Child_63,Male,25 mois,District Sud,12/03/2023,2023-03-12,Yes,Oui,Oui,NA,0 dose,Suspect,Gueri
+MEA-2023-0064,Child_64,Female,7 mois,District Ouest,04/03/2023,2023-03-05,1,Oui,Oui,Non,1 dose,Confirme,Gueri
+MEA-2023-0065,Child_65,fille,23 mois,District Ouest,02/04/2023,2023-04-04,1,Oui,Oui,Non,Inconnu,Epidemiologiquement lie,Gueri
+MEA-2023-0066,Child_66,M,12 ans,District Est,20/03/2023,2023-03-21,Yes,Oui,N,0,1 dose,Epidemiologiquement lie,Inconnu
+MEA-2023-0067,Child_67,Male,6 ans,District Sud,26/03/2023,2023-03-29,1,Oui,N,0,Inconnu,Confirme,Inconnu
+MEA-2023-0068,Child_68,garcon,12 ans,District Sud,15/04/2023,2023-04-16,O,Oui,Oui,Non,Inconnu,Suspect,Gueri
+MEA-2023-0069,Child_69,garcon,10 ans,District Ouest,12/04/2023,2023-04-13,Yes,Oui,O,Non,Inconnu,Epidemiologiquement lie,Gueri
+MEA-2023-0070,Child_70,F,39 mois,District Nord,14/03/2023,2023-03-14,O,Oui,N,NA,2 doses,Confirme,Gueri
+MEA-2023-0071,Child_71,garcon,8 ans,District Sud,25/03/2023,2023-03-27,Oui,Oui,Non,Oui,Inconnu,Descarte,Gueri
+MEA-2023-0072,Child_72,Female,32 mois,District Nord,13/03/2023,2023-03-14,Oui,Oui,N,Oui,Inconnu,Epidemiologiquement lie,Gueri
+MEA-2023-0073,Child_73,fille,51 mois,District Sud,05/03/2023,2023-03-07,O,Oui,O,Oui,2 doses,Suspect,Gueri
+MEA-2023-0074,Child_74,fille,40 mois,District Nord,18/04/2023,2023-04-21,1,Oui,Oui,0,2 doses,Epidemiologiquement lie,Decede
+MEA-2023-0075,Child_75,F,19 mois,District Sud,22/03/2023,2023-03-22,1,Oui,N,Oui,0 dose,Descarte,Decede
+MEA-2023-0076,Child_76,fille,43 mois,District Nord,12/04/2023,2023-04-14,O,Oui,Oui,NA,0 dose,Suspect,Decede
+MEA-2023-0077,Child_77,Female,6 ans,District Nord,25/03/2023,2023-03-27,Yes,Oui,O,Oui,0 dose,Epidemiologiquement lie,Gueri
+MEA-2023-0078,Child_78,Male,57 mois,District Est,29/03/2023,2023-03-30,1,Oui,O,0,Inconnu,Suspect,Gueri
+MEA-2023-0079,Child_79,Female,6 ans,District Sud,13/04/2023,2023-04-13,1,Oui,Non,Oui,1 dose,Suspect,Gueri
+MEA-2023-0080,Child_80,M,11 ans,District Ouest,06/03/2023,2023-03-06,O,Oui,N,0,2 doses,Epidemiologiquement lie,Gueri
+MEA-2023-0081,Child_81,Female,18 mois,District Sud,09/04/2023,2023-04-11,O,Oui,Non,Oui,2 doses,Suspect,Inconnu
+MEA-2023-0082,Child_82,Male,8 ans,District Sud,11/03/2023,2023-03-11,Yes,Oui,O,Oui,Inconnu,Epidemiologiquement lie,Gueri
+MEA-2023-0083,Child_83,fille,8 ans,District Nord,19/04/2023,2023-04-20,1,Oui,Non,Non,1 dose,Confirme,Gueri
+MEA-2023-0084,Child_84,F,30 mois,District Nord,24/03/2023,2023-03-24,1,Oui,N,0,0 dose,Suspect,Decede
+MEA-2023-0085,Child_85,garcon,12 ans,District Est,07/03/2023,2023-03-10,O,Oui,N,0,1 dose,Descarte,Decede
+MEA-2023-0086,Child_86,M,8 ans,District Est,26/03/2023,2023-03-28,1,Oui,Non,NA,1 dose,Epidemiologiquement lie,Gueri
+MEA-2023-0087,Child_87,fille,4 mois,District Sud,08/04/2023,2023-04-10,O,Oui,O,Non,1 dose,Confirme,Gueri
+MEA-2023-0088,Child_88,garcon,17 mois,District Ouest,27/03/2023,2023-03-27,1,Oui,O,0,1 dose,Suspect,Inconnu
+MEA-2023-0089,Child_89,F,37 mois,District Est,30/03/2023,2023-03-31,O,Oui,N,Non,2 doses,Descarte,Gueri
+MEA-2023-0090,Child_90,F,10 ans,District Est,16/04/2023,2023-04-16,1,Oui,N,Oui,Inconnu,Epidemiologiquement lie,Gueri
+MEA-2023-0091,Child_91,F,12 ans,District Est,04/03/2023,2023-03-04,Oui,Oui,Non,Oui,1 dose,Confirme,Gueri
+MEA-2023-0092,Child_92,garcon,7 ans,District Ouest,20/03/2023,2023-03-20,Oui,Oui,N,NA,1 dose,Descarte,Gueri
+MEA-2023-0093,Child_93,garcon,25 mois,District Est,13/03/2023,2023-03-16,1,Oui,O,Oui,1 dose,Confirme,Gueri
+MEA-2023-0094,Child_94,garcon,9 ans,District Sud,20/04/2023,2023-04-22,O,Oui,O,Non,2 doses,Epidemiologiquement lie,Inconnu
+MEA-2023-0095,Child_95,garcon,52 mois,District Ouest,05/04/2023,2023-04-07,Yes,Oui,O,Non,2 doses,Confirme,Inconnu
+MEA-2023-0096,Child_96,M,26 mois,District Nord,06/03/2023,2023-03-09,Oui,Oui,O,NA,Inconnu,Confirme,Inconnu
+MEA-2023-0097,Child_97,M,22 mois,District Est,12/04/2023,2023-04-14,Oui,Oui,N,Oui,1 dose,Descarte,Decede
+MEA-2023-0098,Child_98,Female,29 mois,District Ouest,09/04/2023,2023-04-10,Yes,Oui,O,0,0 dose,Epidemiologiquement lie,Decede
+MEA-2023-0099,Child_99,Male,14 ans,District Nord,07/04/2023,2023-04-09,Oui,Oui,O,NA,Inconnu,Confirme,Gueri
+MEA-2023-0100,Child_100,M,10 ans,District Ouest,05/03/2023,2023-03-05,Oui,Oui,O,0,0 dose,Descarte,Gueri

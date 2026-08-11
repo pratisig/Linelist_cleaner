@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linelist Cleaner & Géocodage en Cascade (P-Codes OCHA COD-AB)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Leaflet.js CDN for GIS Map Preview -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
+
+  <!-- Top Navbar -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-blue-600 via-teal-500 to-emerald-400 flex items-center justify-center font-bold text-white shadow-md">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight text-white">Linelist Cleaner & SIG</h1>
+            <span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">P-Code Cascade & EpiWeek</span>
+          </div>
+          <p class="text-xs text-slate-400">Nettoyage Épidémiologique & Géocodage Hiérarchique (OCHA COD-AB)</p>
+        </div>
+      </div>
+
+      <!-- Quick Outbreak Sample Loaders -->
+      <div class="hidden md:flex items-center gap-2 text-xs">
+        <span class="text-slate-400 font-medium mr-1">Jeux de données :</span>
+        <button onclick="loadSample('borno')" class="px-2.5 py-1 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-700/60 rounded transition font-medium">📍 Borno Choléra (P-Codes)</button>
+        <button onclick="loadSample('cholera')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded transition font-medium">💧 Kivu Choléra</button>
+        <button onclick="loadSample('covid19')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded transition font-medium">🦠 COVID-19</button>
+        <button onclick="loadSample('ebola')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded transition font-medium">🩸 Ebola (EVD)</button>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3">
+        <button onclick="openConfigModal()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Paramètres du Pipeline">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+        <button onclick="cleanDataset()" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Exécuter Nettoyage & Cascade
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Upload & Parameter Toolbar -->
+  <section class="bg-white border-b border-slate-200 py-3 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-3">
+        <!-- Linelist Upload Dropzone -->
+        <div id="drop-zone" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-lg p-2.5 text-center cursor-pointer transition bg-slate-50/50 hover:bg-blue-50/30 flex items-center justify-center gap-2">
+          <input type="file" id="file-input" class="hidden" accept=".csv, .xlsx, .xls, .tsv">
+          <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          <span class="text-xs font-medium text-slate-700"><span class="text-blue-600 font-semibold">Charger Line List</span> (.csv / .xlsx)</span>
+        </div>
+
+        <!-- Reference P-Code Upload Dropzone -->
+        <div id="ref-drop-zone" class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-lg p-2.5 text-center cursor-pointer transition bg-emerald-50/30 hover:bg-emerald-50/50 flex items-center justify-center gap-2">
+          <input type="file" id="ref-file-input" class="hidden" accept=".csv, .xlsx, .xls">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+          <span class="text-xs font-medium text-slate-700"><span class="text-emerald-700 font-semibold">Référentiel P-Code</span> (OCHA COD-AB)</span>
+        </div>
+      </div>
+
+      <!-- Quick Status -->
+      <div class="w-full md:w-auto flex items-center justify-between md:justify-end gap-3 text-xs border-t md:border-t-0 pt-2 md:pt-0 border-slate-100">
+        <div class="text-left">
+          <div class="font-semibold text-slate-800 truncate max-w-[180px]" id="stat-filename">Borno Cholera Linelist</div>
+          <div class="text-slate-500"><span id="stat-rows">180 cas</span> • <span id="stat-cols">15 colonnes</span></div>
+        </div>
+        <div id="stat-score"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Cascade Similarity Slider Bar -->
+  <section class="bg-slate-100 border-b border-slate-200 py-2 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <span class="font-semibold text-slate-700 flex items-center gap-1">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
+          Seuil de Similarité Fuzzy (Fuzzy Threshold) :
+        </span>
+        <div class="flex items-center gap-2">
+          <input type="range" id="slider-threshold" min="50" max="100" value="80" class="w-28 sm:w-40 accent-emerald-600 cursor-pointer">
+          <span id="slider-val" class="font-mono font-bold text-emerald-700 px-2 py-0.5 bg-emerald-100 rounded text-xs">80%</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 text-[11px] text-slate-600">
+        <span class="font-semibold">Niveaux de Cascade :</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 1. Localité</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> 2. Admin 3 (Ward)</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> 3. Admin 2 (LGA)</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 4. Admin 1 (State)</span>
+        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 5. Unmatched</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Navigation Tab Strip -->
+  <nav class="bg-white border-b border-slate-200 shadow-2xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-6 overflow-x-auto" aria-label="Tabs">
+        <button data-tab="dashboard" class="tab-btn border-emerald-600 text-emerald-600 py-3 px-1 border-b-2 font-semibold text-xs whitespace-nowrap flex items-center gap-1.5">
+          <span>📊 Tableau de Bord KPI & Précision</span>
+        </button>
+        <button data-tab="map" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <span>🗺️ Carte SIG & Points Géocodés</span>
+        </button>
+        <button data-tab="data" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <span>📋 Données Nettoyées & P-Codes</span>
+        </button>
+        <button data-tab="mapper" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <span>🔗 Mapping Spatial & Colonnes</span>
+        </button>
+        <button data-tab="epicurve" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <span>📈 Courbe Épidémique (EpiWeek OMS)</span>
+        </button>
+        <button data-tab="issues" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <span>⚠️ Anomalies & Doublons</span>
+          <span id="tab-issues-count" class="ml-1 px-1.5 py-0.2 rounded-full text-xs bg-slate-100 text-slate-600">0</span>
+        </button>
+        <button data-tab="export" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <span>📥 Export Multi-Onglets (.xlsx)</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 w-full">
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- TAB 1: KPI DASHBOARD & PRECISION METRICS -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-dashboard" class="tab-content space-y-5">
+      <!-- KPI Hero Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 font-medium">Nombre Total de Cas</span>
+          <div class="text-2xl font-extrabold text-slate-900 mt-1" id="kpi-total-cases">0</div>
+          <span class="text-[11px] text-slate-400">Line list nettoyée</span>
+        </div>
+        <div class="bg-white border border-emerald-200 bg-emerald-50/20 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-emerald-700 font-medium">Taux Global de Géocodage</span>
+          <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="kpi-geocoded-rate">0%</div>
+          <span class="text-[11px] text-emerald-600/80" id="kpi-geocoded-count">0 / 0 cas localisés</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 font-medium">Score Moyen de Similarité</span>
+          <div class="text-2xl font-extrabold text-blue-600 mt-1" id="kpi-avg-score">0%</div>
+          <span class="text-[11px] text-slate-400">Précision fuzzy matching</span>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+          <span class="text-xs text-slate-500 font-medium">Semaines Épi Calculées</span>
+          <div class="text-2xl font-extrabold text-indigo-600 mt-1" id="kpi-epiweeks-count">0</div>
+          <span class="text-[11px] text-slate-400">Format WHO YYYY-Www</span>
+        </div>
+      </div>
+
+      <!-- Cascade Breakdown & Donut Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Precision Levels Table -->
+        <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Répartition par Niveau de Résolution Spatiale</h3>
+          <p class="text-xs text-slate-500 mb-4">Algorithme de cascade spatiale avec fallback automatique :</p>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                  <th class="px-3 py-2">Niveau de Résolution</th>
+                  <th class="px-3 py-2">Entité Administrative</th>
+                  <th class="px-3 py-2 text-right">Cas</th>
+                  <th class="px-3 py-2 text-right">Proportion</th>
+                  <th class="px-3 py-2 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody id="precision-breakdown-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Donut Chart -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Précision du Géocodage</h3>
+            <p class="text-xs text-slate-500 mb-2">Répartition en % par niveau</p>
+          </div>
+          <div class="h-52 relative">
+            <canvas id="chart-cascade-donut"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- TAB 2: INTERACTIVE LEAFLET GIS MAP -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-map" class="tab-content hidden space-y-4">
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Carte Interactive des Cas Géocodés</h3>
+            <p class="text-xs text-slate-500">Visualisation cartographique des patients par P-Code et niveau de matching.</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Localité</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-teal-500"></span> Admin 3</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Admin 2</span>
+            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Admin 1</span>
+          </div>
+        </div>
+
+        <!-- Leaflet Map Container -->
+        <div id="leaflet-map" class="w-full h-[520px] rounded-lg border border-slate-200 z-10"></div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- TAB 3: DATA INSPECTOR & P-CODE TABLE -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-data" class="tab-content hidden">
+      <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <!-- Table Toolbar -->
+        <div class="p-3 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Filter by MATCH_LEVEL -->
+            <div class="flex items-center gap-1 text-xs">
+              <span class="text-slate-500 font-medium">Filtrer par niveau :</span>
+              <select id="data-filter-level" class="rounded border-slate-300 py-1 px-2 text-xs bg-white font-medium text-slate-700">
+                <option value="ALL">Tous les niveaux</option>
+                <option value="Locality">📍 Localité (Précis)</option>
+                <option value="Admin3_Ward">🏘️ Admin 3 (Ward)</option>
+                <option value="Admin2_LGA">🏛️ Admin 2 (LGA)</option>
+                <option value="Admin1_State">🗺️ Admin 1 (State)</option>
+                <option value="Unmatched">❌ Non Localisé (Unmatched)</option>
+              </select>
+            </div>
+
+            <div class="bg-slate-200/80 p-0.5 rounded-lg flex text-xs ml-2">
+              <button class="view-mode-btn px-2 py-0.8 rounded text-slate-700 font-medium transition bg-white shadow-xs text-emerald-700 font-semibold" data-mode="cleaned">Données Nettoyées + P-Codes</button>
+              <button class="view-mode-btn px-2 py-0.8 rounded text-slate-700 font-medium transition" data-mode="raw">Données Brutes</button>
+            </div>
+          </div>
+
+          <div class="w-full sm:w-64">
+            <input type="text" id="table-search" placeholder="Rechercher patient, P-Code, village..." class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          </div>
+        </div>
+
+        <!-- Table Viewport -->
+        <div class="table-container">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead id="data-table-head"></thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- TAB 4: COLUMN & SPATIAL MAPPER -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-mapper" class="tab-content hidden space-y-5">
+      <div class="bg-white border border-slate-200 rounded-xl shadow-xs p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Correspondance Dynamique des Colonnes Spatiales (P-Code Mapping)</h3>
+            <p class="text-xs text-slate-500">Associez les colonnes de la line list brute aux rôles administratifs de la cascade OCHA.</p>
+          </div>
+          <button onclick="cleanDataset()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm">
+            Appliquer & Relancer la Cascade
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <th class="px-4 py-2.5">Colonne Line List Brute</th>
+                <th class="px-4 py-2.5">Attribution Variable Épidémio / Spatiale</th>
+                <th class="px-4 py-2.5">Niveau de Cascade</th>
+                <th class="px-4 py-2.5">Score de Détection</th>
+              </tr>
+            </thead>
+            <tbody id="column-mapper-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- TAB 5: WHO EPICURVE -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-epicurve" class="tab-content hidden space-y-5">
+      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Courbe Épidémique (Incidence par Semaine Épi OMS)</h3>
+            <p class="text-[11px] text-slate-500">Nombre de cas admis agrégés par semaine épidémiologique (EPI_WEEK)</p>
+          </div>
+          <div class="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md">
+            Format Standard OMS : YYYY-Www
+          </div>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-who-epicurve"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- TAB 6: ISSUES & ANOMALIES -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-issues" class="tab-content hidden space-y-4">
+      <div class="bg-white border border-slate-200 rounded-xl shadow-xs p-5">
+        <h3 class="text-sm font-bold text-slate-900 mb-1">Rapport de Contrôle Qualité & Incohérences Chronologiques</h3>
+        <p class="text-xs text-slate-500 mb-4">Anomalies temporelles, âges physiologiquement invalides et conflits de statuts.</p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <th class="px-3 py-2.5">Ligne</th>
+                <th class="px-3 py-2.5">ID Patient</th>
+                <th class="px-3 py-2.5">Sévérité</th>
+                <th class="px-3 py-2.5">Catégorie</th>
+                <th class="px-3 py-2.5">Colonne</th>
+                <th class="px-3 py-2.5">Description de l'Anomalie</th>
+                <th class="px-3 py-2.5">Action Recommandée</th>
+              </tr>
+            </thead>
+            <tbody id="issues-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- TAB 7: EXPORT MULTI-ONGLETS -->
+    <!-- ----------------------------------------------------------- -->
+    <div id="tab-export" class="tab-content hidden space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- 3-Tab Excel Workbook Download -->
+        <div class="bg-white border-2 border-emerald-500/40 rounded-xl p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-lg flex items-center justify-center font-bold mb-3">XLSX</div>
+            <h4 class="text-sm font-bold text-slate-900 mb-1">Classeur Excel Multi-Onglets (3 Onglets)</h4>
+            <ul class="text-xs text-slate-500 space-y-1 mb-4">
+              <li>• <strong>Onglet 1 :</strong> KPI_Dashboard (Synthèse & Taux)</li>
+              <li>• <strong>Onglet 2 :</strong> LineList_Nettoyee (Couleurs MATCH_LEVEL)</li>
+              <li>• <strong>Onglet 3 :</strong> Referentiel_PCode (Référentiel COD-AB)</li>
+            </ul>
+          </div>
+          <button onclick="downloadExcel()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+            Télécharger le Fichier Excel (.xlsx)
+          </button>
+        </div>
+
+        <!-- Cleaned CSV Download -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center font-bold mb-3">CSV</div>
+            <h4 class="text-sm font-bold text-slate-900 mb-1">Line List Nettoyée (Flat CSV)</h4>
+            <p class="text-xs text-slate-500 mb-4">Export direct avec PCODE_ASSIGNED, MATCH_LEVEL, MATCH_SCORE, EPI_WEEK pour SIG/QGIS/R.</p>
+          </div>
+          <button onclick="downloadCSV()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+            Télécharger le CSV (.csv)
+          </button>
+        </div>
+
+        <!-- Python Script Download -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center font-bold mb-3">PY</div>
+            <h4 class="text-sm font-bold text-slate-900 mb-1">Script Python Reproductible</h4>
+            <p class="text-xs text-slate-500 mb-4">Pipeline Python prêt à être exécuté en routine batch sur le terrain.</p>
+          </div>
+          <button onclick="downloadScript()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+            Télécharger le Script (.py)
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Configuration Modal -->
+  <div id="config-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+        <h3 class="text-sm font-bold text-slate-900">Paramètres du Pipeline de Nettoyage & Cascade</h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="font-semibold text-slate-700 block mb-1">Préférence de Format de Date Ambigu (ex: 04/05/2023)</label>
+          <select id="cfg-date-order" class="w-full border-slate-300 rounded p-1.5 bg-slate-50">
+            <option value="auto">Auto (Détecter selon la distribution)</option>
+            <option value="DMY">Jour en Premier / International (DD/MM/YYYY)</option>
+            <option value="MDY">Mois en Premier / US (MM/DD/YYYY)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-700 block mb-1">Action sur les Doublons Patients</label>
+          <select id="cfg-dedup-action" class="w-full border-slate-300 rounded p-1.5 bg-slate-50">
+            <option value="flag">Marquer (Ajouter colonne is_duplicate sans supprimer)</option>
+            <option value="keep_first">Conserver le premier enregistrement</option>
+            <option value="keep_most_complete">Conserver le dossier le plus complet</option>
+            <option value="merge">Fusionner les champs non vides</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="font-semibold text-slate-700 block">Options Actives</label>
+          <label class="flex items-center gap-2 text-slate-600">
+            <input type="checkbox" id="cfg-cascade" checked> Activer la Cascade Spatiale Hiérarchique (P-Codes)
+          </label>
+          <label class="flex items-center gap-2 text-slate-600">
+            <input type="checkbox" id="cfg-epiweek" checked> Calculer automatiquement l'EPI_WEEK OMS
+          </label>
+          <label class="flex items-center gap-2 text-slate-600">
+            <input type="checkbox" id="cfg-headers" checked> Normaliser les en-têtes (snake_case, sans accents)
+          </label>
+          <label class="flex items-center gap-2 text-slate-600">
+            <input type="checkbox" id="cfg-sex" checked> Standardiser les catégories Sexe (Male/Female)
+          </label>
+          <label class="flex items-center gap-2 text-slate-600">
+            <input type="checkbox" id="cfg-age" checked> Convertir les âges et générer les tranches d'âge
+          </label>
+          <label class="flex items-center gap-2 text-slate-600">
+            <input type="checkbox" id="cfg-chrono" checked> Valider la chronologie des dates
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-2">
+        <button onclick="closeConfigModal()" class="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold">Annuler</button>
+        <button onclick="saveConfigAndClean()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold">Sauvegarder & Exécuter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loader-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs flex flex-col items-center justify-center z-50 hidden">
+    <div class="w-12 h-12 border-4 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin mb-3"></div>
+    <div id="loader-text" class="text-white text-xs font-semibold tracking-wide">Exécution de la cascade spatiale...</div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+  <script>
+    function openConfigModal() {
+      document.getElementById('config-modal').classList.remove('hidden');
+    }
+    function closeConfigModal() {
+      document.getElementById('config-modal').classList.add('hidden');
+    }
+    function saveConfigAndClean() {
+      AppState.config.date_order_preference = document.getElementById('cfg-date-order').value;
+      AppState.config.dedup_action = document.getElementById('cfg-dedup-action').value;
+      AppState.config.enable_spatial_cascade = document.getElementById('cfg-cascade').checked;
+      AppState.config.compute_epi_weeks = document.getElementById('cfg-epiweek').checked;
+      AppState.config.standardize_headers = document.getElementById('cfg-headers').checked;
+      AppState.config.standardize_sex = document.getElementById('cfg-sex').checked;
+      AppState.config.standardize_ages = document.getElementById('cfg-age').checked;
+      AppState.config.validate_chronology = document.getElementById('cfg-chrono').checked;
+      closeConfigModal();
+      cleanDataset();
+    }
+  </script>
+</body>
+</html>

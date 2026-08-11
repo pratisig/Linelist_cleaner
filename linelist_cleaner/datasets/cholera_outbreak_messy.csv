@@ -1,0 +1,153 @@
+ID_Patient,Nom_et_Prenom,Sexe,Age,Zone_de_Sante,Structure_Sante,Date_Debut_Symptomes,Date_Consultation,Date_Admission_CTC,Date_Sortie,Date_Deces,Diarrhee_Aqueuse,Vomissements,Deshydratation_Severe,Statut_Vaccinal_OCV,Classification_Finale,Issue_Clinique
+CHO-2023-0001,Emmanuel Paluku,M,6 mois,Karisimbi,Hopital provincial du Nord-Kivu,45145,02/08/2023,2023-08-10,45152,NA,+,N,0,Inconnu,Confirme,Discharged
+CHO-2023-0002,Esperance Kambale,Female,15 mois,Nyiragongo,CSB Majengo,45160,2023-08-23,23-08-2023,,-,true,Oui,N,1 dose,Confirme,Transfere
+CHO-2023-0003,David Paluku,MASCULIN,NA,Karisimbi,CSB Majengo,19-08-2023,19-08-2023,NA,22-08-2023,,true,N,Non,Inconnu,Probable,Sortie
+CHO-2023-0004,Moise Masika,m,27 jours,Masisi,CSB Majengo,2023-08-15,10-08-2023,18/08/2023,45158,null,O,N,N,0,Non-cas,Gueri
+CHO-2023-0005,Moise Kakule,MASCULIN,14 jours,Karisimbi,Hopital provincial du Nord-Kivu,16 aout 2023,19/08/2023,2023-08-19,2023-08-23,,O,N,Non,NA,Suspect,Discharged
+CHO-2023-0006,Neema Masika,F,69 ans,Nyiragongo,CTC Birere,17/08/2023,2023-08-19,-,,21-08-2023,true,NA,Non,Inconnu,Non-cas,DCD
+CHO-2023-0007,Emmanuel Mumbere,MASCULIN,6 mois,Goma,CSB Majengo,24-08-2023,2023-08-24,24/08/2023,2023-08-25,NA,true,Oui,Oui,NA,Suspect,Discharged
+CHO-2023-0008,Aline Kakule,F,72 ans,Nyiragongo,CTC Birere,11-08-2023,12/08/2023,12 aout 2023,45155,-,Oui,Non,Non,1 dose,Non-cas,Guérie
+CHO-2023-0009,Chantal Paluku,2,10,Karisimbi,Hopital provincial du Nord-Kivu,15/08/2023,15 aout 2023,,45158,-,O,NA,N,0,CONF,Gueri
+CHO-2023-0010,Neema Kavira,F,54 ans,Goma,Centre de Sante Kyeshero,30/08/2023,02-09-2023,02/09/2023,45172,-,O,0,Non,Non,Confirme,gueri
+CHO-2023-0011,Bahati Mumbere,F,7,Masisi,CSB Majengo,6 aout 2023,2023-08-06,06-08-2023,10 aout 2023,,+,N,N,2 doses,Confirme,Guérie
+CHO-2023-0012,Marie Mumbere,f,41,Goma,Centre de Sante Kyeshero,2023-08-04,45137,45144,,NA,yes,Oui,1,2 doses,CONF,NA
+CHO-2023-0013,Pierre Masika,M,18 jours,Nyiragongo,Hopital General de Reference,2023-08-14,17 aout 2023,17 aout 2023,45157,,Oui,Oui,1,2 doses,SUSP,Sortie
+CHO-2023-0014,Dorcas Muhindo,f,13 mois,Nyiragongo,Hopital General de Reference,19/08/2023,2023-08-19,19-08-2023,2023-08-24,,+,O,Non,Non,Non-cas,Recovered
+CHO-2023-0015,Dorcas Paluku,f,26 jours,Nyiragongo,Centre de Sante Kyeshero,01-09-2023,2023-09-02,NA,6 sept 2023,,+,0,1,1 dose,Non-cas,Gueri
+CHO-2023-0016,Aline Mumbere,FEMININ,NA,Nyiragongo,Hopital provincial du Nord-Kivu,28 aout 2023,2023-08-28,45166,31/08/2023,NA,O,NA,Non,0,CONF,Gueri
+CHO-2023-0017,Dorcas Masika,FEMININ,10 mois,Nyiragongo,CSB Majengo,11/08/2023,14 aout 2023,14/08/2023,2023-08-16,NA,yes,1,O,1 dose,CONF,Sortie
+CHO-2023-0018,David Mumbere,Homme,70 ans,Goma,Hopital General de Reference,45160,22-08-2023,22 aout 2023,null,null,yes,O,1,1 dose,Suspect,LAMA
+CHO-2023-0019,Chantal Kasereka,2,56,Nyiragongo,Hopital General de Reference,03-09-2023,05-09-2023,45174,null,-,1,0,0,Non,PCR+,LAMA
+CHO-2023-0020,Claude Masika,m,21 mois,Nyiragongo,CTC Birere,6 sept 2023,45176,7 sept 2023,10/09/2023,,yes,NA,0,2 doses,CONF,Recovered
+CHO-2023-0021,Alain Kavira,Homme,-99,Masisi,Hopital provincial du Nord-Kivu,15/08/2023,15 aout 2023,15 aout 2023,20 aout 2023,-,O,Non,0,NA,Non-cas,Sortie
+CHO-2023-0022,Neema Paluku,F,18 mois,Nyiragongo,CTC Birere,45168,30 aout 2023,45168,-,,yes,Non,0,0,Probable,Evade
+CHO-2023-0023,Esperance Mumbere,f,32 ans,Karisimbi,Centre de Sante Kyeshero,18/08/2023,2023-08-19,19 aout 2023,22/08/2023,NA,Oui,0,N,Non,PCR+,Recovered
+CHO-2023-0024,Jean Paluku,Male,51 ans,Nyiragongo,CTC Birere,7 sept 2023,10-09-2023,45179,,,O,0,Non,Non,Probable,NA
+CHO-2023-0025,Neema Kavira,F,23 ans,Masisi,Centre de Sante Kyeshero,30 aout 2023,2023-08-30,NA,2023-09-04,null,yes,1,Non,0,Suspect,Sortie
+CHO-2023-0026,Esperance Masika,Female,12 jours,Goma,Centre de Sante Kyeshero,31/08/2023,2023-08-31,2023-08-31,45171,NA,O,Non,N,NA,SUSP,Recovered
+CHO-2023-0027,Bahati Kasereka,f,15 jours,Masisi,CTC Birere,08/09/2023,10-09-2023,,45182,NA,Oui,N,O,NA,Confirme,Guérie
+CHO-2023-0028,Jean Kavira,M,49 ans,Masisi,Centre de Sante Kyeshero,5 aout 2023,07-08-2023,07/08/2023,,10-08-2023,true,NA,1,0,Confirme,Dead
+CHO-2023-0029,Esperance Kavira,FEMININ,4 mois,Karisimbi,CTC Birere,18/08/2023,13-08-2023,19-08-2023,23-08-2023,null,1,O,0,Non,PCR+,Discharged
+CHO-2023-0030,Pascal Muhindo,1,15 mois,Nyiragongo,Centre de Sante Kyeshero,1 sept 2023,2023-09-03,03/09/2023,07-09-2023,,1,0,1,Inconnu,Probable,gueri
+CHO-2023-0031,Dorcas Kavira,FEMININ,36 ans,Karisimbi,Centre de Sante Kyeshero,20 aout 2023,21/08/2023,21-08-2023,45160,,true,1,Oui,2 doses,SUSP,Recovered
+CHO-2023-0032,Aline Kasereka,Femme,NA,Goma,Hopital General de Reference,45156,18 aout 2023,null,20 aout 2023,-,yes,1,Non,1 dose,SUSP,gueri
+CHO-2023-0033,Jeanne Muhindo,Female,64 ans,Goma,Hopital provincial du Nord-Kivu,5 aout 2023,07/08/2023,45145,45150,,O,NA,1,0,PCR+,Guérie
+CHO-2023-0034,Esperance Masika,Female,28 jours,Karisimbi,Centre de Sante Kyeshero,45178,09/09/2023,2023-09-09,11/09/2023,,yes,0,0,Inconnu,PCR+,Guérie
+CHO-2023-0035,Chantal Kasereka,F,24 jours,Masisi,Hopital General de Reference,45143,08/08/2023,08/08/2023,13/08/2023,null,O,Oui,Oui,2 doses,SUSP,gueri
+CHO-2023-0036,Emmanuel Kahindo,1,-99,Nyiragongo,Hopital provincial du Nord-Kivu,14-09-2023,15 sept 2023,,2023-09-19,NA,+,NA,1,Inconnu,Confirme,Sortie
+CHO-2023-0037,Emmanuel Kambale,MASCULIN,17 mois,Masisi,CSB Majengo,3 sept 2023,2023-09-06,06-09-2023,10-09-2023,,O,1,N,NA,SUSP,Discharged
+CHO-2023-0038,Neema Mumbere,FEMININ,59,Masisi,CTC Birere,2023-08-21,2023-08-22,22/08/2023,,null,true,NA,N,NA,Non-cas,En cours
+CHO-2023-0039,Chantal Kasereka,F,11 mois,Goma,Hopital provincial du Nord-Kivu,29 aout 2023,45170,2023-09-01,NA,2023-09-02,yes,Oui,0,2 doses,SUSP,décédé
+CHO-2023-0040,Esperance Mumbere,FEMININ,23 jours,Goma,CSB Majengo,31 aout 2023,01/09/2023,01-09-2023,45172,null,Oui,1,0,Non,Suspect,Sortie
+CHO-2023-0041,Moise Kakule,1,70 ans,Masisi,Centre de Sante Kyeshero,31 aout 2023,01/09/2023,2023-09-01,05-09-2023,-,+,NA,N,0,PCR+,Sortie
+CHO-2023-0042,Michel Kahindo,MASCULIN,-99,Goma,CTC Birere,07-08-2023,08/08/2023,08-08-2023,,-,+,Oui,O,NA,SUSP,Evade
+CHO-2023-0043,David Kahindo,Male,80,Masisi,Centre de Sante Kyeshero,16-08-2023,2023-08-19,2023-08-19,2023-08-20,null,Oui,1,O,Non,Probable,Guérie
+CHO-2023-0044,Neema Kakule,f,7 mois,Nyiragongo,CTC Birere,06-08-2023,8 aout 2023,,12 aout 2023,null,+,O,Non,1 dose,Suspect,Guérie
+CHO-2023-0045,Esperance Masika,Femme,24 jours,Nyiragongo,CSB Majengo,2023-08-20,45158,-,22-08-2023,,true,NA,0,NA,Probable,Gueri
+CHO-2023-0046,Moise Kasereka,1,21 mois,Nyiragongo,CTC Birere,2023-08-23,2023-08-23,45161,25-08-2023,NA,Oui,1,O,NA,SUSP,gueri
+CHO-2023-0047,Aline Mumbere,f,26 jours,Masisi,Hopital General de Reference,02/09/2023,2023-09-03,03/09/2023,6 sept 2023,,1,Oui,N,1 dose,SUSP,Sortie
+CHO-2023-0048,Bahati Kavira,F,28 jours,Nyiragongo,Hopital provincial du Nord-Kivu,25/08/2023,45166,,1 sept 2023,null,+,0,Oui,2 doses,Confirme,Guérie
+CHO-2023-0049,Esperance Kahindo,F,NA,Masisi,Hopital General de Reference,4 sept 2023,04/09/2023,45173,9 sept 2023,null,Oui,N,O,2 doses,Probable,gueri
+CHO-2023-0050,Dorcas Muhindo,f,27 jours,Goma,Hopital General de Reference,11-09-2023,45181,12/09/2023,16/09/2023,,O,Oui,1,2 doses,Confirme,Gueri
+CHO-2023-0051,David Kakule,m,NA,Nyiragongo,Hopital General de Reference,09/08/2023,04/08/2023,11-08-2023,2023-08-12,NA,+,0,1,1 dose,CONF,gueri
+CHO-2023-0052,Moise Kavira,Male,NA,Goma,CTC Birere,9 sept 2023,2023-09-09,9 sept 2023,,-,+,0,Oui,1 dose,PCR+,NA
+CHO-2023-0053,Jeanne Kakule,f,28 jours,Masisi,Hopital General de Reference,2023-09-05,45177,45177,NA,-,yes,Non,N,Non,PCR+,NA
+CHO-2023-0054,Claude Muhindo,Male,23 jours,Goma,CTC Birere,2023-08-21,2023-08-24,24-08-2023,NA,,Oui,O,1,Inconnu,Confirme,En cours
+CHO-2023-0055,Neema Kavira,F,8 ans,Goma,CSB Majengo,45157,21/08/2023,21-08-2023,2023-08-23,null,true,Non,N,Inconnu,CONF,Discharged
+CHO-2023-0056,Alain Kambale,1,10 jours,Masisi,Hopital General de Reference,12/08/2023,13/08/2023,2023-08-13,2023-08-16,,O,0,N,0,Confirme,Recovered
+CHO-2023-0057,Esperance Kavira,Femme,NA,Nyiragongo,Centre de Sante Kyeshero,45149,13 aout 2023,2023-08-13,17-08-2023,-,Oui,1,0,NA,Probable,Sortie
+CHO-2023-0058,Emmanuel Kambale,1,14 mois,Goma,Hopital General de Reference,8 sept 2023,08-09-2023,8 sept 2023,10/09/2023,NA,yes,O,0,2 doses,Non-cas,Guérie
+CHO-2023-0059,Dorcas Muhindo,FEMININ,7 ans,Nyiragongo,Hopital General de Reference,28 aout 2023,28 aout 2023,2023-08-28,02-09-2023,NA,true,0,0,Non,Probable,Recovered
+CHO-2023-0060,Chantal Masika,F,69 ans,Goma,Hopital provincial du Nord-Kivu,45144,45145,NA,10-08-2023,null,+,NA,0,2 doses,Non-cas,Guérie
+CHO-2023-0061,Esperance Paluku,f,21 mois,Masisi,Hopital provincial du Nord-Kivu,45148,45151,13-08-2023,null,NA,yes,Oui,N,0,Probable,En cours
+CHO-2023-0062,Jean Kavira,Homme,inconnu,Masisi,Hopital provincial du Nord-Kivu,45167,29 aout 2023,2023-08-29,30 aout 2023,,+,Non,O,Inconnu,Suspect,Gueri
+CHO-2023-0063,Marie Kahindo,f,44,Nyiragongo,CSB Majengo,02-09-2023,05/09/2023,5 sept 2023,9 sept 2023,null,+,O,Oui,NA,Suspect,Sortie
+CHO-2023-0064,David Muhindo,M,38 ans,Karisimbi,CSB Majengo,17-08-2023,2023-08-20,-,NA,,+,Oui,O,Inconnu,Non-cas,NA
+CHO-2023-0065,Aline Mumbere,Femme,-99,Karisimbi,Centre de Sante Kyeshero,2023-08-02,03/08/2023,03-08-2023,,,true,NA,0,Inconnu,Non-cas,Transfere
+CHO-2023-0066,Aline Masika,Femme,7 mois,Masisi,Hopital provincial du Nord-Kivu,12-08-2023,15/08/2023,15 aout 2023,19/08/2023,,O,1,N,2 doses,Confirme,Guérie
+CHO-2023-0067,Bahati Kahindo,2,22 jours,Masisi,CSB Majengo,45171,2023-09-04,2023-09-04,45178,,1,Oui,Non,Non,CONF,Guérie
+CHO-2023-0068,Aline Masika,2,inconnu,Karisimbi,Hopital General de Reference,23-08-2023,23-08-2023,2023-08-23,25-08-2023,NA,O,Oui,O,0,Probable,Recovered
+CHO-2023-0069,Moise Kahindo,m,11,Karisimbi,CSB Majengo,2023-08-17,17-08-2023,2023-08-17,22/08/2023,-,+,NA,1,0,Suspect,gueri
+CHO-2023-0070,Marie Mumbere,Female,6 mois,Nyiragongo,Hopital General de Reference,45157,2023-08-20,45158,45162,,true,Oui,N,0,CONF,Discharged
+CHO-2023-0071,Dorcas Kasereka,Female,46,Nyiragongo,Centre de Sante Kyeshero,23 aout 2023,45156,23 aout 2023,26/08/2023,NA,Oui,N,N,1 dose,CONF,Discharged
+CHO-2023-0072,Chantal Kambale,F,19 jours,Nyiragongo,Hopital General de Reference,02-09-2023,03-09-2023,null,2023-09-04,null,yes,0,0,0,Non-cas,Recovered
+CHO-2023-0073,David Kakule,Male,65 ans,Nyiragongo,CSB Majengo,2023-08-24,26/08/2023,2023-08-26,27-08-2023,null,1,0,1,NA,Probable,Sortie
+CHO-2023-0074,Bahati Kavira,FEMININ,7 ans,Karisimbi,Hopital General de Reference,23/08/2023,25-08-2023,,26 aout 2023,,O,Oui,Non,NA,SUSP,Gueri
+CHO-2023-0075,Marie Kakule,Female,49 ans,Karisimbi,Hopital General de Reference,2023-08-24,25-08-2023,25/08/2023,28 aout 2023,,yes,O,Oui,Non,Probable,Discharged
+CHO-2023-0076,Moise Paluku,MASCULIN,25 jours,Nyiragongo,Hopital General de Reference,45151,13-08-2023,45151,17-08-2023,null,O,N,0,NA,Confirme,Guérie
+CHO-2023-0077,Alain Paluku,Homme,NA,Goma,Hopital General de Reference,16-08-2023,17/08/2023,17 aout 2023,21 aout 2023,,yes,NA,N,Inconnu,Non-cas,Recovered
+CHO-2023-0078,Jeanne Kahindo,Femme,68 ans,Masisi,Hopital provincial du Nord-Kivu,2023-08-23,23/08/2023,,45166,NA,1,Non,Non,Non,CONF,gueri
+CHO-2023-0079,David Mumbere,m,12 jours,Karisimbi,Hopital provincial du Nord-Kivu,45155,45155,17/08/2023,20/08/2023,,+,O,O,Inconnu,Suspect,Guérie
+CHO-2023-0080,Jeanne Kambale,F,16 jours,Karisimbi,CTC Birere,06-09-2023,7 sept 2023,7 sept 2023,,2023-09-09,O,0,N,0,SUSP,décédé
+CHO-2023-0081,Aline Kavira,Femme,21 jours,Masisi,Centre de Sante Kyeshero,26/08/2023,26-08-2023,2023-08-26,2023-08-29,null,yes,NA,1,0,CONF,Gueri
+CHO-2023-0082,Dorcas Kavira,f,7 mois,Masisi,Centre de Sante Kyeshero,01/09/2023,45172,45172,04-09-2023,,Oui,1,N,Inconnu,Confirme,Sortie
+CHO-2023-0083,Moise Kasereka,MASCULIN,inconnu,Karisimbi,CSB Majengo,45147,45142,10-08-2023,2023-08-11,-,true,0,1,Non,Probable,Recovered
+CHO-2023-0084,Pierre Kakule,1,-99,Goma,Hopital General de Reference,22/08/2023,2023-08-24,null,29 aout 2023,,yes,Non,1,Inconnu,Suspect,Guérie
+CHO-2023-0085,Dorcas Kakule,2,40 ans,Nyiragongo,CSB Majengo,2023-09-07,2023-09-08,8 sept 2023,45182,null,+,NA,0,NA,PCR+,Sortie
+CHO-2023-0086,Esperance Paluku,Female,inconnu,Goma,Centre de Sante Kyeshero,2023-08-11,2023-08-13,13 aout 2023,15-08-2023,-,O,0,0,2 doses,Non-cas,Sortie
+CHO-2023-0087,Bahati Kambale,2,18 mois,Nyiragongo,Hopital provincial du Nord-Kivu,14-08-2023,16 aout 2023,16-08-2023,45158,-,O,Non,O,Inconnu,PCR+,Discharged
+CHO-2023-0088,Esperance Paluku,Femme,42 ans,Masisi,CTC Birere,31-08-2023,45170,01/09/2023,null,,1,N,Oui,Non,PCR+,Transfere
+CHO-2023-0089,Emmanuel Kahindo,MASCULIN,8 mois,Karisimbi,Hopital General de Reference,45173,05/09/2023,NA,06/09/2023,,Oui,0,O,NA,Suspect,Guérie
+CHO-2023-0090,Aline Kambale,FEMININ,15 mois,Karisimbi,Hopital provincial du Nord-Kivu,2023-09-11,2023-09-12,12/09/2023,15 sept 2023,NA,Oui,NA,N,0,PCR+,Recovered
+CHO-2023-0091,Esperance Kambale,FEMININ,39,Nyiragongo,Centre de Sante Kyeshero,2023-08-22,23 aout 2023,23-08-2023,27/08/2023,-,+,1,0,2 doses,CONF,Discharged
+CHO-2023-0092,Esperance Paluku,Femme,21 mois,Masisi,CSB Majengo,10/09/2023,11/09/2023,2023-09-11,15-09-2023,-,O,0,O,Non,SUSP,Gueri
+CHO-2023-0093,Marie Kasereka,FEMININ,17 jours,Nyiragongo,CSB Majengo,45142,2023-08-07,07/08/2023,12/08/2023,NA,yes,Non,N,NA,SUSP,Sortie
+CHO-2023-0094,Claude Mumbere,Homme,70 ans,Goma,Hopital provincial du Nord-Kivu,2023-09-12,12-09-2023,2023-09-12,45182,,O,O,1,2 doses,Suspect,Discharged
+CHO-2023-0095,Bahati Muhindo,2,20 mois,Goma,Hopital provincial du Nord-Kivu,1 sept 2023,1 sept 2023,null,2023-09-05,-,1,NA,Oui,NA,CONF,Gueri
+CHO-2023-0096,Marie Masika,F,12 jours,Masisi,CSB Majengo,4 sept 2023,04/09/2023,-,5 sept 2023,-,Oui,N,0,Inconnu,PCR+,Sortie
+CHO-2023-0097,Jeanne Kakule,Femme,69 ans,Masisi,Hopital provincial du Nord-Kivu,9 aout 2023,45150,NA,15/08/2023,-,1,Non,O,2 doses,Probable,Gueri
+CHO-2023-0098,Pierre Kambale,MASCULIN,4 ans,Karisimbi,Hopital General de Reference,16 aout 2023,2023-08-16,16 aout 2023,21/08/2023,,O,NA,Oui,2 doses,SUSP,Sortie
+CHO-2023-0099,Chantal Kavira,Femme,17 jours,Karisimbi,CTC Birere,45158,45158,-,2023-08-23,null,+,N,N,Inconnu,PCR+,Sortie
+CHO-2023-0100,Neema Kakule,Female,22 jours,Masisi,CTC Birere,45150,2023-08-14,45152,16/08/2023,-,O,1,Non,Non,Non-cas,Recovered
+CHO-2023-0101,David Muhindo,Male,3 mois,Karisimbi,CTC Birere,18/08/2023,45157,19-08-2023,21-08-2023,,O,Non,0,1 dose,Non-cas,Gueri
+CHO-2023-0102,Pascal Paluku,Male,32 ans,Masisi,CTC Birere,2023-09-05,45175,6 sept 2023,09-09-2023,NA,1,1,N,1 dose,PCR+,Discharged
+CHO-2023-0103,Michel Kambale,m,27 jours,Masisi,Hopital provincial du Nord-Kivu,07-09-2023,09/09/2023,09-09-2023,12 sept 2023,-,yes,Non,0,Non,CONF,Guérie
+CHO-2023-0104,Bahati Kakule,FEMININ,68,Karisimbi,Hopital provincial du Nord-Kivu,5 aout 2023,2023-08-08,08-08-2023,,45147,+,N,1,0,Confirme,Decede
+CHO-2023-0105,Jean Mumbere,M,3 ans,Karisimbi,Hopital General de Reference,2023-08-02,4 aout 2023,45142,05/08/2023,NA,O,O,1,Non,Suspect,Recovered
+CHO-2023-0106,Claude Muhindo,Homme,22 jours,Goma,CTC Birere,30 aout 2023,2023-09-01,1 sept 2023,45171,-,Oui,N,Oui,NA,SUSP,Recovered
+CHO-2023-0107,Neema Kavira,Female,68,Nyiragongo,Hopital provincial du Nord-Kivu,45153,2023-08-10,,19/08/2023,null,Oui,Non,1,2 doses,PCR+,Discharged
+CHO-2023-0108,Claude Muhindo,MASCULIN,15 jours,Goma,Hopital provincial du Nord-Kivu,06-09-2023,06/09/2023,2023-09-06,2023-09-11,-,O,NA,Oui,Non,PCR+,gueri
+CHO-2023-0109,Claude Kavira,1,inconnu,Goma,Hopital provincial du Nord-Kivu,01-09-2023,1 sept 2023,01/09/2023,,,1,Non,N,NA,CONF,En cours
+CHO-2023-0110,Claude Kavira,m,13 jours,Masisi,Hopital provincial du Nord-Kivu,45144,6 aout 2023,,7 aout 2023,,Oui,Oui,O,Inconnu,CONF,Recovered
+CHO-2023-0111,Dorcas Masika,2,inconnu,Karisimbi,Centre de Sante Kyeshero,25-08-2023,25 aout 2023,25-08-2023,30-08-2023,-,O,Oui,Non,0,Suspect,Guérie
+CHO-2023-0112,Bahati Muhindo,Femme,18 jours,Masisi,CSB Majengo,45154,2023-08-19,19 aout 2023,23-08-2023,-,1,0,0,Inconnu,Confirme,Guérie
+CHO-2023-0113,Chantal Kahindo,Femme,15 jours,Nyiragongo,CTC Birere,26-08-2023,27 aout 2023,2023-08-27,45170,NA,true,O,Non,NA,Non-cas,Sortie
+CHO-2023-0114,Moise Paluku,M,39 ans,Nyiragongo,Centre de Sante Kyeshero,14 sept 2023,14/09/2023,14 sept 2023,2023-09-18,-,true,0,1,0,CONF,Sortie
+CHO-2023-0115,Claude Mumbere,MASCULIN,47,Nyiragongo,CTC Birere,2023-08-07,7 aout 2023,2023-08-07,2023-08-12,null,O,O,0,Inconnu,Confirme,gueri
+CHO-2023-0116,Pascal Kahindo,MASCULIN,22 jours,Goma,Hopital General de Reference,30/08/2023,2 sept 2023,02-09-2023,03-09-2023,null,yes,NA,Non,Inconnu,Probable,Recovered
+CHO-2023-0117,Jeanne Kahindo,Female,42 ans,Karisimbi,Hopital provincial du Nord-Kivu,05/08/2023,06/08/2023,45144,09/08/2023,null,true,0,N,2 doses,SUSP,Gueri
+CHO-2023-0118,Michel Kakule,MASCULIN,52 ans,Karisimbi,CSB Majengo,2023-08-02,28/07/2023,45143,2023-08-09,,O,1,O,2 doses,Probable,Discharged
+CHO-2023-0119,Bahati Mumbere,Femme,22 jours,Goma,Centre de Sante Kyeshero,09-09-2023,10-09-2023,2023-09-10,15/09/2023,null,Oui,Non,O,NA,CONF,Sortie
+CHO-2023-0120,Neema Kakule,Female,56 ans,Karisimbi,Centre de Sante Kyeshero,12-08-2023,13-08-2023,13 aout 2023,45153,,1,Oui,N,2 doses,Suspect,gueri
+CHO-2023-0121,Bahati Masika,Female,55 ans,Nyiragongo,Centre de Sante Kyeshero,15 sept 2023,10/09/2023,45185,18 sept 2023,,true,Oui,1,1 dose,PCR+,Gueri
+CHO-2023-0122,Dorcas Mumbere,2,NA,Nyiragongo,CSB Majengo,2023-08-28,28 aout 2023,28 aout 2023,2023-08-31,NA,O,NA,0,Inconnu,Non-cas,Guérie
+CHO-2023-0123,Claude Kakule,MASCULIN,8 mois,Nyiragongo,Hopital provincial du Nord-Kivu,14-08-2023,14-08-2023,45152,2023-08-19,NA,yes,Oui,O,NA,CONF,Discharged
+CHO-2023-0124,Chantal Kakule,f,17 jours,Masisi,Hopital provincial du Nord-Kivu,13-09-2023,2023-09-14,14-09-2023,18 sept 2023,-,1,O,Oui,NA,Probable,Recovered
+CHO-2023-0125,Dorcas Muhindo,Female,29 ans,Masisi,CSB Majengo,2023-08-28,45166,2023-08-28,2023-08-31,-,Oui,Oui,Non,0,Suspect,Recovered
+CHO-2023-0126,Chantal Kakule,Female,15 jours,Karisimbi,CTC Birere,2023-08-18,18-08-2023,2023-08-18,2023-08-20,NA,yes,Oui,Non,Inconnu,Confirme,Recovered
+CHO-2023-0127,Bahati Kambale,FEMININ,44,Nyiragongo,CSB Majengo,28-08-2023,2023-08-31,31/08/2023,1 sept 2023,NA,+,N,Non,1 dose,SUSP,Sortie
+CHO-2023-0128,Michel Kahindo,M,16 jours,Karisimbi,Hopital General de Reference,45179,2023-09-13,13 sept 2023,17-09-2023,-,1,NA,Non,2 doses,Non-cas,gueri
+CHO-2023-0129,Chantal Mumbere,F,10 jours,Masisi,CTC Birere,2023-09-12,13/09/2023,13/09/2023,17 sept 2023,,Oui,O,Oui,Non,PCR+,Guérie
+CHO-2023-0130,Claude Masika,m,27 jours,Nyiragongo,Centre de Sante Kyeshero,2023-09-13,2023-09-13,2023-09-13,-,,1,N,0,Inconnu,Confirme,Evade
+CHO-2023-0131,Claude Muhindo,Male,10 mois,Goma,CSB Majengo,6 aout 2023,45145,07/08/2023,,NA,Oui,0,Oui,0,Suspect,LAMA
+CHO-2023-0132,Emmanuel Kakule,M,NA,Karisimbi,CSB Majengo,14/09/2023,14-09-2023,14-09-2023,,,1,NA,N,Non,Suspect,NA
+CHO-2023-0133,Pierre Kahindo,Homme,67 ans,Goma,Centre de Sante Kyeshero,45162,45162,2023-08-24,2023-08-26,,O,Oui,N,Non,PCR+,Recovered
+CHO-2023-0134,Aline Kambale,f,30 ans,Goma,Centre de Sante Kyeshero,21/08/2023,45159,45159,2023-08-22,-,Oui,0,O,Non,Suspect,Recovered
+CHO-2023-0135,Bahati Kambale,2,16 jours,Karisimbi,Hopital provincial du Nord-Kivu,19/08/2023,21 aout 2023,21/08/2023,2023-08-25,-,Oui,Non,1,Non,PCR+,Guérie
+CHO-2023-0136,Jean Kavira,MASCULIN,-99,Goma,Centre de Sante Kyeshero,45145,2023-08-07,7 aout 2023,08-08-2023,-,+,Oui,1,1 dose,CONF,Sortie
+CHO-2023-0137,Neema Muhindo,FEMININ,NA,Goma,Centre de Sante Kyeshero,16/08/2023,17/08/2023,45155,2023-08-20,NA,Oui,Non,N,0,PCR+,Sortie
+CHO-2023-0138,Dorcas Paluku,F,41 ans,Goma,Centre de Sante Kyeshero,30-08-2023,45169,NA,2023-09-03,NA,1,0,1,1 dose,Non-cas,gueri
+CHO-2023-0139,Michel Kambale,Homme,59 ans,Karisimbi,Centre de Sante Kyeshero,5 sept 2023,31/08/2023,08-09-2023,2023-09-10,,true,1,Oui,1 dose,Confirme,Gueri
+CHO-2023-0140,Moise Kakule,m,43,Goma,CTC Birere,3 aout 2023,4 aout 2023,04/08/2023,null,NA,O,1,O,0,Non-cas,En cours
+CHO-2023-0141,Pascal Kasereka,M,54 ans,Karisimbi,Hopital provincial du Nord-Kivu,2023-09-05,45175,6 sept 2023,10-09-2023,-,true,NA,N,Non,CONF,Guérie
+CHO-2023-0142,David Masika,1,15 jours,Nyiragongo,Hopital provincial du Nord-Kivu,02/08/2023,45141,03/08/2023,,03/08/2023,+,Non,O,Inconnu,Non-cas,Mort
+CHO-2023-0143,Jean Paluku,MASCULIN,47 ans,Karisimbi,Hopital provincial du Nord-Kivu,12/08/2023,07-08-2023,12 aout 2023,45153,null,O,0,Oui,1 dose,Suspect,gueri
+CHO-2023-0144,Chantal Kambale,2,2 ans,Goma,Hopital General de Reference,22/08/2023,24-08-2023,45162,26/08/2023,,true,NA,O,1 dose,Non-cas,gueri
+CHO-2023-0145,Neema Muhindo,FEMININ,19 jours,Nyiragongo,Centre de Sante Kyeshero,45159,45159,NA,25 aout 2023,null,+,N,O,2 doses,SUSP,Sortie
+CHO-2023-0146,Neema Kambale,F,21 mois,Nyiragongo,CSB Majengo,21/08/2023,23/08/2023,2023-08-23,25-08-2023,-,Oui,1,Non,2 doses,PCR+,Sortie
+CHO-2023-0147,Emmanuel Muhindo,Homme,inconnu,Goma,CTC Birere,45167,1 sept 2023,01/09/2023,05/09/2023,-,Oui,NA,Oui,Non,Probable,Sortie
+CHO-2023-0148,Jeanne Muhindo,Femme,15 jours,Goma,CTC Birere,25/08/2023,25 aout 2023,45163,28 aout 2023,NA,Oui,Oui,O,2 doses,Suspect,Gueri
+CHO-2023-0149,Alain Mumbere,Male,19 jours,Masisi,Hopital General de Reference,20-08-2023,2023-08-15,45158,24 aout 2023,NA,Oui,Oui,Non,2 doses,CONF,Discharged
+CHO-2023-0150,Moise Muhindo,M,22 jours,Nyiragongo,Centre de Sante Kyeshero,31 aout 2023,1 sept 2023,,06-09-2023,-,yes,1,Non,Non,Probable,gueri
+CHO-2023-0006,Neema Masika,F,69 ans,Nyiragongo,CTC Birere,17/08/2023,2023-08-19,-,,21-08-2023,true,NA,Non,Inconnu,Non-cas,DCD
+CHO-2023-9991,Pierre Masika Jr,M,18 jours,Nyiragongo,Hopital General de Reference,2023-08-14,17 aout 2023,17 aout 2023,45157,,Oui,Oui,1,2 doses,SUSP,Sortie
