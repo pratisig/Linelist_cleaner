@@ -12,7 +12,7 @@ from typing import Optional
 import pandas as pd
 from tabulate import tabulate
 
-# Configuration sécurisée de l'encodage console
+# Configuration sécurisée de l'encodage console pour compatibilité Windows
 if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
