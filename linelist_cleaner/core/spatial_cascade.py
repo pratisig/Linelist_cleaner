@@ -1,6 +1,8 @@
 """
 Hierarchical Spatial Fallback Cascade Geocoding Engine (P-Code Matching).
 Implements OCHA COD-AB and humanitarian spatial standard matching with multi-level fallbacks.
+PratiSIG Consulting Services - Dakar, Sénégal.
+Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
 """
 
 import re
@@ -22,43 +24,117 @@ def normalize_spatial_name(name: Any) -> str:
     if pd.isna(name) or name is None:
         return ""
     s = str(name).strip().lower()
-    # Normalize unicode
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
 
-    # Remove noise prefixes/suffixes for matching
-    s = re.sub(r"\b(village|localite|localité|ward|lga|district|zone de sante|commune|city|ville)\b", " ", s)
-    # Remove punctuation
+    s = re.sub(r"\b(village|localite|localite|ward|lga|district|zone de sante|commune|city|ville)\b", " ", s)
     s = re.sub(r"[^\w\s]", " ", s)
     s = re.sub(r"\s+", " ", s).strip()
     return s
 
 
+def auto_detect_reference_mapping(ref_df: pd.DataFrame) -> Dict[str, Optional[str]]:
+    """
+    Automatically detects column roles in an uploaded P-Code reference dataset (Excel or CSV).
+    Supports English, French, Spanish, OCHA COD-AB and standard humanitarian GIS headers.
+    """
+    cols = list(ref_df.columns)
+    mapping: Dict[str, Optional[str]] = {
+        "admin1_name": None,
+        "admin1_pcode": None,
+        "admin2_name": None,
+        "admin2_pcode": None,
+        "admin3_name": None,
+        "admin3_pcode": None,
+        "locality_name": None,
+        "locality_pcode": None,
+        "lat": None,
+        "long": None
+    }
+
+    role_synonyms = {
+        "admin1_name": [
+            "admin1_name", "adm1_name", "adm1_fr", "adm1_en", "state", "province", "region",
+            "nom_region", "nom_province", "departement", "admin1", "adm1", "state_name", "province_name", "region_name"
+        ],
+        "admin1_pcode": [
+            "admin1_pcode", "adm1_pcode", "pcode_adm1", "code_adm1", "code_region", "code_province",
+            "pcode1", "adm1_code", "admin1_code", "pcode_admin1", "adm1_pcode_code"
+        ],
+        "admin2_name": [
+            "admin2_name", "adm2_name", "adm2_fr", "adm2_en", "lga", "district", "zone_sante",
+            "zone_de_sante", "nom_district", "nom_lga", "cercle", "commune", "admin2", "adm2", "district_name", "lga_name", "county"
+        ],
+        "admin2_pcode": [
+            "admin2_pcode", "adm2_pcode", "pcode_adm2", "code_adm2", "code_district", "code_lga",
+            "pcode2", "adm2_code", "admin2_code", "pcode_admin2", "pcode_lga"
+        ],
+        "admin3_name": [
+            "admin3_name", "adm3_name", "adm3_fr", "adm3_en", "ward", "subdistrict", "sub_district",
+            "aire_sante", "aire_de_sante", "nom_ward", "nom_commune", "admin3", "adm3", "ward_name", "subcounty"
+        ],
+        "admin3_pcode": [
+            "admin3_pcode", "adm3_pcode", "pcode_adm3", "code_adm3", "code_ward", "pcode3",
+            "adm3_code", "admin3_code", "pcode_admin3", "pcode_ward"
+        ],
+        "locality_name": [
+            "locality_name", "loc_name", "village", "village_name", "settlement", "localite",
+            "nom_localite", "nom_village", "site", "camp", "center", "centre", "structure", "point_name", "nom_site", "locality"
+        ],
+        "locality_pcode": [
+            "locality_pcode", "loc_pcode", "pcode_loc", "pcode_village", "code_localite", "code_village",
+            "pcode_site", "pcode_locality", "locality_code", "loc_code"
+        ],
+        "lat": [
+            "latitude", "lat", "lat_y", "y", "y_coord", "coord_y", "latitude_y", "lat_dd"
+        ],
+        "long": [
+            "longitude", "long", "lon", "long_x", "lng", "x", "x_coord", "coord_x", "longitude_x", "long_dd"
+        ]
+    }
+
+    used_cols: Set[str] = set()
+
+    # Pass 1: Exact matches
+    for role, syn_list in role_synonyms.items():
+        for col in cols:
+            if col in used_cols:
+                continue
+            clean_col = normalize_spatial_name(col)
+            if clean_col in [normalize_spatial_name(s) for s in syn_list]:
+                mapping[role] = col
+                used_cols.add(col)
+                break
+
+    # Pass 2: Substring matches
+    for role, syn_list in role_synonyms.items():
+        if mapping[role] is not None:
+            continue
+        for col in cols:
+            if col in used_cols:
+                continue
+            clean_col = normalize_spatial_name(col)
+            if any(normalize_spatial_name(s) in clean_col for s in syn_list):
+                mapping[role] = col
+                used_cols.add(col)
+                break
+
+    return mapping
+
+
 class PCodeReferenceIndex:
     """Indexed reference hierarchy for fast exact and fuzzy lookup."""
 
-    def __init__(self, ref_df: pd.DataFrame, mapping: Dict[str, str]):
-        """
-        mapping maps reference roles to ref_df column names:
-        {
-            "admin1_name": "adm1_name",
-            "admin1_pcode": "adm1_pcode",
-            "admin2_name": "adm2_name",
-            "admin2_pcode": "adm2_pcode",
-            "admin3_name": "adm3_name",
-            "admin3_pcode": "adm3_pcode",
-            "locality_name": "locality_name",
-            "locality_pcode": "locality_pcode",
-            "lat": "latitude",
-            "long": "longitude"
-        }
-        """
+    def __init__(self, ref_df: pd.DataFrame, mapping: Optional[Dict[str, str]] = None):
         self.ref_df = ref_df.copy()
-        self.mapping = mapping
+        
+        auto_map = auto_detect_reference_mapping(ref_df)
+        if mapping:
+            auto_map.update({k: v for k, v in mapping.items() if v})
+        self.mapping = auto_map
 
-        # Helper to get column
         def get_col(role: str) -> Optional[str]:
-            col = mapping.get(role)
+            col = self.mapping.get(role)
             if col and col in ref_df.columns:
                 return col
             return None
@@ -74,7 +150,6 @@ class PCodeReferenceIndex:
         self.col_lat = get_col("lat")
         self.col_long = get_col("long")
 
-        # Build level lookups: level -> {norm_name: {pcode, name, lat, long}}
         self.lookups: Dict[str, Dict[str, Dict[str, Any]]] = {
             "Locality": {},
             "Admin3_Ward": {},
@@ -170,7 +245,6 @@ class SpatialCascadeMatcher:
     ):
         self.index = ref_index
         self.similarity_threshold = similarity_threshold
-        # Cache for memoizing fuzzy queries: (level, query_norm) -> (match_dict, score)
         self.fuzzy_cache: Dict[Tuple[str, str], Tuple[Optional[Dict[str, Any]], float]] = {}
 
     def _match_single_level(
@@ -197,14 +271,11 @@ class SpatialCascadeMatcher:
             self.fuzzy_cache[cache_key] = (None, 0.0)
             return None, 0.0
 
-        # 1. Exact match
         if norm in level_lookup:
             res = (level_lookup[norm], 100.0)
             self.fuzzy_cache[cache_key] = res
             return res
 
-        # 2. Fuzzy match
-        # Compute best match using token_sort_ratio
         best_match = process.extractOne(
             norm,
             candidates,
@@ -218,7 +289,6 @@ class SpatialCascadeMatcher:
             self.fuzzy_cache[cache_key] = res
             return res
 
-        # Try partial ratio fallback for compound names
         best_match_partial = process.extractOne(
             norm,
             candidates,
@@ -241,15 +311,6 @@ class SpatialCascadeMatcher:
         admin2_val: Any = None,
         admin1_val: Any = None
     ) -> Dict[str, Any]:
-        """
-        Runs the 5-step spatial fallback cascade:
-        Step 1: Locality / Village
-        Step 2: Admin 3 / Ward (Fallback 1)
-        Step 3: Admin 2 / LGA (Fallback 2)
-        Step 4: Admin 1 / State (Fallback 3)
-        Step 5: Unmatched
-        """
-        # Step 1: Locality
         if locality_val is not None and str(locality_val).strip():
             match_data, score = self._match_single_level(locality_val, "Locality")
             if match_data:
@@ -262,7 +323,6 @@ class SpatialCascadeMatcher:
                     "LONGITUDE": match_data["long"]
                 }
 
-        # Step 2: Admin 3 / Ward
         if admin3_val is not None and str(admin3_val).strip():
             match_data, score = self._match_single_level(admin3_val, "Admin3_Ward")
             if match_data:
@@ -275,7 +335,6 @@ class SpatialCascadeMatcher:
                     "LONGITUDE": match_data["long"]
                 }
 
-        # Step 3: Admin 2 / LGA
         if admin2_val is not None and str(admin2_val).strip():
             match_data, score = self._match_single_level(admin2_val, "Admin2_LGA")
             if match_data:
@@ -288,7 +347,6 @@ class SpatialCascadeMatcher:
                     "LONGITUDE": match_data["long"]
                 }
 
-        # Step 4: Admin 1 / State
         if admin1_val is not None and str(admin1_val).strip():
             match_data, score = self._match_single_level(admin1_val, "Admin1_State")
             if match_data:
@@ -301,7 +359,6 @@ class SpatialCascadeMatcher:
                     "LONGITUDE": match_data["long"]
                 }
 
-        # Step 5: Unmatched
         return {
             "PCODE_ASSIGNED": None,
             "MATCH_LEVEL": "Unmatched",
@@ -319,10 +376,6 @@ class SpatialCascadeMatcher:
         col_admin2: Optional[str] = None,
         col_admin1: Optional[str] = None
     ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
-        """
-        Applies cascade matching across the entire DataFrame and appends enriched columns.
-        Returns: (enriched_df, stats_summary)
-        """
         df_out = df.copy()
 
         pcodes = []
