@@ -1,0 +1,121 @@
+case_id,patient_name,gender,patient_age,province,reporting_facility,symptom_onset_date,specimen_collection_date,lab_result_date,rt_pcr_result,hospitalized_yn,admission_date,discharge_date,death_date,fever,cough,vaccine_doses,final_outcome,case_status
+COV-2022-00001,Patient_1,M,NA,Eastern Highlands,City Memorial Hospital,18/01/2022,01/19/2022,01/23/2022,Positive,Yes,22-Jan-2022,30/01/2022,N/A,No,true,1,Discharged,Suspect
+COV-2022-00002,Patient_2,man,NA,Eastern Highlands,Community Health Center,02/13/2022,15-Feb-2022,2022-02-16,Negative,Yes,19-Feb-2022,2022-02-26,.,1,0,0,Alive,Probable
+COV-2022-00003,Patient_3,m,91,Eastern Highlands,North Clinic,31-Jan-2022,02/01/2022,02-Feb-2022,Inconclusive,false,N/A,,,Yes,Yes,Booster,Active,Probable
+COV-2022-00004,Patient_4,man,76 yo,Northern District,City Memorial Hospital,02/27/2022,28/02/2022,01/03/2022,Negative,No,,null,.,Yes,1,2,Home Isolation,Suspect
+COV-2022-00005,Patient_5,Male,6 mos,Metro Region,City Memorial Hospital,13-Feb-2022,14-Feb-2022,2022-02-16,Pos,Yes,02/17/2022,22/02/2022,.,1,0,Booster,Recovered,Suspect
+COV-2022-00006,Patient_6,Female,6 mos,Metro Region,St. Jude Medical Center,02/27/2022,2022-03-01,03/03/2022,Pos,No,null,,10-Mar-2022,1,true,Booster,Dead,Suspect
+COV-2022-00007,Patient_7,M,999,Eastern Highlands,St. Jude Medical Center,19-Feb-2022,21/02/2022,2022-02-23,PCR+,No,null,.,.,Yes,true,Booster,Active,Suspect
+COV-2022-00008,Patient_8,Female,60,Eastern Highlands,City Memorial Hospital,2022-02-10,13/02/2022,2022-02-17,Positive,N,null,,N/A,No,No,0,Active,Probable
+COV-2022-00009,Patient_9,f,30 yo,Eastern Highlands,St. Jude Medical Center,2022-03-02,03/03/2022,03/07/2022,Positive,Yes,2022-03-08,14/03/2022,N/A,0,No,1,Alive,Confirmed
+COV-2022-00010,Patient_10,Female,6 mos,Coast Valley,North Clinic,02/09/2022,02/10/2022,14-Feb-2022,Inconclusive,Yes,13-Feb-2022,02/17/2022,null,Yes,1,2,Discharged,Probable
+COV-2022-00011,Patient_11,man,NA,Metro Region,St. Jude Medical Center,24/01/2022,2022-01-25,01/27/2022,Pos,false,,.,N/A,true,0,unknown,Alive,Suspect
+COV-2022-00012,Patient_12,1,999,Metro Region,North Clinic,15-Mar-2022,2022-03-17,18-Mar-2022,Positive,false,,N/A,,No,1,3,Active,Probable
+COV-2022-00013,Patient_13,M,6 mos,Northern District,Community Health Center,07/02/2022,02/08/2022,12-Feb-2022,Inconclusive,No,,,,No,true,3,Active,Suspect
+COV-2022-00014,Patient_14,f,NA,Metro Region,City Memorial Hospital,30-Jan-2022,31/01/2022,02/02/2022,Negative,0,,N/A,.,No,1,Unvaccinated,Home Isolation,Confirmed
+COV-2022-00015,Patient_15,2,19 yo,Metro Region,St. Jude Medical Center,01/31/2022,2022-02-01,02/05/2022,Negative,Yes,2022-02-04,02/10/2022,.,No,true,1,Alive,Confirmed
+COV-2022-00016,Patient_16,woman,55,Metro Region,North Clinic,2022-01-25,01/27/2022,28/01/2022,PCR+,0,.,N/A,N/A,true,1,unknown,Recovered,Suspect
+COV-2022-00017,Patient_17,woman,999,Northern District,City Memorial Hospital,03-Feb-2022,2022-02-05,07-Feb-2022,PCR+,false,N/A,.,.,0,1,1,Active,Confirmed
+COV-2022-00018,Patient_18,woman,56 yo,Metro Region,St. Jude Medical Center,02/23/2022,24/02/2022,2022-02-28,PCR+,No,.,null,N/A,0,No,Unvaccinated,Alive,Confirmed
+COV-2022-00019,Patient_19,f,NA,Eastern Highlands,North Clinic,2022-02-13,14/02/2022,16-Feb-2022,Positive,No,null,null,null,Yes,Yes,0,Home Isolation,Probable
+COV-2022-00020,Patient_20,F,45 yo,Northern District,North Clinic,2022-03-09,03/10/2022,11-Mar-2022,Pos,false,null,null,N/A,No,0,Booster,Recovered,Confirmed
+COV-2022-00021,Patient_21,Female,6 mos,Coast Valley,City Memorial Hospital,08/03/2022,09/03/2022,03/10/2022,Pos,No,N/A,N/A,,0,Yes,2,Recovered,Suspect
+COV-2022-00022,Patient_22,Male,59,Metro Region,City Memorial Hospital,09/02/2022,12/02/2022,14-Feb-2022,Positive,N,N/A,N/A,,1,No,1,Home Isolation,Confirmed
+COV-2022-00023,Patient_23,F,54 yo,Metro Region,St. Jude Medical Center,03/03/2022,2022-03-06,03/08/2022,Pos,Yes,2022-03-06,11-Mar-2022,,1,No,Unvaccinated,Recovered,Suspect
+COV-2022-00024,Patient_24,Male,44 yo,Eastern Highlands,North Clinic,2022-01-27,2022-01-30,2022-01-31,Negative,0,.,N/A,null,0,0,Booster,Active,Probable
+COV-2022-00025,Patient_25,M,75 yo,Metro Region,St. Jude Medical Center,16/03/2022,03/17/2022,21/03/2022,PCR+,Yes,22-Mar-2022,2022-04-03,,Yes,1,Booster,Alive,Suspect
+COV-2022-00026,Patient_26,2,6 mos,Northern District,North Clinic,2022-03-05,2022-03-05,2022-03-06,Positive,No,,N/A,.,true,Yes,Unvaccinated,Home Isolation,Confirmed
+COV-2022-00027,Patient_27,M,NA,Coast Valley,Community Health Center,02/11/2022,13/02/2022,02/14/2022,PCR+,N,.,null,,0,1,1,Active,Confirmed
+COV-2022-00028,Patient_28,woman,42,Eastern Highlands,North Clinic,03/07/2022,10/03/2022,2022-03-12,Inconclusive,0,null,N/A,,No,0,Booster,Active,Suspect
+COV-2022-00029,Patient_29,1,6 mos,Metro Region,North Clinic,01/31/2022,01-Feb-2022,2022-02-05,Pos,Yes,02/04/2022,15-Feb-2022,null,0,Yes,Booster,Recovered,Confirmed
+COV-2022-00030,Patient_30,M,18 yo,Metro Region,St. Jude Medical Center,12-Mar-2022,15-Mar-2022,16-Mar-2022,PCR+,Yes,03/14/2022,24/03/2022,.,0,0,Unvaccinated,Recovered,Probable
+COV-2022-00031,Patient_31,M,53,Metro Region,North Clinic,30-Jan-2022,01-Feb-2022,03/02/2022,Pos,N,N/A,null,N/A,0,Yes,2,Recovered,Confirmed
+COV-2022-00032,Patient_32,1,NA,Metro Region,St. Jude Medical Center,31/01/2022,02/02/2022,02/06/2022,Negative,false,null,null,.,true,0,unknown,Home Isolation,Probable
+COV-2022-00033,Patient_33,1,66 yo,Eastern Highlands,Community Health Center,2022-02-11,2022-02-13,2022-02-15,Positive,Yes,2022-02-17,02/25/2022,.,1,true,unknown,Recovered,Confirmed
+COV-2022-00034,Patient_34,F,6 mos,Coast Valley,City Memorial Hospital,02/15/2022,2022-02-17,21-Feb-2022,PCR+,No,.,.,.,1,0,Booster,Recovered,Confirmed
+COV-2022-00035,Patient_35,1,32 yo,Eastern Highlands,St. Jude Medical Center,02/18/2022,2022-02-20,24-Feb-2022,PCR+,N,N/A,.,.,true,true,unknown,Alive,Probable
+COV-2022-00036,Patient_36,M,6 mos,Northern District,Community Health Center,2022-02-01,04-Feb-2022,2022-02-08,Negative,No,,null,.,true,No,1,Home Isolation,Probable
+COV-2022-00037,Patient_37,F,61 yo,Metro Region,North Clinic,28/01/2022,31-Jan-2022,02/04/2022,Inconclusive,0,N/A,N/A,,true,Yes,Booster,Active,Probable
+COV-2022-00038,Patient_38,Female,6 mos,Metro Region,City Memorial Hospital,24-Feb-2022,2022-02-25,26/02/2022,Pos,N,.,.,N/A,No,No,Unvaccinated,Home Isolation,Suspect
+COV-2022-00039,Patient_39,2,6 mos,Coast Valley,City Memorial Hospital,2022-03-15,2022-03-15,2022-03-16,PCR+,N,.,,N/A,Yes,Yes,2,Home Isolation,Confirmed
+COV-2022-00040,Patient_40,Female,999,Metro Region,St. Jude Medical Center,01-Mar-2022,2022-03-03,03/07/2022,Pos,false,null,,03/12/2022,Yes,0,3,Died,Probable
+COV-2022-00041,Patient_41,f,35 yo,Coast Valley,St. Jude Medical Center,20-Jan-2022,2022-01-23,24-Jan-2022,Pos,false,.,null,.,0,true,2,Recovered,Suspect
+COV-2022-00042,Patient_42,man,8,Coast Valley,St. Jude Medical Center,11-Feb-2022,2022-02-12,13/02/2022,Pos,Yes,2022-02-15,21/02/2022,.,1,true,2,Alive,Confirmed
+COV-2022-00043,Patient_43,m,60,Northern District,Community Health Center,2022-02-04,07-Feb-2022,2022-02-11,Positive,No,,,null,true,1,2,Alive,Confirmed
+COV-2022-00044,Patient_44,2,NA,Coast Valley,North Clinic,02/21/2022,2022-02-22,02/24/2022,PCR+,false,null,.,,Yes,1,2,Recovered,Suspect
+COV-2022-00045,Patient_45,Female,NA,Metro Region,North Clinic,02/05/2022,2022-02-07,2022-02-11,PCR+,N,null,.,.,0,true,Unvaccinated,Home Isolation,Probable
+COV-2022-00046,Patient_46,man,999,Northern District,St. Jude Medical Center,07/02/2022,08-Feb-2022,2022-02-12,Pos,No,,.,N/A,Yes,0,unknown,Home Isolation,Probable
+COV-2022-00047,Patient_47,1,52,Eastern Highlands,City Memorial Hospital,03/03/2022,2022-03-05,06/03/2022,Negative,Yes,08-Mar-2022,20/03/2022,,No,0,0,Discharged,Probable
+COV-2022-00048,Patient_48,f,39 yo,Metro Region,St. Jude Medical Center,02-Mar-2022,02-Mar-2022,04/03/2022,Positive,Yes,03/08/2022,14-Mar-2022,null,Yes,No,unknown,Discharged,Suspect
+COV-2022-00049,Patient_49,Male,NA,Coast Valley,North Clinic,07-Feb-2022,09/02/2022,2022-02-13,Positive,Yes,13/02/2022,2022-02-22,.,0,true,1,Alive,Confirmed
+COV-2022-00050,Patient_50,2,13,Metro Region,City Memorial Hospital,05-Mar-2022,2022-03-08,10/03/2022,Positive,No,N/A,.,,No,Yes,Booster,Alive,Suspect
+COV-2022-00051,Patient_51,F,NA,Northern District,St. Jude Medical Center,10-Mar-2022,2022-03-11,2022-03-13,Inconclusive,false,N/A,null,2022-03-24,0,1,2,Deceased,Probable
+COV-2022-00052,Patient_52,Male,NA,Northern District,St. Jude Medical Center,2022-02-23,26/02/2022,02-Mar-2022,Pos,0,null,N/A,null,No,No,unknown,Home Isolation,Probable
+COV-2022-00053,Patient_53,f,999,Eastern Highlands,North Clinic,01/26/2022,29/01/2022,30-Jan-2022,Pos,0,N/A,,,No,true,2,Recovered,Confirmed
+COV-2022-00054,Patient_54,f,53,Coast Valley,North Clinic,01/30/2022,01-Feb-2022,05/02/2022,Pos,Yes,02/01/2022,11/02/2022,,true,1,Booster,Alive,Probable
+COV-2022-00055,Patient_55,2,999,Eastern Highlands,City Memorial Hospital,2022-02-01,02/03/2022,02/07/2022,Inconclusive,No,.,null,N/A,Yes,Yes,3,Recovered,Confirmed
+COV-2022-00056,Patient_56,Female,66 yo,Metro Region,North Clinic,15-Jan-2022,2022-01-17,19-Jan-2022,PCR+,Yes,21-Jan-2022,31-Jan-2022,N/A,0,true,3,Alive,Suspect
+COV-2022-00057,Patient_57,m,6 mos,Eastern Highlands,St. Jude Medical Center,26/01/2022,29/01/2022,2022-01-31,Pos,No,.,N/A,,1,0,1,Recovered,Probable
+COV-2022-00058,Patient_58,Female,71 yo,Eastern Highlands,North Clinic,2022-02-08,11-Feb-2022,12-Feb-2022,Inconclusive,N,.,,null,No,No,Booster,Home Isolation,Confirmed
+COV-2022-00059,Patient_59,2,23,Northern District,City Memorial Hospital,23/02/2022,02/23/2022,24-Feb-2022,Pos,0,.,,.,true,1,3,Home Isolation,Probable
+COV-2022-00060,Patient_60,F,6 mos,Northern District,North Clinic,2022-01-19,19/01/2022,01/20/2022,Pos,false,,N/A,null,Yes,No,0,Home Isolation,Confirmed
+COV-2022-00061,Patient_61,1,NA,Eastern Highlands,St. Jude Medical Center,27-Jan-2022,2022-01-29,01/31/2022,Pos,No,null,.,N/A,No,No,1,Active,Confirmed
+COV-2022-00062,Patient_62,man,6 mos,Eastern Highlands,Community Health Center,29/01/2022,2022-01-30,01-Feb-2022,Positive,Yes,01-Feb-2022,null,2022-02-06,0,No,3,Dead,Suspect
+COV-2022-00063,Patient_63,m,NA,Metro Region,Community Health Center,28-Feb-2022,2022-03-01,03/02/2022,Pos,Yes,02-Mar-2022,03/13/2022,,1,1,3,Discharged,Probable
+COV-2022-00064,Patient_64,F,6 mos,Eastern Highlands,North Clinic,18-Feb-2022,2022-02-19,2022-02-23,PCR+,0,N/A,.,N/A,No,true,0,Home Isolation,Confirmed
+COV-2022-00065,Patient_65,Male,6 mos,Eastern Highlands,Community Health Center,2022-03-14,15-Mar-2022,16/03/2022,Positive,Yes,03/16/2022,03/27/2022,.,true,0,unknown,Alive,Probable
+COV-2022-00066,Patient_66,m,39,Eastern Highlands,Community Health Center,01/25/2022,28/01/2022,01/30/2022,Positive,false,,null,N/A,Yes,1,2,Home Isolation,Probable
+COV-2022-00067,Patient_67,m,6 mos,Eastern Highlands,Community Health Center,01/16/2022,2022-01-16,20/01/2022,Positive,No,null,N/A,,0,0,Booster,Recovered,Confirmed
+COV-2022-00068,Patient_68,2,84,Northern District,Community Health Center,26-Feb-2022,02/27/2022,28-Feb-2022,PCR+,Yes,2022-02-28,05-Mar-2022,null,1,Yes,Unvaccinated,Discharged,Probable
+COV-2022-00069,Patient_69,F,999,Coast Valley,North Clinic,2022-02-28,03/01/2022,03/02/2022,Inconclusive,Yes,03/05/2022,2022-03-11,N/A,No,Yes,Unvaccinated,Recovered,Suspect
+COV-2022-00070,Patient_70,2,34 yo,Coast Valley,Community Health Center,2022-01-18,20/01/2022,2022-01-21,Negative,Yes,20-Jan-2022,30-Jan-2022,N/A,No,Yes,Booster,Recovered,Confirmed
+COV-2022-00071,Patient_71,woman,NA,Metro Region,City Memorial Hospital,25/02/2022,02/27/2022,02/28/2022,Pos,0,N/A,.,03/05/2022,0,true,0,Deceased,Suspect
+COV-2022-00072,Patient_72,m,35 yo,Metro Region,St. Jude Medical Center,2022-02-01,02/04/2022,06-Feb-2022,Inconclusive,N,null,null,,true,1,3,Alive,Probable
+COV-2022-00073,Patient_73,woman,47 yo,Coast Valley,North Clinic,02/03/2022,03/03/2022,07-Mar-2022,PCR+,false,null,.,null,No,true,1,Recovered,Probable
+COV-2022-00074,Patient_74,2,NA,Northern District,North Clinic,2022-03-10,2022-03-10,03/11/2022,Positive,0,N/A,.,.,true,0,3,Recovered,Suspect
+COV-2022-00075,Patient_75,woman,78,Coast Valley,City Memorial Hospital,02/09/2022,2022-02-09,02/10/2022,PCR+,N,.,.,.,0,true,Booster,Home Isolation,Confirmed
+COV-2022-00076,Patient_76,M,6 mos,Eastern Highlands,Community Health Center,05/02/2022,07-Feb-2022,11/02/2022,Positive,Yes,2022-02-11,2022-02-17,,Yes,No,0,Recovered,Suspect
+COV-2022-00077,Patient_77,2,76 yo,Metro Region,St. Jude Medical Center,2022-02-05,2022-02-08,10-Feb-2022,Inconclusive,N,.,,null,1,0,0,Alive,Confirmed
+COV-2022-00078,Patient_78,2,91,Eastern Highlands,St. Jude Medical Center,14-Feb-2022,2022-02-17,19-Feb-2022,Inconclusive,N,.,.,N/A,true,1,Booster,Home Isolation,Probable
+COV-2022-00079,Patient_79,2,42 yo,Metro Region,St. Jude Medical Center,17/01/2022,17-Jan-2022,2022-01-21,Inconclusive,0,,null,N/A,Yes,1,1,Alive,Probable
+COV-2022-00080,Patient_80,Male,56,Coast Valley,North Clinic,06/03/2022,08/03/2022,10-Mar-2022,Inconclusive,false,N/A,N/A,,1,0,3,Alive,Probable
+COV-2022-00081,Patient_81,m,999,Metro Region,City Memorial Hospital,21/02/2022,2022-02-22,2022-02-23,Positive,No,.,N/A,,true,0,3,Recovered,Suspect
+COV-2022-00082,Patient_82,woman,999,Eastern Highlands,Community Health Center,02-Mar-2022,2022-03-04,08-Mar-2022,Negative,0,null,,,true,Yes,3,Recovered,Suspect
+COV-2022-00083,Patient_83,1,94,Northern District,St. Jude Medical Center,03-Feb-2022,2022-02-06,07-Feb-2022,Inconclusive,0,,,null,No,Yes,unknown,Recovered,Suspect
+COV-2022-00084,Patient_84,Female,6 mos,Metro Region,St. Jude Medical Center,19-Jan-2022,2022-01-20,01/24/2022,Positive,0,,N/A,null,true,true,1,Recovered,Probable
+COV-2022-00085,Patient_85,1,999,Coast Valley,City Memorial Hospital,10/03/2022,13-Mar-2022,03/15/2022,Pos,0,null,null,N/A,1,No,0,Recovered,Confirmed
+COV-2022-00086,Patient_86,M,84 yo,Eastern Highlands,North Clinic,2022-01-26,2022-01-29,2022-02-02,Inconclusive,Yes,2022-01-30,2022-02-02,null,Yes,0,0,Alive,Suspect
+COV-2022-00087,Patient_87,man,999,Eastern Highlands,Community Health Center,02/03/2022,02-Mar-2022,04/03/2022,Positive,Yes,07/03/2022,03/12/2022,.,Yes,1,3,Recovered,Suspect
+COV-2022-00088,Patient_88,f,31,Eastern Highlands,Community Health Center,2022-01-31,2022-02-03,02/04/2022,Negative,false,N/A,N/A,null,Yes,true,1,Active,Confirmed
+COV-2022-00089,Patient_89,f,66 yo,Eastern Highlands,North Clinic,2022-02-11,02/12/2022,02/14/2022,Pos,No,.,.,N/A,Yes,Yes,2,Alive,Probable
+COV-2022-00090,Patient_90,Male,6 mos,Metro Region,City Memorial Hospital,02/21/2022,21/02/2022,23/02/2022,Positive,0,,,null,true,true,1,Active,Probable
+COV-2022-00091,Patient_91,man,6 mos,Northern District,City Memorial Hospital,04/03/2022,03/06/2022,03/10/2022,Negative,false,.,.,null,1,Yes,unknown,Recovered,Suspect
+COV-2022-00092,Patient_92,Male,6 mos,Metro Region,North Clinic,19/02/2022,02/19/2022,21-Feb-2022,Inconclusive,N,,.,N/A,No,0,0,Recovered,Confirmed
+COV-2022-00093,Patient_93,2,999,Coast Valley,City Memorial Hospital,01/03/2022,2022-03-02,03/06/2022,Pos,false,N/A,,null,0,No,2,Home Isolation,Probable
+COV-2022-00094,Patient_94,woman,6 mos,Northern District,City Memorial Hospital,2022-01-27,28-Jan-2022,01/30/2022,Pos,false,null,N/A,,No,true,Unvaccinated,Alive,Suspect
+COV-2022-00095,Patient_95,Female,NA,Eastern Highlands,Community Health Center,01/31/2022,01/31/2022,04-Feb-2022,Pos,No,,N/A,null,0,0,0,Home Isolation,Probable
+COV-2022-00096,Patient_96,Male,6 mos,Northern District,North Clinic,05/02/2022,07-Feb-2022,11-Feb-2022,PCR+,No,,null,null,0,0,Booster,Recovered,Suspect
+COV-2022-00097,Patient_97,F,6 mos,Eastern Highlands,Community Health Center,03/10/2022,03/13/2022,15/03/2022,Negative,0,N/A,.,N/A,1,Yes,unknown,Active,Probable
+COV-2022-00098,Patient_98,f,999,Northern District,City Memorial Hospital,11-Mar-2022,2022-03-11,03/12/2022,Positive,Yes,16/03/2022,20/03/2022,.,No,Yes,Booster,Recovered,Probable
+COV-2022-00099,Patient_99,f,999,Metro Region,Community Health Center,03-Feb-2022,2022-02-06,02/07/2022,Negative,Yes,07-Feb-2022,15/02/2022,N/A,1,true,Unvaccinated,Recovered,Confirmed
+COV-2022-00100,Patient_100,F,25 yo,Eastern Highlands,North Clinic,02-Mar-2022,03/03/2022,07/03/2022,Inconclusive,No,.,null,.,Yes,1,3,Recovered,Probable
+COV-2022-00101,Patient_101,1,999,Coast Valley,Community Health Center,02/02/2022,02/05/2022,02/09/2022,PCR+,No,null,.,.,No,Yes,unknown,Alive,Probable
+COV-2022-00102,Patient_102,M,NA,Northern District,St. Jude Medical Center,10/03/2022,13/03/2022,14-Mar-2022,Inconclusive,false,,.,,true,true,Unvaccinated,Home Isolation,Suspect
+COV-2022-00103,Patient_103,Male,54 yo,Metro Region,St. Jude Medical Center,25-Jan-2022,01/27/2022,2022-01-28,Inconclusive,No,null,N/A,,No,1,3,Active,Confirmed
+COV-2022-00104,Patient_104,man,999,Coast Valley,St. Jude Medical Center,23-Jan-2022,01/24/2022,28-Jan-2022,PCR+,No,null,,null,1,1,Booster,Home Isolation,Suspect
+COV-2022-00105,Patient_105,woman,56,Eastern Highlands,City Memorial Hospital,01/30/2022,2022-02-01,03/02/2022,PCR+,0,null,.,.,1,No,Unvaccinated,Recovered,Suspect
+COV-2022-00106,Patient_106,F,79 yo,Coast Valley,Community Health Center,2022-01-29,2022-01-30,03/02/2022,Pos,0,,.,11/02/2022,0,1,2,Deceased,Probable
+COV-2022-00107,Patient_107,m,85 yo,Coast Valley,Community Health Center,03/05/2022,03/06/2022,07-Mar-2022,Pos,false,null,null,.,0,1,unknown,Active,Confirmed
+COV-2022-00108,Patient_108,f,39,Metro Region,North Clinic,31/01/2022,02/02/2022,2022-02-03,Negative,Yes,2022-02-04,11-Feb-2022,null,No,No,1,Discharged,Suspect
+COV-2022-00109,Patient_109,Male,32,Coast Valley,Community Health Center,03-Mar-2022,2022-03-04,2022-03-06,PCR+,N,N/A,null,null,0,Yes,2,Recovered,Probable
+COV-2022-00110,Patient_110,M,NA,Eastern Highlands,North Clinic,30/01/2022,30-Jan-2022,02/01/2022,PCR+,No,N/A,,.,0,1,3,Active,Probable
+COV-2022-00111,Patient_111,1,999,Coast Valley,Community Health Center,29-Jan-2022,01-Feb-2022,02/03/2022,Positive,No,.,N/A,N/A,Yes,0,Unvaccinated,Active,Probable
+COV-2022-00112,Patient_112,woman,999,Metro Region,Community Health Center,2022-03-02,2022-03-05,07-Mar-2022,Positive,0,N/A,.,null,No,Yes,1,Active,Probable
+COV-2022-00113,Patient_113,Female,6 mos,Metro Region,Community Health Center,03/03/2022,2022-03-06,08-Mar-2022,Positive,Yes,2022-03-09,03/13/2022,,No,true,Unvaccinated,Recovered,Probable
+COV-2022-00114,Patient_114,M,20 yo,Metro Region,North Clinic,26/01/2022,01/28/2022,29-Jan-2022,Pos,No,null,,,Yes,Yes,Unvaccinated,Active,Suspect
+COV-2022-00115,Patient_115,Male,77 yo,Eastern Highlands,City Memorial Hospital,25/01/2022,01/25/2022,26-Jan-2022,Positive,Yes,2022-01-28,08/02/2022,.,1,1,Booster,Recovered,Suspect
+COV-2022-00116,Patient_116,2,NA,Eastern Highlands,City Memorial Hospital,03/02/2022,03-Mar-2022,04-Mar-2022,Negative,Yes,2022-03-06,11/03/2022,N/A,Yes,0,Unvaccinated,Alive,Probable
+COV-2022-00117,Patient_117,woman,999,Eastern Highlands,Community Health Center,2022-02-01,02/01/2022,03-Feb-2022,Positive,Yes,06-Feb-2022,11/02/2022,.,true,No,2,Recovered,Probable
+COV-2022-00118,Patient_118,m,27,Eastern Highlands,North Clinic,14-Feb-2022,2022-02-15,2022-02-17,Pos,Yes,18/02/2022,02/22/2022,.,Yes,true,Unvaccinated,Discharged,Suspect
+COV-2022-00119,Patient_119,1,59 yo,Eastern Highlands,City Memorial Hospital,03/03/2022,06/03/2022,07-Mar-2022,Pos,false,,,,0,No,Unvaccinated,Alive,Suspect
+COV-2022-00120,Patient_120,2,999,Metro Region,St. Jude Medical Center,16/02/2022,02/19/2022,02/21/2022,Positive,Yes,2022-02-18,03/01/2022,.,No,1,unknown,Discharged,Probable

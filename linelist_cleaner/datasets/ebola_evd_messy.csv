@@ -1,0 +1,101 @@
+num_cas_ebola,nom_prenom,sexe,age,village_origine,centre_traitement,date_debut,date_admission,date_sortie,date_deces,fievre_hemorragique,saignement_inexplique,contact_avec_cas_confirme,statut_cas,issue
+EVD-2021-001,Subject_1,2,10m,Bikoro Center,ETC Bikoro - MSF,31-05-2021,2021-06-01,20/06/2021,,Oui,Oui,Inconnu,Suspect,Survivor
+EVD-2021-002,Subject_2,femme,NA,Wangata,ETC Wangata,23-05-2021,26-05-2021,2021-06-06,,0,NA,Inconnu,Probable,Survivor
+EVD-2021-003,Subject_3,1,9m,Bolenge,Isolation Ward 2,2021-05-20,21/05/2021,,2021-05-27,Non,Oui,Inconnu,Probable,Decede
+EVD-2021-004,Subject_4,homme,41,Mbandaka Ville,CTE General Hospital,21-05-2021,22/05/2021,2021-06-01,,1,Oui,Inconnu,Probable,Cured
+EVD-2021-005,Subject_5,2,7m,Bolenge,ETC Bikoro - MSF,07/06/2021,10/06/2021,21-06-2021,,0,0,Oui,Suspect,Discharged
+EVD-2021-006,Subject_6,2,1m,Ikoko Impenge,CTE General Hospital,2021-06-10,13/06/2021,28/06/2021,,O,0,Oui,Suspect,Survivor
+EVD-2021-007,Subject_7,Male,13,Ikoko Impenge,ETC Bikoro - MSF,31-05-2021,01/06/2021,,06/06/2021,0,0,Inconnu,Suspect,Decede
+EVD-2021-008,Subject_8,1,7,Wangata,CTE General Hospital,01-06-2021,2021-06-03,28-06-2021,,Non,0,Non,Confirme,Survivor
+EVD-2021-009,Subject_9,femme,68,Wangata,ETC Wangata,18/06/2021,19/06/2021,2021-07-14,,0,1,Oui,Probable,Gueri
+EVD-2021-010,Subject_10,2,1m,Ikoko Impenge,ETC Wangata,2021-06-03,2021-06-06,2021-06-29,,0,Non,Non,Probable,Discharged
+EVD-2021-011,Subject_11,M,8m,Mbandaka Ville,Isolation Ward 2,10/05/2021,2021-05-13,,17-05-2021,0,Non,Inconnu,Probable,DCD
+EVD-2021-012,Subject_12,2,6m,Wangata,ETC Wangata,2021-05-20,22/05/2021,12/06/2021,,O,NA,Non,Confirme,Discharged
+EVD-2021-013,Subject_13,1,NA,Mbandaka Ville,CTE General Hospital,09/06/2021,2021-06-11,,18-06-2021,Non,Oui,Inconnu,Confirme,DCD
+EVD-2021-014,Subject_14,1,20,Wangata,ETC Bikoro - MSF,14-05-2021,17/05/2021,29-05-2021,,1,Oui,Non,Suspect,Discharged
+EVD-2021-015,Subject_15,M,8m,Mbandaka Ville,ETC Wangata,2021-06-05,09-06-2021,28-06-2021,,1,1,Non,Probable,Cured
+EVD-2021-016,Subject_16,F,NA,Ikoko Impenge,ETC Bikoro - MSF,07-06-2021,2021-06-09,23/06/2021,,Non,NA,Inconnu,Confirme,Gueri
+EVD-2021-017,Subject_17,Male,NA,Wangata,ETC Bikoro - MSF,16-05-2021,19-05-2021,09-06-2021,,1,1,Oui,Probable,Cured
+EVD-2021-018,Subject_18,Male,11,Bolenge,ETC Bikoro - MSF,2021-05-24,2021-05-27,12-06-2021,,Oui,0,Inconnu,Suspect,Discharged
+EVD-2021-019,Subject_19,Female,NA,Bolenge,CTE General Hospital,2021-05-14,2021-05-16,,21-05-2021,0,1,Inconnu,Confirme,DCD
+EVD-2021-020,Subject_20,homme,50,Bolenge,ETC Wangata,19-06-2021,23-06-2021,,27/06/2021,0,0,Inconnu,Suspect,Mort
+EVD-2021-021,Subject_21,Male,22,Wangata,ETC Bikoro - MSF,2021-06-05,08/06/2021,,09-06-2021,1,0,Non,Confirme,Dead
+EVD-2021-022,Subject_22,M,NA,Ikoko Impenge,ETC Wangata,2021-06-18,21/06/2021,2021-07-15,,1,0,Inconnu,Suspect,Cured
+EVD-2021-023,Subject_23,1,3m,Ikoko Impenge,ETC Wangata,2021-05-14,2021-05-15,01/06/2021,,0,1,Oui,Probable,Discharged
+EVD-2021-024,Subject_24,homme,NA,Bikoro Center,ETC Bikoro - MSF,03/06/2021,2021-06-05,15-06-2021,,0,Non,Non,Confirme,Discharged
+EVD-2021-025,Subject_25,1,NA,Bikoro Center,CTE General Hospital,15/06/2021,2021-06-18,2021-07-12,,Non,NA,Oui,Probable,Survivor
+EVD-2021-026,Subject_26,M,3m,Bikoro Center,ETC Bikoro - MSF,2021-06-05,09-06-2021,,13-06-2021,0,NA,Non,Confirme,DCD
+EVD-2021-027,Subject_27,femme,24,Bikoro Center,ETC Wangata,16/06/2021,18/06/2021,30/06/2021,,1,1,Non,Probable,Survivor
+EVD-2021-028,Subject_28,Female,NA,Bolenge,CTE General Hospital,25-05-2021,28/05/2021,,30/05/2021,Oui,NA,Non,Suspect,Decede
+EVD-2021-029,Subject_29,1,3m,Mbandaka Ville,Isolation Ward 2,10-05-2021,14/05/2021,04/06/2021,,Non,1,Inconnu,Confirme,Discharged
+EVD-2021-030,Subject_30,Female,65,Mbandaka Ville,ETC Bikoro - MSF,04/06/2021,05-06-2021,,2021-06-08,Non,Oui,Inconnu,Confirme,Mort
+EVD-2021-031,Subject_31,1,53,Bikoro Center,CTE General Hospital,23-05-2021,26/05/2021,,2021-05-28,0,Oui,Non,Suspect,Mort
+EVD-2021-032,Subject_32,1,8m,Bikoro Center,Isolation Ward 2,30-05-2021,02-06-2021,,07-06-2021,0,NA,Oui,Probable,Dead
+EVD-2021-033,Subject_33,M,NA,Bolenge,Isolation Ward 2,04/06/2021,06-06-2021,,08-06-2021,1,NA,Inconnu,Probable,Decede
+EVD-2021-034,Subject_34,Male,34,Bikoro Center,ETC Bikoro - MSF,15-05-2021,17/05/2021,07/06/2021,,Oui,NA,Oui,Suspect,Gueri
+EVD-2021-035,Subject_35,Male,12,Bikoro Center,Isolation Ward 2,04/06/2021,2021-06-05,30-06-2021,,O,1,Non,Confirme,Survivor
+EVD-2021-036,Subject_36,F,10m,Bikoro Center,Isolation Ward 2,03-06-2021,04/06/2021,,2021-06-06,1,NA,Inconnu,Probable,Decede
+EVD-2021-037,Subject_37,Male,8m,Bikoro Center,Isolation Ward 2,19-06-2021,21-06-2021,2021-07-08,,Oui,Oui,Oui,Confirme,Discharged
+EVD-2021-038,Subject_38,Male,9m,Mbandaka Ville,CTE General Hospital,14/06/2021,18/06/2021,,2021-06-20,0,Oui,Non,Confirme,DCD
+EVD-2021-039,Subject_39,Female,NA,Mbandaka Ville,CTE General Hospital,26/05/2021,2021-05-27,2021-06-09,,Non,Oui,Non,Confirme,Survivor
+EVD-2021-040,Subject_40,Female,NA,Bikoro Center,ETC Bikoro - MSF,17/05/2021,2021-05-20,,23/05/2021,O,Non,Inconnu,Confirme,Mort
+EVD-2021-041,Subject_41,2,3m,Bolenge,Isolation Ward 2,28/05/2021,31-05-2021,2021-06-10,,1,Oui,Oui,Probable,Survivor
+EVD-2021-042,Subject_42,Male,NA,Ikoko Impenge,ETC Wangata,2021-06-07,10/06/2021,2021-07-05,,0,Non,Oui,Probable,Gueri
+EVD-2021-043,Subject_43,1,67,Bolenge,CTE General Hospital,18/05/2021,2021-05-20,01/06/2021,,0,1,Inconnu,Probable,Gueri
+EVD-2021-044,Subject_44,1,56,Bolenge,CTE General Hospital,11/05/2021,14-05-2021,30/05/2021,,0,Oui,Inconnu,Suspect,Cured
+EVD-2021-045,Subject_45,Male,2m,Bolenge,ETC Wangata,23-05-2021,2021-05-26,2021-06-11,,0,0,Non,Confirme,Gueri
+EVD-2021-046,Subject_46,Female,1m,Mbandaka Ville,CTE General Hospital,2021-05-17,2021-05-21,01-06-2021,,1,NA,Inconnu,Suspect,Gueri
+EVD-2021-047,Subject_47,homme,NA,Mbandaka Ville,ETC Bikoro - MSF,2021-06-04,07/06/2021,22/06/2021,,1,NA,Inconnu,Confirme,Gueri
+EVD-2021-048,Subject_48,1,46,Bolenge,ETC Bikoro - MSF,01-06-2021,03-06-2021,20/06/2021,,Oui,NA,Inconnu,Probable,Survivor
+EVD-2021-049,Subject_49,femme,70,Bikoro Center,CTE General Hospital,10-06-2021,2021-06-13,2021-07-03,,1,1,Inconnu,Suspect,Cured
+EVD-2021-050,Subject_50,2,NA,Mbandaka Ville,ETC Wangata,17/06/2021,20/06/2021,2021-07-04,,O,Oui,Non,Confirme,Discharged
+EVD-2021-051,Subject_51,femme,53,Wangata,CTE General Hospital,2021-06-03,07/06/2021,,2021-06-11,0,Oui,Inconnu,Confirme,DCD
+EVD-2021-052,Subject_52,homme,21,Wangata,ETC Bikoro - MSF,09-06-2021,11-06-2021,,14/06/2021,Non,Non,Inconnu,Confirme,Decede
+EVD-2021-053,Subject_53,M,4m,Mbandaka Ville,Isolation Ward 2,13-06-2021,15-06-2021,29-06-2021,,Non,1,Inconnu,Suspect,Cured
+EVD-2021-054,Subject_54,homme,NA,Mbandaka Ville,ETC Bikoro - MSF,16-05-2021,19-05-2021,,26/05/2021,1,Oui,Oui,Confirme,Dead
+EVD-2021-055,Subject_55,femme,7m,Ikoko Impenge,ETC Wangata,2021-05-25,2021-05-26,13-06-2021,,0,0,Non,Confirme,Gueri
+EVD-2021-056,Subject_56,Male,NA,Mbandaka Ville,CTE General Hospital,02/06/2021,2021-06-05,,2021-06-09,O,Non,Non,Confirme,Decede
+EVD-2021-057,Subject_57,homme,NA,Bikoro Center,ETC Bikoro - MSF,19-06-2021,23/06/2021,13-07-2021,,O,Non,Oui,Confirme,Gueri
+EVD-2021-058,Subject_58,M,1m,Wangata,Isolation Ward 2,2021-05-31,2021-06-01,,03/06/2021,O,Non,Non,Confirme,DCD
+EVD-2021-059,Subject_59,Male,8m,Wangata,ETC Wangata,23/05/2021,25-05-2021,,31/05/2021,Non,0,Oui,Confirme,DCD
+EVD-2021-060,Subject_60,homme,28,Wangata,Isolation Ward 2,05/06/2021,09/06/2021,,15/06/2021,Oui,1,Inconnu,Suspect,Mort
+EVD-2021-061,Subject_61,femme,26,Bikoro Center,ETC Wangata,29-05-2021,01-06-2021,,2021-06-05,Oui,0,Inconnu,Probable,DCD
+EVD-2021-062,Subject_62,Female,5m,Ikoko Impenge,Isolation Ward 2,04/06/2021,08/06/2021,2021-06-25,,Oui,Oui,Oui,Confirme,Cured
+EVD-2021-063,Subject_63,1,10m,Bikoro Center,CTE General Hospital,14-05-2021,2021-05-18,,20-05-2021,1,0,Inconnu,Probable,Mort
+EVD-2021-064,Subject_64,Female,NA,Bikoro Center,CTE General Hospital,2021-05-11,15/05/2021,26-05-2021,,Oui,0,Oui,Suspect,Cured
+EVD-2021-065,Subject_65,femme,NA,Bolenge,ETC Wangata,07/06/2021,09/06/2021,,2021-06-12,Oui,NA,Oui,Probable,Mort
+EVD-2021-066,Subject_66,F,2,Wangata,CTE General Hospital,2021-05-29,31-05-2021,12/06/2021,,Non,0,Inconnu,Suspect,Gueri
+EVD-2021-067,Subject_67,homme,NA,Bikoro Center,ETC Bikoro - MSF,2021-05-19,20-05-2021,,24/05/2021,O,Oui,Oui,Confirme,DCD
+EVD-2021-068,Subject_68,Male,3m,Bikoro Center,ETC Wangata,12-06-2021,14-06-2021,2021-07-04,,1,NA,Oui,Suspect,Gueri
+EVD-2021-069,Subject_69,M,10m,Ikoko Impenge,ETC Wangata,04-06-2021,2021-06-08,,14/06/2021,0,0,Inconnu,Confirme,Decede
+EVD-2021-070,Subject_70,M,8m,Mbandaka Ville,ETC Bikoro - MSF,19/06/2021,21-06-2021,,24/06/2021,0,NA,Inconnu,Probable,Dead
+EVD-2021-071,Subject_71,M,56,Mbandaka Ville,ETC Bikoro - MSF,2021-05-24,27/05/2021,07-06-2021,,O,Oui,Oui,Confirme,Discharged
+EVD-2021-072,Subject_72,homme,43,Ikoko Impenge,ETC Wangata,2021-06-17,2021-06-18,2021-07-09,,1,Oui,Inconnu,Confirme,Gueri
+EVD-2021-073,Subject_73,homme,NA,Ikoko Impenge,ETC Wangata,21/05/2021,23-05-2021,17/06/2021,,1,NA,Oui,Probable,Cured
+EVD-2021-074,Subject_74,Female,NA,Bolenge,Isolation Ward 2,09/06/2021,11/06/2021,05/07/2021,,Non,Oui,Non,Confirme,Gueri
+EVD-2021-075,Subject_75,F,NA,Wangata,Isolation Ward 2,2021-05-25,27/05/2021,,2021-05-28,1,Oui,Oui,Probable,Dead
+EVD-2021-076,Subject_76,1,19,Wangata,CTE General Hospital,08-06-2021,12/06/2021,2021-06-28,,0,0,Oui,Suspect,Survivor
+EVD-2021-077,Subject_77,homme,62,Bolenge,Isolation Ward 2,2021-06-16,2021-06-18,,20-06-2021,O,Non,Inconnu,Probable,Decede
+EVD-2021-078,Subject_78,femme,68,Mbandaka Ville,ETC Bikoro - MSF,2021-06-01,04-06-2021,2021-06-14,,Oui,Non,Non,Probable,Discharged
+EVD-2021-079,Subject_79,Male,10m,Ikoko Impenge,CTE General Hospital,20-05-2021,23-05-2021,06-06-2021,,1,0,Inconnu,Confirme,Gueri
+EVD-2021-080,Subject_80,2,45,Wangata,Isolation Ward 2,10-06-2021,2021-06-14,30-06-2021,,0,Oui,Inconnu,Suspect,Gueri
+EVD-2021-081,Subject_81,Female,11,Bikoro Center,ETC Bikoro - MSF,17-05-2021,2021-05-18,28/05/2021,,Oui,NA,Non,Probable,Gueri
+EVD-2021-082,Subject_82,2,60,Bikoro Center,CTE General Hospital,2021-06-01,03/06/2021,,2021-06-08,O,Oui,Oui,Probable,Dead
+EVD-2021-083,Subject_83,Female,NA,Wangata,ETC Bikoro - MSF,15/06/2021,2021-06-18,,24/06/2021,Oui,NA,Oui,Confirme,DCD
+EVD-2021-084,Subject_84,homme,NA,Bolenge,ETC Wangata,2021-05-28,31-05-2021,,2021-06-04,1,Non,Oui,Probable,Mort
+EVD-2021-085,Subject_85,homme,10m,Ikoko Impenge,ETC Wangata,24-05-2021,25-05-2021,,28/05/2021,Oui,NA,Inconnu,Confirme,DCD
+EVD-2021-086,Subject_86,homme,4m,Mbandaka Ville,ETC Wangata,18/06/2021,21-06-2021,,2021-06-28,O,Oui,Oui,Suspect,Dead
+EVD-2021-087,Subject_87,Female,55,Bikoro Center,ETC Wangata,2021-06-17,21-06-2021,,22/06/2021,Oui,NA,Inconnu,Suspect,DCD
+EVD-2021-088,Subject_88,M,NA,Ikoko Impenge,CTE General Hospital,2021-06-04,2021-06-07,,12/06/2021,0,Oui,Non,Confirme,Mort
+EVD-2021-089,Subject_89,homme,4m,Bolenge,Isolation Ward 2,10/05/2021,14-05-2021,01-06-2021,,O,0,Non,Suspect,Survivor
+EVD-2021-090,Subject_90,M,NA,Bolenge,CTE General Hospital,2021-05-20,22/05/2021,2021-06-13,,0,Non,Oui,Confirme,Discharged
+EVD-2021-091,Subject_91,2,6m,Ikoko Impenge,ETC Bikoro - MSF,10/05/2021,12-05-2021,,14/05/2021,Non,NA,Inconnu,Confirme,Decede
+EVD-2021-092,Subject_92,F,35,Bikoro Center,CTE General Hospital,2021-05-27,2021-05-29,,05-06-2021,Non,NA,Non,Suspect,Decede
+EVD-2021-093,Subject_93,Male,8m,Bikoro Center,CTE General Hospital,23-05-2021,2021-05-27,,29-05-2021,1,Non,Oui,Probable,DCD
+EVD-2021-094,Subject_94,2,13,Bikoro Center,CTE General Hospital,2021-05-22,26/05/2021,,29-05-2021,O,1,Oui,Confirme,DCD
+EVD-2021-095,Subject_95,femme,3m,Ikoko Impenge,ETC Wangata,19-05-2021,20/05/2021,,24-05-2021,1,0,Non,Confirme,Decede
+EVD-2021-096,Subject_96,2,3m,Bolenge,ETC Wangata,03/06/2021,06-06-2021,,13-06-2021,O,Oui,Oui,Suspect,DCD
+EVD-2021-097,Subject_97,M,NA,Wangata,Isolation Ward 2,05-06-2021,2021-06-08,,12/06/2021,Oui,Oui,Non,Probable,Decede
+EVD-2021-098,Subject_98,Male,4m,Wangata,Isolation Ward 2,16/06/2021,2021-06-17,28-06-2021,,Non,Oui,Oui,Confirme,Discharged
+EVD-2021-099,Subject_99,Male,10m,Ikoko Impenge,CTE General Hospital,2021-05-11,15-05-2021,,2021-05-20,0,1,Inconnu,Suspect,Mort
+EVD-2021-100,Subject_100,Male,NA,Bikoro Center,Isolation Ward 2,06/06/2021,08-06-2021,2021-06-25,,1,Oui,Oui,Confirme,Gueri

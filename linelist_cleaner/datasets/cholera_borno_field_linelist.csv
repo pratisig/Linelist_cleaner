@@ -1,0 +1,181 @@
+Patient_ID,Patient_Name,Gender,Patient_Age,Admission_Date,State_Province,LGA_District,Ward_SubDistrict,Locality_Village,Severe_Dehydration,Vomiting,Watery_Diarrhea,RDT_Cholera,Clinical_Outcome,Case_Classification
+CHO-BOR-2023-0001,Ibrahim Kyari,m,12 mos,24/09/2023,Borno,Jerre,Muna,Muna IDP Camp,0,1,Yes,Inconclusive,Discharged,Confirmed
+CHO-BOR-2023-0002,Zainab Katsina,f,48,27-Aug-2023,Borno,Maiduguri,Bolori I,Stadium Camp,0,true,Yes,Positive,Cured,Suspect
+CHO-BOR-2023-0003,Aisha Shettima,F,51,15/09/2023,Borno,Jere,Gwange I,Unknown,Oui,1,Yes,Negative,Alive,Probable
+CHO-BOR-2023-0004,Zainab Gana,FEMALE,73,25/09/23,Borno,Maiduguri,Bolori I,Waterboard Camp,Oui,Yes,Yes,Pos,Recovered,Confirmed
+CHO-BOR-2023-0005,Sani Kyari,M,42 mos,25/09/23,Borno,Konduga,Bolori 1,Kukumare village,0,No,Yes,Inconclusive,Cured,Probable
+CHO-BOR-2023-0006,Hauwa Lawal,2,9 mos,17/08/23,Borno,Gwoza,Dalori,Gwoza Transit,Yes,0,Yes,Negative,Discharged,Suspect
+CHO-BOR-2023-0007,Zainab Shettima,f,38,11/09/2023,Borno State,Kondoga,N/A,,1,true,Yes,Pos,Recovered,Suspect
+CHO-BOR-2023-0008,Bukar Katsina,MALE,10d,18-Aug-2023,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,Yes,No,Yes,Positive,LAMA,Suspect
+CHO-BOR-2023-0009,Abubakar Grema,MALE,39 mos,18/09/2023,Borno State,Damaturu,N/A,,No,true,Yes,Inconclusive,Cured,Suspect
+CHO-BOR-2023-0010,Maryam Bukar,F,28d,14/09/2023,Borno,Maiduguri,Bolori I,Waterboard Camp,Yes,true,Yes,Positive,Discharged,Suspect
+CHO-BOR-2023-0011,Halima Bukar,FEMALE,42 mos,16/09/23,Borno State,Jere District,N/A,,Oui,No,Yes,Inconclusive,Alive,Probable
+CHO-BOR-2023-0012,Ibrahim Gana,M,48,16/08/2023,Borno,Konduga,Bolori 1,Gwoza Transit,No,0,Yes,Positive,Discharged,Confirmed
+CHO-BOR-2023-0013,Bukar Katsina,M,NA,2023-08-21,Borno State,Maiduguri LGA,N/A,,No,true,Yes,Inconclusive,Discharged,Probable
+CHO-BOR-2023-0014,Bintu Grema,f,19 mos,15/08/2023,Borno,Potiskum,Gwange I,,1,Yes,Yes,Positive,Discharged,Suspect
+CHO-BOR-2023-0015,Sani Gana,MALE,44 mos,45152,Borno,Maidugury,Maisandari,Farm Cntr IDP,1,true,Yes,Inconclusive,Cured,Confirmed
+CHO-BOR-2023-0016,Usman Grema,Male,NA,11/08/2023,Foreign Territory,Unknown Area,Zone 99,Camp X Outside Border,0,true,Yes,Pos,Recovered,Probable
+CHO-BOR-2023-0017,Aliyu Goni,Male,40 mos,25/09/2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,1,true,Yes,Positive,Discharged,Confirmed
+CHO-BOR-2023-0018,Abubakar Kyari,Male,48,25-Aug-2023,Borno,Jerre,Muna,Dalori 1 Camp,Yes,Yes,Yes,Negative,Cured,Confirmed
+CHO-BOR-2023-0019,Usman Modu,1,59,2023-09-14,Borno,Gwoza,Bolori 1,Farm Cntr IDP,Oui,Yes,Yes,Negative,Cured,Confirmed
+CHO-BOR-2023-0020,Musa Goni,MALE,57,2023-09-20,Borno State,Jere District,N/A,,1,true,Yes,Inconclusive,LAMA,Suspect
+CHO-BOR-2023-0021,Aliyu Kyari,m,18,2023-09-03,Borno,Maiduguri,Bolori I,Stadium Camp,1,Yes,Yes,Pos,Recovered,Probable
+CHO-BOR-2023-0022,Aisha Kyari,Female,56,24/09/2023,Borno,Maiduguri,Bolori I,Bakasi Camp,Yes,Yes,Yes,Inconclusive,Cured,Probable
+CHO-BOR-2023-0023,Mohammed Shettima,MALE,NA,05/09/2023,Yobe,Jere,Dalori,,0,true,Yes,Positive,Cured,Suspect
+CHO-BOR-2023-0024,Bukar Kyari,1,19d,14/09/23,Yobe,Konduga,Dalori,N/A,Oui,true,Yes,Pos,Discharged,Probable
+CHO-BOR-2023-0025,Mohammed Grema,1,32,2023-09-12,Borno,Konduga,Dalori,Unknown,Oui,1,Yes,Pos,Recovered,Confirmed
+CHO-BOR-2023-0026,Maryam Grema,FEMALE,14,09/09/2023,Borno,Maiduguri,Bolori I,Waterboard Camp,1,1,Yes,Positive,Alive,Confirmed
+CHO-BOR-2023-0027,Aliyu Modu,MALE,36,18/08/23,Yobe,Konduga,Dalori,Village near river,0,No,Yes,Pos,Alive,Suspect
+CHO-BOR-2023-0028,Mustapha Kyari,m,40,2023-09-30,Borno,Maiduguri,Bolori I,Custom House IDP Camp,Oui,true,Yes,Negative,Recovered,Suspect
+CHO-BOR-2023-0029,Hauwa Bukar,2,32,15/08/2023,Borno,Gwoza,Bolori 1,Muna IDP Camp,0,No,Yes,Inconclusive,Discharged,Confirmed
+CHO-BOR-2023-0030,Usman Shettima,1,74,17-Sep-2023,Borno,Konduga,Dalori,Muna IDP Camp,1,No,Yes,Pos,Alive,Suspect
+CHO-BOR-2023-0031,Sani Garba,MALE,15,21/09/23,Borno,Maiduguri,Bolori I,Bakasi Camp,No,true,Yes,Negative,Recovered,Probable
+CHO-BOR-2023-0032,Khadija Kyari,F,74,14/08/2023,Borno State,Damaturu,N/A,,1,1,Yes,Positive,Discharged,Suspect
+CHO-BOR-2023-0033,Hauwa Grema,F,32,10-Sep-2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,Yes,1,Yes,Negative,Active,Confirmed
+CHO-BOR-2023-0034,Usman Garba,1,30,2023-08-16,Borno,Maiduguri,Bolori I,Bakasi Camp,Yes,0,Yes,Positive,Active,Probable
+CHO-BOR-2023-0035,Mohammed Gana,MALE,6,06-Sep-2023,Yobe,Jere,Bolewa A,-,0,0,Yes,Inconclusive,Cured,Probable
+CHO-BOR-2023-0036,Zainab Goni,f,16,28/08/23,Borno,Jerre,Maisandari,Gwoza Transit,1,No,Yes,Pos,Cured,Probable
+CHO-BOR-2023-0037,Mohammed Kyari,MALE,40,2023-09-14,Borno,Maiduguri,Bolori I,Waterboard Camp,No,No,Yes,Inconclusive,Recovered,Confirmed
+CHO-BOR-2023-0038,Maryam Shettima,f,28d,03-Sep-2023,Borno,Gwoza,Maisandari,Farm Cntr IDP,1,Yes,Yes,Pos,Cured,Probable
+CHO-BOR-2023-0039,Bintu Modu,f,36 mos,29/08/2023,Borno,Konduga,Bolori 1,Customs House Camp,Oui,Yes,Yes,Pos,Recovered,Probable
+CHO-BOR-2023-0040,Fatima Lawal,Female,21,20/09/2023,Borno,Gwoza,Dalori,Kukumare village,Oui,No,Yes,Positive,Discharged,Confirmed
+CHO-BOR-2023-0041,Aisha Garba,F,42 mos,29/08/2023,Borno,Gwoza,Bolori 1,Gwoza Transit,Oui,0,Yes,Inconclusive,Alive,Probable
+CHO-BOR-2023-0042,Ibrahim Garba,M,NA,19/09/2023,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,Yes,No,Yes,Inconclusive,Recovered,Suspect
+CHO-BOR-2023-0043,Usman Katsina,m,19d,2023-09-24,Adamawa Region,Unspecified LGA,,,No,Yes,Yes,Pos,Recovered,Suspect
+CHO-BOR-2023-0044,Zainab Modu,F,25 mos,19-Sep-2023,Borno,Gwoza,Maisandari,Kukumare village,0,No,Yes,Inconclusive,Active,Confirmed
+CHO-BOR-2023-0045,Sani Goni,MALE,12d,26/08/2023,Borno,Jerre,Maisandari,Muna IDP Camp,No,0,Yes,Inconclusive,Recovered,Probable
+CHO-BOR-2023-0046,Khadija Grema,F,57,2023-09-01,Borno,Maiduguri,Bolori I,Waterboard Camp,0,Yes,Yes,Inconclusive,Alive,Confirmed
+CHO-BOR-2023-0047,Hadiza Gana,2,5,23/09/2023,Borno,Maiduguri,Bolori I,Bakasi Camp,No,Yes,Yes,Pos,Alive,Probable
+CHO-BOR-2023-0048,Usman Grema,1,46 mos,17-Sep-2023,Borno,Maidugury,Muna,Gwoza Transit,No,Yes,Yes,Pos,LAMA,Probable
+CHO-BOR-2023-0049,Usman Lawal,Male,66,2023-09-09,Borno,Konduga,Muna,Bakassi Camp,Oui,0,Yes,Negative,Alive,Confirmed
+CHO-BOR-2023-0050,Zainab Garba,FEMALE,-99,20-Aug-2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,1,1,Yes,Inconclusive,Cured,Confirmed
+CHO-BOR-2023-0051,Sani Katsina,Male,53,2023-09-05,Borno,Konduga,Bolori 1,Muna IDP Camp,Yes,0,Yes,Inconclusive,Transferred,Confirmed
+CHO-BOR-2023-0052,Sani Modu,M,38,02/09/2023,Borno State,Damaturu,N/A,,Oui,No,Yes,Positive,Transferred,Suspect
+CHO-BOR-2023-0053,Zainab Bukar,F,17,29/09/2023,Borno,Jerre,Muna,Dalori 1 Camp,Oui,true,Yes,Negative,Discharged,Probable
+CHO-BOR-2023-0054,Bintu Shettima,FEMALE,28,20/08/23,Borno,Jere,Dusuman,N/A,No,true,Yes,Positive,Cured,Probable
+CHO-BOR-2023-0055,Bukar Modu,M,49,17/09/23,Yobe,Jere,Bolori II,-,1,No,Yes,Negative,LAMA,Suspect
+CHO-BOR-2023-0056,Zainab Katsina,2,28d,24/09/2023,Borno,Konduga,Gwange II,Unknown,1,Yes,Yes,Positive,Cured,Probable
+CHO-BOR-2023-0057,Ibrahim Garba,Male,16,2023-08-29,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,0,0,Yes,Negative,Transferred,Confirmed
+CHO-BOR-2023-0058,Halima Kyari,Female,64,2023-08-14,Borno State,Damaturu,N/A,,0,true,Yes,Positive,Alive,Probable
+CHO-BOR-2023-0059,Bintu Gana,2,38,17-Sep-2023,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,0,1,Yes,Positive,Cured,Suspect
+CHO-BOR-2023-0060,Usman Shettima,M,8 mos,2023-08-30,Borno State,Jere District,N/A,,0,No,Yes,Pos,Cured,Probable
+CHO-BOR-2023-0061,Mustapha Garba,1,-99,14/08/23,Borno,Jerre,Maisandari,El Miskin settlement,0,true,Yes,Positive,Transferred,Probable
+CHO-BOR-2023-0062,Aisha Grema,F,7,2023-08-14,Borno State,Jere District,N/A,,0,1,Yes,Pos,Recovered,Probable
+CHO-BOR-2023-0063,Ibrahim Kyari,m,unknown,26/08/2023,Borno,Maiduguri,Bolori I,Bakasi Camp,0,true,Yes,Positive,Recovered,Confirmed
+CHO-BOR-2023-0064,Hauwa Shettima,FEMALE,10 mos,10/09/2023,Borno,Jerre,Bolori 1,Kukumare village,No,Yes,Yes,Positive,Cured,Probable
+CHO-BOR-2023-0065,Sani Gana,1,61,2023-08-14,Borno,Maiduguri,Bolori I,Bakasi Camp,No,0,Yes,Negative,Cured,Probable
+CHO-BOR-2023-0066,Khadija Gana,F,75,2023-09-25,Borno,Gwoza,Dalori,Kukumare village,No,true,Yes,Negative,Cured,Probable
+CHO-BOR-2023-0067,Mustapha Gana,M,16,06-Sep-2023,Borno State,Monguno,N/A,,Yes,No,Yes,Negative,Cured,Suspect
+CHO-BOR-2023-0068,Sani Katsina,Male,50,2023-08-18,Yobe,Konduga,Gwange I,N/A,0,1,Yes,Inconclusive,Cured,Suspect
+CHO-BOR-2023-0069,Bukar Katsina,MALE,unknown,27-Aug-2023,Yobe Province,Unspecified LGA,,,0,No,Yes,Positive,Dead,Confirmed
+CHO-BOR-2023-0070,Ibrahim Gana,MALE,32 mos,09-Sep-2023,Borno,Maiduguri,Dalori,Village near river,Yes,true,Yes,Inconclusive,Discharged,Suspect
+CHO-BOR-2023-0071,Halima Shettima,Female,38 mos,18-Aug-2023,Borno,Konduga,Dusuman,Village near river,Yes,1,Yes,Negative,Discharged,Confirmed
+CHO-BOR-2023-0072,Usman Kyari,Male,37 mos,27/09/23,Borno,Jerre,Maisandari,El Miskin settlement,No,Yes,Yes,Inconclusive,Discharged,Confirmed
+CHO-BOR-2023-0073,Sani Garba,1,58,28-Aug-2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,Yes,No,Yes,Positive,Cured,Confirmed
+CHO-BOR-2023-0074,Khadija Lawal,F,44,2023-09-27,Borno,Maiduguri,Bolori I,Waterboard Camp,Oui,true,Yes,Pos,Recovered,Confirmed
+CHO-BOR-2023-0075,Zainab Bukar,f,14,23/08/2023,Borno State,Bama LGA,N/A,,Oui,1,Yes,Inconclusive,Cured,Confirmed
+CHO-BOR-2023-0076,Zainab Kyari,FEMALE,38 mos,15/08/2023,Borno,Maiduguri,Bolori I,Bakasi Camp,0,0,Yes,Inconclusive,Discharged,Probable
+CHO-BOR-2023-0077,Ibrahim Grema,MALE,46,18/09/2023,Borno,Maidugury,Muna,Farm Cntr IDP,No,0,Yes,Pos,Alive,Probable
+CHO-BOR-2023-0078,Zainab Shettima,2,11,01/10/2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,Oui,0,Yes,Pos,Cured,Probable
+CHO-BOR-2023-0079,Hauwa Goni,Female,unknown,22/09/2023,Borno,Maiduguri,Bolori I,Stadium Camp,1,0,Yes,Positive,Cured,Suspect
+CHO-BOR-2023-0080,Bukar Goni,M,28,24/08/23,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,Yes,0,Yes,Positive,Cured,Suspect
+CHO-BOR-2023-0081,Hauwa Garba,2,17 mos,2023-09-25,Borno,Konduga,Dusuman,,Oui,No,Yes,Pos,Active,Suspect
+CHO-BOR-2023-0082,Halima Bukar,Female,61,09/09/2023,Borno,Maidugury,Bolori 1,Bakassi Camp,No,true,Yes,Positive,LAMA,Suspect
+CHO-BOR-2023-0083,Musa Kyari,M,39,09/09/23,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,Yes,No,Yes,Positive,Cured,Probable
+CHO-BOR-2023-0084,Maryam Shettima,F,8,30-Aug-2023,Borno State,Jere District,N/A,,1,No,Yes,Inconclusive,Alive,Suspect
+CHO-BOR-2023-0085,Aisha Katsina,Female,15 mos,16/09/23,Borno,Maiduguri,Bolori I,Bakasi Camp,Yes,1,Yes,Inconclusive,Discharged,Suspect
+CHO-BOR-2023-0086,Mustapha Gana,M,68,45188,Borno,Gwoza,Maisandari,Bakassi Camp,1,0,Yes,Inconclusive,Deceased,Confirmed
+CHO-BOR-2023-0087,Musa Lawal,Male,39 mos,15/09/2023,Borno,Jerre,Dalori,Gwoza Transit,Oui,Yes,Yes,Negative,Cured,Confirmed
+CHO-BOR-2023-0088,Aisha Garba,Female,28 mos,2023-09-14,Borno State,Damaturu,N/A,,1,1,Yes,Positive,Alive,Suspect
+CHO-BOR-2023-0089,Mustapha Katsina,Male,18 mos,13/08/2023,Borno,Jerre,Maisandari,Kukumare village,Oui,true,Yes,Positive,Recovered,Suspect
+CHO-BOR-2023-0090,Aisha Goni,2,61,04/09/23,Borno,Konduga,Dalori,Unknown,No,0,Yes,Pos,Discharged,Suspect
+CHO-BOR-2023-0091,Aisha Gana,Female,44,2023-09-09,Yobe,Maiduguri,Dusuman,Unknown,Oui,Yes,Yes,Positive,Alive,Suspect
+CHO-BOR-2023-0092,Mohammed Lawal,m,NA,19/09/2023,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,Oui,No,Yes,Positive,Cured,Suspect
+CHO-BOR-2023-0093,Halima Goni,Female,14,15/09/23,Borno,Maiduguri,Bolori I,Bakasi Camp,Yes,1,Yes,Inconclusive,Discharged,Suspect
+CHO-BOR-2023-0094,Bintu Gana,Female,62,25/08/23,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,1,No,Yes,Positive,Transferred,Suspect
+CHO-BOR-2023-0095,Mohammed Goni,M,42,2023-08-29,Borno State,Monguno,N/A,,1,1,Yes,Inconclusive,Recovered,Confirmed
+CHO-BOR-2023-0096,Hadiza Grema,FEMALE,11 mos,15/08/23,Borno,Maidugury,Muna,Gwoza Transit,Yes,No,Yes,Inconclusive,Active,Suspect
+CHO-BOR-2023-0097,Abubakar Lawal,MALE,14 mos,08/09/2023,Borno State,Monguno,N/A,,1,true,Yes,Pos,Recovered,Probable
+CHO-BOR-2023-0098,Bukar Kyari,M,27d,27/08/2023,Borno,Maidugury,Bolori 1,Bakassi Camp,0,Yes,Yes,Positive,Cured,Confirmed
+CHO-BOR-2023-0099,Zainab Bukar,FEMALE,8,12-Sep-2023,Borno,Gwoza,Maisandari,Gwoza Transit,1,No,Yes,Inconclusive,Discharged,Probable
+CHO-BOR-2023-0100,Hadiza Garba,f,20d,2023-09-26,Borno State,Monguno,N/A,,1,No,Yes,Positive,Cured,Probable
+CHO-BOR-2023-0101,Hauwa Gana,F,22d,2023-09-19,Borno State,Monguno,N/A,,1,No,Yes,Inconclusive,Recovered,Probable
+CHO-BOR-2023-0102,Mustapha Katsina,M,unknown,08-Sep-2023,Borno,Maiduguri,Bolori I,Bakasi Camp,Oui,0,Yes,Positive,Alive,Confirmed
+CHO-BOR-2023-0103,Zainab Goni,2,56,15-Aug-2023,Borno,Gwoza,Dalori,Customs House Camp,0,0,Yes,Positive,Cured,Confirmed
+CHO-BOR-2023-0104,Sani Goni,Male,51,27/09/2023,Borno,Jerre,Muna,Muna IDP Camp,No,0,Yes,Inconclusive,Cured,Confirmed
+CHO-BOR-2023-0105,Bukar Modu,Male,-99,21-Aug-2023,Borno,Gwoza,Maisandari,Kukumare village,Oui,Yes,Yes,Inconclusive,Cured,Suspect
+CHO-BOR-2023-0106,Fatima Garba,2,28d,15/09/2023,Borno,Maidugury,Bolori 1,Gwoza Transit,1,Yes,Yes,Inconclusive,Discharged,Probable
+CHO-BOR-2023-0107,Khadija Bukar,2,65,2023-09-28,Borno,Gwoza,Dalori,Farm Cntr IDP,No,0,Yes,Negative,Recovered,Suspect
+CHO-BOR-2023-0108,Zainab Garba,2,21 mos,29-Aug-2023,Borno State,Damaturu,N/A,,Oui,No,Yes,Negative,Alive,Suspect
+CHO-BOR-2023-0109,Usman Kyari,M,74,2023-09-04,Borno,Maiduguri,Bolori I,Bakasi Camp,Oui,No,Yes,Negative,LAMA,Suspect
+CHO-BOR-2023-0110,Maryam Lawal,Female,unknown,27/08/2023,Borno,Maiduguri,Bolori I,Custom House IDP Camp,1,Yes,Yes,Positive,Recovered,Probable
+CHO-BOR-2023-0111,Halima Gana,f,41 mos,21/08/23,Borno,Konduga,Maisandari,El Miskin settlement,Yes,0,Yes,Pos,Discharged,Suspect
+CHO-BOR-2023-0112,Ibrahim Modu,1,27,2023-08-13,Yobe Province,Unspecified LGA,,,Oui,0,Yes,Positive,LAMA,Probable
+CHO-BOR-2023-0113,Bintu Lawal,2,22,12/09/2023,Borno,Maiduguri,Bolori I,Waterboard Camp,1,Yes,Yes,Negative,Cured,Probable
+CHO-BOR-2023-0114,Aliyu Modu,MALE,56,08/09/23,Yobe,Potiskum,Gwange II,N/A,Oui,No,Yes,Pos,LAMA,Probable
+CHO-BOR-2023-0115,Mohammed Kyari,MALE,6,2023-08-28,Borno,Maiduguri,Bolori I,Custom House IDP Camp,No,0,Yes,Negative,Recovered,Suspect
+CHO-BOR-2023-0116,Zainab Goni,FEMALE,14 mos,09/09/2023,Borno,Maidugury,Bolori 1,Kukumare village,0,No,Yes,Negative,Discharged,Confirmed
+CHO-BOR-2023-0117,Musa Katsina,MALE,NA,17-Sep-2023,Borno State,Bama LGA,N/A,,0,No,Yes,Positive,Recovered,Suspect
+CHO-BOR-2023-0118,Fatima Grema,f,63,15-Sep-2023,Borno,Maiduguri,Bolori II,-,No,true,Yes,Positive,Discharged,Suspect
+CHO-BOR-2023-0119,Musa Grema,M,15d,28/09/23,Borno,Gwoza,Dalori,Gwoza Transit,Oui,Yes,Yes,Pos,Recovered,Suspect
+CHO-BOR-2023-0120,Hauwa Bukar,F,43,10/09/23,Borno,Gwoza,Bolori 1,El Miskin settlement,1,Yes,Yes,Positive,Cured,Suspect
+CHO-BOR-2023-0121,Fatima Bukar,f,44 mos,13/08/2023,Borno,Maiduguri,Bolori I,Custom House IDP Camp,0,1,Yes,Positive,Recovered,Confirmed
+CHO-BOR-2023-0122,Zainab Bukar,FEMALE,20d,26/08/2023,Borno,Maiduguri,Bolori I,Bakasi Camp,No,0,Yes,Inconclusive,Recovered,Confirmed
+CHO-BOR-2023-0123,Sani Lawal,Male,57,20/08/2023,Borno,Maidugury,Maisandari,El Miskin settlement,0,No,Yes,Inconclusive,Discharged,Suspect
+CHO-BOR-2023-0124,Sani Bukar,Male,47 mos,16/08/2023,Borno,Konduga,Muna,El Miskin settlement,Yes,1,Yes,Pos,Discharged,Probable
+CHO-BOR-2023-0125,Hadiza Kyari,F,18 mos,26/09/23,Adamawa Region,Unspecified LGA,,,No,1,Yes,Negative,Recovered,Probable
+CHO-BOR-2023-0126,Bintu Goni,Female,26d,11/09/23,Borno State,Kondoga,N/A,,Oui,No,Yes,Positive,Transferred,Suspect
+CHO-BOR-2023-0127,Abubakar Katsina,Male,58,2023-08-28,Borno,Konduga,Dalori,El Miskin settlement,No,No,Yes,Pos,Alive,Suspect
+CHO-BOR-2023-0128,Abubakar Modu,MALE,74,20/09/2023,Adamawa Region,Unspecified LGA,,,No,1,Yes,Pos,Discharged,Confirmed
+CHO-BOR-2023-0129,Ibrahim Bukar,MALE,12,20/09/2023,Adamawa Region,Unspecified LGA,,,0,0,Yes,Inconclusive,Discharged,Confirmed
+CHO-BOR-2023-0130,Zainab Lawal,Female,33 mos,21/08/2023,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,Oui,true,Yes,Inconclusive,Cured,Confirmed
+CHO-BOR-2023-0131,Khadija Grema,FEMALE,20 mos,31/08/2023,Yobe,Potiskum,Gwange I,,Yes,Yes,Yes,Pos,Alive,Confirmed
+CHO-BOR-2023-0132,Khadija Goni,FEMALE,NA,12/09/2023,Borno,Konduga,Muna,Muna IDP Camp,Yes,1,Yes,Negative,Active,Confirmed
+CHO-BOR-2023-0133,Abubakar Shettima,M,28d,27/08/23,Borno,Potiskum,Bolori II,Village near river,0,true,Yes,Positive,Discharged,Confirmed
+CHO-BOR-2023-0134,Aisha Goni,FEMALE,55,29-Sep-2023,Borno State,Bama LGA,N/A,,0,No,Yes,Inconclusive,Cured,Confirmed
+CHO-BOR-2023-0135,Sani Gana,MALE,17d,2023-09-24,Borno,Konduga,Dalori,Bakassi Camp,Yes,true,Yes,Inconclusive,Discharged,Probable
+CHO-BOR-2023-0136,Musa Modu,M,34 mos,16/09/2023,Borno,Maiduguri,Bolori I,Bakasi Camp,No,Yes,Yes,Negative,Cured,Probable
+CHO-BOR-2023-0137,Aisha Lawal,f,26,23-Sep-2023,Borno,Maiduguri,Bolori I,Stadium Camp,No,true,Yes,Inconclusive,Recovered,Probable
+CHO-BOR-2023-0138,Aisha Goni,Female,unknown,2023-09-20,Borno,Jerre,Maisandari,Bakassi Camp,0,No,Yes,Negative,Transferred,Probable
+CHO-BOR-2023-0139,Hauwa Kyari,Female,30,10/09/23,Foreign Territory,Unknown Area,Zone 99,Camp X Outside Border,0,1,Yes,Negative,Alive,Probable
+CHO-BOR-2023-0140,Khadija Goni,F,NA,18/09/2023,Borno,Maiduguri,Bolori I,Waterboard Camp,No,true,Yes,Positive,Recovered,Probable
+CHO-BOR-2023-0141,Abubakar Kyari,m,14d,25/09/2023,Borno,Gwoza,Dalori,Kukumare village,0,0,Yes,Positive,Cured,Confirmed
+CHO-BOR-2023-0142,Mohammed Modu,MALE,47 mos,24-Sep-2023,Foreign Territory,Unknown Area,Zone 99,Camp X Outside Border,Yes,true,Yes,Pos,Discharged,Suspect
+CHO-BOR-2023-0143,Bukar Garba,MALE,29 mos,05/09/2023,Yobe,Maiduguri,Bolori II,N/A,Yes,Yes,Yes,Pos,Alive,Probable
+CHO-BOR-2023-0144,Halima Bukar,FEMALE,65,17/08/23,Borno,Maiduguri,Bolori I,Bakasi Camp,Yes,true,Yes,Positive,Discharged,Suspect
+CHO-BOR-2023-0145,Aliyu Lawal,m,47,2023-09-15,Borno State,Damaturu,N/A,,No,Yes,Yes,Pos,Alive,Probable
+CHO-BOR-2023-0146,Sani Katsina,m,10 mos,15/09/2023,Borno,Maiduguri,Bolori I,Bakasi Camp,Oui,No,Yes,Negative,Discharged,Suspect
+CHO-BOR-2023-0147,Khadija Garba,F,24d,18-Sep-2023,Adamawa Region,Unspecified LGA,,,Oui,Yes,Yes,Pos,Recovered,Probable
+CHO-BOR-2023-0148,Hadiza Modu,FEMALE,22,16/09/23,Yobe,Jere,Dalori,N/A,Oui,No,Yes,Positive,Recovered,Probable
+CHO-BOR-2023-0149,Mustapha Modu,m,69,21/09/23,Borno,Maidugury,Dalori,Kukumare village,1,true,Yes,Positive,Discharged,Probable
+CHO-BOR-2023-0150,Zainab Modu,2,68,16/09/2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,0,Yes,Yes,Inconclusive,Cured,Suspect
+CHO-BOR-2023-0151,Khadija Gana,f,11d,08/09/2023,Borno,Maidugury,Bolori 1,Customs House Camp,0,No,Yes,Pos,Cured,Suspect
+CHO-BOR-2023-0152,Maryam Bukar,F,73,29-Aug-2023,Foreign Territory,Unknown Area,Zone 99,Camp X Outside Border,0,Yes,Yes,Pos,Cured,Probable
+CHO-BOR-2023-0153,Usman Modu,m,26 mos,2023-08-27,Borno,Gwoza,Dalori,Dalori 1 Camp,No,0,Yes,Negative,Discharged,Suspect
+CHO-BOR-2023-0154,Mohammed Grema,1,10d,30/09/23,Borno,Potiskum,Gwange I,Unknown,No,true,Yes,Negative,LAMA,Probable
+CHO-BOR-2023-0155,Hauwa Garba,2,11,12/08/23,Borno,Maiduguri,Bolori I,Muna Garage IDP Camp,No,1,Yes,Pos,Discharged,Suspect
+CHO-BOR-2023-0156,Zainab Gana,Female,21d,23/09/23,Borno,Maiduguri,Dusuman,N/A,Yes,1,Yes,Pos,DCD,Suspect
+CHO-BOR-2023-0157,Ibrahim Katsina,Male,59,2023-09-23,Borno,Konduga,Muna,Customs House Camp,1,No,Yes,Pos,Cured,Suspect
+CHO-BOR-2023-0158,Abubakar Gana,MALE,26,2023-09-08,Adamawa Region,Unspecified LGA,,,Yes,Yes,Yes,Pos,Recovered,Confirmed
+CHO-BOR-2023-0159,Sani Goni,1,14d,2023-08-26,Borno,Konduga,Muna,Dalori 1 Camp,No,true,Yes,Positive,Recovered,Confirmed
+CHO-BOR-2023-0160,Aisha Bukar,2,14,12-Sep-2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,No,Yes,Yes,Positive,Recovered,Suspect
+CHO-BOR-2023-0161,Zainab Bukar,F,-99,12/09/2023,Borno State,Bama LGA,N/A,,0,0,Yes,Pos,Discharged,Probable
+CHO-BOR-2023-0162,Aisha Lawal,f,NA,14/09/2023,Borno,Maiduguri,Bolori I,Stadium Camp,Yes,1,Yes,Positive,Recovered,Probable
+CHO-BOR-2023-0163,Fatima Kyari,f,14 mos,23-Sep-2023,Borno,Konduga,Bolori 1,Dalori 1 Camp,Yes,Yes,Yes,Negative,Cured,Probable
+CHO-BOR-2023-0164,Aisha Kyari,FEMALE,68,10/09/23,Borno State,Jere District,N/A,,Yes,0,Yes,Positive,Cured,Confirmed
+CHO-BOR-2023-0165,Ibrahim Katsina,M,36 mos,2023-09-03,Borno State,Unspecified LGA,,,1,true,Yes,Pos,Alive,Probable
+CHO-BOR-2023-0166,Mohammed Kyari,M,20,2023-09-13,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,Yes,No,Yes,Negative,Transferred,Probable
+CHO-BOR-2023-0167,Bintu Grema,F,42,2023-09-16,Borno,Maidugury,Bolori 1,Kukumare village,Yes,1,Yes,Negative,Alive,Suspect
+CHO-BOR-2023-0168,Ibrahim Goni,M,53,2023-09-28,Borno,Gwoza,Dalori,El Miskin settlement,Oui,Yes,Yes,Positive,LAMA,Confirmed
+CHO-BOR-2023-0169,Bukar Shettima,Male,15,16/09/23,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,1,true,Yes,Negative,Recovered,Probable
+CHO-BOR-2023-0170,Sani Goni,Male,34,14/08/2023,Borno,Maiduguri,Bolori I,Custom House IDP Camp,Oui,No,Yes,Positive,Alive,Suspect
+CHO-BOR-2023-0171,Maryam Grema,Female,20,15-Aug-2023,Borno State,Damaturu,N/A,,Oui,1,Yes,Positive,Recovered,Suspect
+CHO-BOR-2023-0172,Hadiza Shettima,FEMALE,25 mos,26/08/23,Borno State,Monguno,N/A,,Yes,No,Yes,Positive,Recovered,Confirmed
+CHO-BOR-2023-0173,Fatima Bukar,f,31 mos,04/09/2023,Borno,Jerre,Muna,Dalori 1 Camp,No,1,Yes,Positive,LAMA,Probable
+CHO-BOR-2023-0174,Halima Katsina,f,-99,26/09/23,Borno,Jere,Bolori II,N/A,1,Yes,Yes,Pos,Alive,Suspect
+CHO-BOR-2023-0175,Khadija Lawal,2,23 mos,03/09/2023,Borno,Maiduguri,Bolori I,Dalori I IDP Camp,Oui,No,Yes,Inconclusive,Alive,Probable
+CHO-BOR-2023-0176,Bukar Goni,1,10d,01-Sep-2023,Borno,Maiduguri,Bolori I,Stadium Camp,1,Yes,Yes,Pos,Recovered,Suspect
+CHO-BOR-2023-0177,Bintu Katsina,f,54,01/09/2023,Borno,Maiduguri,Bolori I,Waterboard Camp,Oui,0,Yes,Pos,Discharged,Suspect
+CHO-BOR-2023-0178,Mustapha Lawal,Male,8 mos,2023-08-15,Borno,Maiduguri,Bolori I,Stadium Camp,1,true,Yes,Pos,Dead,Probable
+CHO-BOR-2023-0179,Hauwa Garba,f,72,02/09/23,Borno,Konduga,Maisandari,Farm Cntr IDP,No,No,Yes,Negative,Recovered,Confirmed
+CHO-BOR-2023-0180,Bukar Garba,Male,43 mos,22-Aug-2023,Borno,Maiduguri,Bolori I,Waterboard Camp,0,Yes,Yes,Pos,DCD,Suspect
