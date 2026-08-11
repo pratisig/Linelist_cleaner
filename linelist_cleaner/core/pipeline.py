@@ -1,5 +1,7 @@
 """
 Master Orchestrator Pipeline for Epidemiological Linelist Cleaning and Spatial Cascade Geocoding.
+PratiSIG Consulting Services - Dakar, Sénégal.
+Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
 """
 
 import io
@@ -40,35 +42,127 @@ from linelist_cleaner.core.deduplicator import Deduplicator
 from linelist_cleaner.core.anonymizer import Anonymizer
 from linelist_cleaner.core.auditor import DataQualityAuditor
 from linelist_cleaner.core.epi_analytics import EpiAnalytics
-from linelist_cleaner.datasets import get_sample_dataset
 
 
-def load_dataset(source: Union[str, bytes, io.BytesIO, pd.DataFrame]) -> pd.DataFrame:
-    """Loads dataframe from filepath, bytes, buffer, or DataFrame."""
+def _find_best_header_row(df_raw_no_header: pd.DataFrame) -> int:
+    """
+    Auto-detects the most probable header row if metadata/title rows exist at the top.
+    """
+    if len(df_raw_no_header) == 0:
+        return 0
+
+    best_row = 0
+    max_text_cells = 0
+
+    for r in range(min(10, len(df_raw_no_header))):
+        row_vals = df_raw_no_header.iloc[r]
+        valid_text_count = sum(1 for v in row_vals if pd.notna(v) and isinstance(v, str) and len(str(v).strip()) > 1)
+        if valid_text_count > max_text_cells:
+            max_text_cells = valid_text_count
+            best_row = r
+
+    return best_row
+
+
+def load_dataset(
+    source: Union[str, bytes, io.BytesIO, pd.DataFrame],
+    skiprows: int = 0,
+    sheet_name: Optional[Union[str, int]] = None
+) -> pd.DataFrame:
+    """
+    Robust dataset loader for CSV, TSV, Excel (.xlsx, .xls) files from filepaths, byte streams, or DataFrames.
+    Supports skipping title/metadata header lines (skiprows) and multi-sheet selection.
+    """
     if isinstance(source, pd.DataFrame):
-        return source.copy()
+        df = source.copy()
+        if skiprows > 0 and len(df) > skiprows:
+            new_headers = df.iloc[skiprows - 1]
+            df = df.iloc[skiprows:].reset_index(drop=True)
+            df.columns = [str(c).strip() for c in new_headers]
+        else:
+            df.columns = [str(c).strip() for c in df.columns]
+        return df
 
     if isinstance(source, bytes):
         source = io.BytesIO(source)
 
     if isinstance(source, io.BytesIO):
+        source.seek(0)
         try:
-            return pd.read_excel(source)
+            excel_file = pd.ExcelFile(source, engine="openpyxl")
+            target_sheet = sheet_name if (sheet_name and sheet_name in excel_file.sheet_names) else excel_file.sheet_names[0]
+            
+            if sheet_name is None and len(excel_file.sheet_names) > 1:
+                max_cells = 0
+                for s_name in excel_file.sheet_names:
+                    try:
+                        df_s = excel_file.parse(s_name, header=None)
+                        cells = len(df_s) * len(df_s.columns)
+                        if cells > max_cells:
+                            max_cells = cells
+                            target_sheet = s_name
+                    except Exception:
+                        pass
+
+            if skiprows > 0:
+                df = excel_file.parse(target_sheet, skiprows=skiprows)
+            else:
+                df = excel_file.parse(target_sheet, header=0)
+                unnamed_ratio = sum(1 for c in df.columns if str(c).startswith("Unnamed:")) / max(1, len(df.columns))
+                if unnamed_ratio > 0.5 and len(df) > 1:
+                    df_raw = excel_file.parse(target_sheet, header=None)
+                    best_h = _find_best_header_row(df_raw)
+                    if best_h > 0:
+                        df = excel_file.parse(target_sheet, skiprows=best_h)
+
+            df.columns = [str(c).strip() for c in df.columns]
+            return df
         except Exception:
             source.seek(0)
-            return pd.read_csv(source)
+            try:
+                if skiprows > 0:
+                    df = pd.read_csv(source, sep=None, engine="python", skiprows=skiprows, encoding="utf-8-sig")
+                else:
+                    df = pd.read_csv(source, sep=None, engine="python", encoding="utf-8-sig")
+                df.columns = [str(c).strip() for c in df.columns]
+                return df
+            except Exception:
+                source.seek(0)
+                try:
+                    df = pd.read_csv(source, sep=";", skiprows=skiprows, encoding="latin1")
+                    df.columns = [str(c).strip() for c in df.columns]
+                    return df
+                except Exception:
+                    source.seek(0)
+                    df = pd.read_csv(source, skiprows=skiprows)
+                    df.columns = [str(c).strip() for c in df.columns]
+                    return df
 
     if isinstance(source, str):
         if source.endswith((".xlsx", ".xls")):
-            return pd.read_excel(source)
+            excel_file = pd.ExcelFile(source)
+            target_sheet = sheet_name if (sheet_name and sheet_name in excel_file.sheet_names) else excel_file.sheet_names[0]
+            if skiprows > 0:
+                df = excel_file.parse(target_sheet, skiprows=skiprows)
+            else:
+                df = excel_file.parse(target_sheet, header=0)
+            df.columns = [str(c).strip() for c in df.columns]
+            return df
         elif source.endswith(".tsv"):
-            return pd.read_csv(source, sep="\t")
+            df = pd.read_csv(source, sep="\t", skiprows=skiprows)
+            df.columns = [str(c).strip() for c in df.columns]
+            return df
         elif source.endswith(".json"):
             return pd.read_json(source)
         else:
-            return pd.read_csv(source)
+            try:
+                df = pd.read_csv(source, sep=None, engine="python", skiprows=skiprows)
+            except Exception:
+                df = pd.read_csv(source, skiprows=skiprows)
+            df.columns = [str(c).strip() for c in df.columns]
+            return df
 
-    raise ValueError("Unsupported data source format.")
+    raise ValueError("Format de fichier non pris en charge.")
 
 
 class LinelistCleaner:
@@ -81,14 +175,11 @@ class LinelistCleaner:
         self,
         source: Union[str, bytes, io.BytesIO, pd.DataFrame],
         custom_mapping: Optional[Dict[str, str]] = None,
-        reference_pcode_df: Optional[pd.DataFrame] = None
+        reference_pcode_df: Optional[pd.DataFrame] = None,
+        skiprows: int = 0
     ) -> Tuple[pd.DataFrame, CleaningReport]:
-        """
-        Executes the end-to-end linelist cleaning and spatial cascade pipeline.
-        Returns: (cleaned_df, CleaningReport)
-        """
         start_time = time.time()
-        df_raw = load_dataset(source)
+        df_raw = load_dataset(source, skiprows=skiprows)
         original_shape = df_raw.shape
         logs: List[CleaningLogEntry] = []
 
@@ -100,7 +191,7 @@ class LinelistCleaner:
             df_curr, renamed_cols_map = standardize_dataframe_columns(df_curr)
             logs.append(CleaningLogEntry(
                 step="Standardize Headers",
-                action="Converted column names to snake_case and removed special characters",
+                action="Conversion des en-tetes en snake_case et suppression des accents",
                 affected_rows=0,
                 affected_columns=list(renamed_cols_map.values()),
                 details=renamed_cols_map
@@ -115,7 +206,7 @@ class LinelistCleaner:
             )
             logs.append(CleaningLogEntry(
                 step="Handle Missing Values",
-                action="Standardized missing tokens ('NA', '-99', '999', 'unknown') to null",
+                action="Standardisation des valeurs sentinelles ('NA', '-99', '999', 'unknown') vers null",
                 affected_rows=missing_count,
                 affected_columns=list(df_curr.columns),
                 details={"sentinels_cleaned": missing_count}
@@ -138,7 +229,7 @@ class LinelistCleaner:
 
         logs.append(CleaningLogEntry(
             step="Semantic Column Mapping",
-            action="Mapped raw columns to standard epidemiological and geographic variables",
+            action="Attribution des variables epidemiologiques et spatiales canoniques",
             affected_rows=0,
             affected_columns=list(mapped_summary.keys()),
             details=mapped_summary
@@ -183,7 +274,6 @@ class LinelistCleaner:
                 df_curr[d_col] = clean_s
                 dates_cleaned_count[d_col] = d_stats["successfully_parsed"]
 
-            # Compute WHO EpiWeeks on primary admission/onset date
             if self.config.compute_epi_weeks:
                 primary_date_col = tag_to_col.get("date_admission") or tag_to_col.get("date_onset") or tag_to_col.get("date_consultation")
                 if not primary_date_col and date_cols_to_clean:
@@ -202,7 +292,7 @@ class LinelistCleaner:
 
             logs.append(CleaningLogEntry(
                 step="Date & EpiWeek Processing",
-                action="Standardized dates to ISO and computed WHO EpiWeeks (EPI_WEEK, EPI_WEEK_NUM)",
+                action="Standardisation des dates vers ISO et calcul des semaines epi OMS (EPI_WEEK, EPI_WEEK_NUM)",
                 affected_rows=sum(dates_cleaned_count.values()),
                 affected_columns=list(date_cols_to_clean) + (["EPI_WEEK", "EPI_WEEK_NUM", "DATE_ADMISSION_CLEAN"] if self.config.compute_epi_weeks else []),
                 details=dates_cleaned_count
@@ -210,61 +300,52 @@ class LinelistCleaner:
 
         # Step 5: Spatial Fallback Cascade Geocoding (P-Code Matching)
         spatial_summary: Optional[SpatialCascadeSummary] = None
-        if self.config.enable_spatial_cascade:
-            ref_df = reference_pcode_df
-            if ref_df is None:
-                # Load default OCHA COD-AB reference
-                ref_df = get_sample_dataset("pcode_reference")
+        if self.config.enable_spatial_cascade and reference_pcode_df is not None and not reference_pcode_df.empty:
+            ref_index = PCodeReferenceIndex(reference_pcode_df, self.config.spatial_reference_mapping)
+            matcher = SpatialCascadeMatcher(
+                ref_index,
+                similarity_threshold=self.config.spatial_similarity_threshold
+            )
 
-            if ref_df is not None and not ref_df.empty:
-                ref_index = PCodeReferenceIndex(ref_df, self.config.spatial_reference_mapping)
-                matcher = SpatialCascadeMatcher(
-                    ref_index,
-                    similarity_threshold=self.config.spatial_similarity_threshold
-                )
+            col_loc = tag_to_col.get("admin3") or tag_to_col.get("health_facility")
+            col_a3 = tag_to_col.get("admin3")
+            col_a2 = tag_to_col.get("admin2")
+            col_a1 = tag_to_col.get("admin1")
 
-                col_loc = tag_to_col.get("admin3") or tag_to_col.get("health_facility")
-                col_a3 = tag_to_col.get("admin3")
-                col_a2 = tag_to_col.get("admin2")
-                col_a1 = tag_to_col.get("admin1")
+            for c in df_curr.columns:
+                c_low = c.lower()
+                if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement"]):
+                    col_loc = c
+                if not col_a3 and any(k in c_low for k in ["ward", "subdistrict", "aire"]):
+                    col_a3 = c
+                if not col_a2 and any(k in c_low for k in ["lga", "district", "zone"]):
+                    col_a2 = c
+                if not col_a1 and any(k in c_low for k in ["state", "province", "region"]):
+                    col_a1 = c
 
-                # Fallback to column name scanning if not mapped
-                for c in df_curr.columns:
-                    c_low = c.lower()
-                    if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement"]):
-                        col_loc = c
-                    if not col_a3 and any(k in c_low for k in ["ward", "subdistrict", "aire"]):
-                        col_a3 = c
-                    if not col_a2 and any(k in c_low for k in ["lga", "district", "zone"]):
-                        col_a2 = c
-                    if not col_a1 and any(k in c_low for k in ["state", "province", "region"]):
-                        col_a1 = c
+            df_curr, sp_stats = matcher.process_dataframe(
+                df_curr,
+                col_locality=col_loc,
+                col_admin3=col_a3,
+                col_admin2=col_a2,
+                col_admin1=col_a1
+            )
 
-                df_curr, sp_stats = matcher.process_dataframe(
-                    df_curr,
-                    col_locality=col_loc,
-                    col_admin3=col_a3,
-                    col_admin2=col_a2,
-                    col_admin1=col_a1
-                )
-
-                spatial_summary = SpatialCascadeSummary(**sp_stats)
-                logs.append(CleaningLogEntry(
-                    step="Spatial Fallback Cascade",
-                    action=f"Executed 5-level cascade geocoding (Geocoded Rate: {sp_stats['geocoded_rate_pct']}%)",
-                    affected_rows=sp_stats["geocoded_count"],
-                    affected_columns=["PCODE_ASSIGNED", "MATCH_LEVEL", "MATCH_SCORE", "MATCHED_NAME", "LATITUDE", "LONGITUDE"],
-                    details=sp_stats
-                ))
+            spatial_summary = SpatialCascadeSummary(**sp_stats)
+            logs.append(CleaningLogEntry(
+                step="Spatial Fallback Cascade",
+                action=f"Geocodage en cascade execute avec succes (Taux: {sp_stats['geocoded_rate_pct']}%)",
+                affected_rows=sp_stats["geocoded_count"],
+                affected_columns=["PCODE_ASSIGNED", "MATCH_LEVEL", "MATCH_SCORE", "MATCHED_NAME", "LATITUDE", "LONGITUDE"],
+                details=sp_stats
+            ))
 
         # Step 6: Demographic & Categorical Standardization
-        # Sex
         if self.config.standardize_sex and "sex" in tag_to_col:
             sex_col = tag_to_col["sex"]
             if sex_col in df_curr.columns:
                 df_curr[sex_col] = df_curr[sex_col].apply(standardize_sex_value)
 
-        # Age & Age Groups
         ages_cleaned_count = 0
         if self.config.standardize_ages and "age" in tag_to_col:
             age_col = tag_to_col["age"]
@@ -286,19 +367,16 @@ class LinelistCleaner:
                     age_idx = df_curr.columns.get_loc(age_col)
                     df_curr.insert(age_idx + 1, "age_group", age_groups)
 
-        # Case Classification
         if self.config.standardize_case_definitions and "case_definition" in tag_to_col:
             cdef_col = tag_to_col["case_definition"]
             if cdef_col in df_curr.columns:
                 df_curr[cdef_col] = df_curr[cdef_col].apply(standardize_case_definition_value)
 
-        # Outcome
         if self.config.standardize_outcomes and "outcome" in tag_to_col:
             out_col = tag_to_col["outcome"]
             if out_col in df_curr.columns:
                 df_curr[out_col] = df_curr[out_col].apply(standardize_outcome_value)
 
-        # Binary Symptoms
         if self.config.standardize_binary_fields:
             binary_tags = ["hospitalized", "vaccinated", "pregnant", "fever", "cough", "diarrhea", "vomiting", "bleeding", "rash"]
             for b_tag in binary_tags:
@@ -306,7 +384,6 @@ class LinelistCleaner:
                 if col and col in df_curr.columns:
                     df_curr[col] = df_curr[col].apply(standardize_binary_value)
 
-        # Facility Harmonization
         if "health_facility" in tag_to_col:
             fac_col = tag_to_col["health_facility"]
             if fac_col in df_curr.columns:
@@ -378,27 +455,24 @@ class LinelistCleaner:
         output_path_or_buffer: Any,
         reference_df: Optional[pd.DataFrame] = None
     ) -> None:
-        """Exports the 3-tab Excel report workbook (KPI_Dashboard, LineList_Nettoyee, Referentiel_PCode)."""
         DataQualityAuditor.export_excel_audit_workbook(df_clean, report, output_path_or_buffer, ref_df=reference_df)
 
     @staticmethod
     def export_csv(df_clean: pd.DataFrame, output_path_or_buffer: Any) -> None:
-        """Exports cleaned linelist as CSV."""
         df_clean.to_csv(output_path_or_buffer, index=False)
 
     @staticmethod
     def generate_reproducible_python_script(config: CleaningConfig) -> str:
-        """Generates reproducible Python script for spatial cascade geocoding."""
         return f'''"""
-Reproducible Linelist Cleaning & Spatial Fallback Cascade Pipeline
-Generated automatically by Linelist Cleaner.
+Pipeline Reproductible de Nettoyage de Line List et Geocodage en Cascade (P-Codes OCHA)
+PratiSIG Consulting Services - Dakar, Senegal.
+Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
 """
 
 import pandas as pd
 from linelist_cleaner import LinelistCleaner, CleaningConfig
-from linelist_cleaner.datasets import get_sample_dataset
 
-# 1. Configuration with Spatial Fallback Cascade
+# 1. Configuration du Moteur
 config = CleaningConfig(
     standardize_headers={config.standardize_headers},
     auto_map_epi_tags={config.auto_map_epi_tags},
@@ -414,21 +488,21 @@ config = CleaningConfig(
     dedup_action="{config.dedup_action}"
 )
 
-# 2. Load Raw Line List and P-Code Reference Dataset
-print("Loading raw line list and spatial reference...")
-raw_linelist = pd.read_csv("cholera_borno_field_linelist.csv")
-pcode_reference = pd.read_csv("ocha_pcode_reference_nigeria.csv")
+# 2. Chargement de la Line List Brute et du Referentiel P-Code OCHA
+print("Chargement des donnees...")
+raw_linelist = pd.read_excel("ma_line_list_brute.xlsx")
+pcode_reference = pd.read_excel("mon_referentiel_pcode.xlsx")
 
-# 3. Initialize Cleaner and Execute Pipeline
+# 3. Execution du Pipeline
 cleaner = LinelistCleaner(config=config)
 cleaned_df, report = cleaner.clean(raw_linelist, reference_pcode_df=pcode_reference)
 
-# 4. Save 3-Tab Excel Workbook
-output_excel = "Linelist_Nettoyee_PCode_Report.xlsx"
+# 4. Export du Classeur Excel 3 Onglets
+output_excel = "LineList_Nettoyee_PCode_PratiSIG.xlsx"
 cleaner.export_excel(cleaned_df, report, output_excel, reference_df=pcode_reference)
 
-print(f"Pipeline executed successfully!")
-print(f"Geocoding Rate: {{report.spatial_summary.geocoded_rate_pct}}%")
-print(f"Cleaned shape: {{report.cleaned_shape}}")
-print(f"Output saved to: {{output_excel}}")
+print("Traitement termine avec succes !")
+if report.spatial_summary:
+    print(f"Taux de Geocodage : {{report.spatial_summary.geocoded_rate_pct}}%")
+print(f"Fichier genere : {{output_excel}}")
 '''
