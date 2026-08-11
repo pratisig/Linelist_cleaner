@@ -2,7 +2,7 @@ name: Build Windows Executable (.exe)
 
 on:
   push:
-    branches: [ main, master, "arena/**" ]
+    branches: [ main, master ]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -26,25 +26,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .
           pip install pyinstaller pytest httpx
 
       - name: Run Test Suite
         run: |
-          pytest -v
+          python -m pytest -v
 
       - name: Build Standalone Executable (.exe) with PyInstaller
         run: |
           pyinstaller --clean Linelist_Cleaner.spec
 
-      - name: Verify Executable Creation
-        run: |
-          Get-ChildItem -Path dist/
-
       - name: Create Portable Zip Package
         run: |
-          Compress-Archive -Path dist/Linelist_Cleaner.exe, README.md, LICENSE -DestinationPath Linelist_Cleaner_Windows_x64.zip
+          Compress-Archive -Path dist/Linelist_Cleaner.exe, README.md, LICENSE, MANUEL_UTILISATEUR.md -DestinationPath Linelist_Cleaner_Windows_x64.zip
 
-      - name: Upload Artifact (Accessible from GitHub Actions run)
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Linelist_Cleaner_Windows_x64
