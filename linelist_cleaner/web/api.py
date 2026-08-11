@@ -18,6 +18,8 @@ from linelist_cleaner.core.pipeline import LinelistCleaner, load_dataset
 from linelist_cleaner.core.column_standardizer import map_linelist_columns
 from linelist_cleaner.core.spatial_cascade import auto_detect_reference_mapping
 from linelist_cleaner.core.epi_analytics import EpiAnalytics
+from linelist_cleaner.core.coordinate_cleaner import clean_coordinate_columns
+from linelist_cleaner.core.phone_cleaner import clean_phone_column
 
 router = APIRouter(prefix="/api")
 
@@ -50,10 +52,28 @@ class CleanRequest(BaseModel):
     skiprows: int = 0
 
 
+@router.get("/health")
+async def get_health():
+    """V2 Health & version endpoint."""
+    return {"status": "ok", "version": "2.0.0", "name": "Linelist Cleaner V2", "maintainer": "PratiSIG Consulting Services"}
+
 @router.get("/dictionary")
 async def get_dictionary():
     """Returns canonical epidemiological variable dictionary."""
     return CANONICAL_TAGS
+
+@router.get("/config/presets")
+async def get_presets():
+    """V2: List available disease presets and their defaults."""
+    return {
+        "presets": {
+            "cholera": {"age_group_breaks": [0, 5, 15, 30, 50, 65, 80], "spatial_similarity_threshold": 78, "description": "Choléra / AWD - foyers urbains"},
+            "measles": {"age_group_breaks": [0, 1, 5, 10, 15, 30, 50], "spatial_similarity_threshold": 80, "description": "Rougeole - sensibilité enfants <5 ans"},
+            "ebola": {"age_group_breaks": [0, 5, 15, 30, 50, 65, 80], "spatial_similarity_threshold": 85, "description": "Ebola - haute précision géocodage"},
+            "covid19": {"age_group_breaks": [0, 10, 20, 30, 40, 50, 60, 70, 80], "spatial_similarity_threshold": 80, "description": "COVID-19 - pyramide large"},
+            "generic": {"age_group_breaks": [0, 5, 15, 30, 50, 65, 80], "spatial_similarity_threshold": 80, "description": "Générique"}
+        }
+    }
 
 
 @router.post("/upload")
@@ -188,6 +208,9 @@ async def execute_clean(request: CleanRequest):
         epi_curve_weekly = epi.get_epi_curve(time_unit="week", stratify_by="outcome")
         delays = epi.get_delay_distributions()
         pyramid = epi.get_demographic_pyramid()
+        advanced = epi.get_advanced_metrics()
+        # V2 diff stats: before/after quality
+        quality_delta = round(report.quality_scores_after.overall_score - report.quality_scores_before.overall_score, 1)
 
         map_points = []
         if "LATITUDE" in df_clean.columns and "LONGITUDE" in df_clean.columns:
@@ -219,6 +242,10 @@ async def execute_clean(request: CleanRequest):
             "epi_curve_weekly": epi_curve_weekly,
             "delays": delays,
             "pyramid": pyramid,
+            "advanced_metrics": advanced,
+            "quality_delta": quality_delta,
+            "outbreak_alerts": report.outbreak_alerts,
+            "incidence_trend": report.incidence_trend,
             "map_points": map_points,
             "has_reference": ref_df is not None and not ref_df.empty,
             "ref_filename": session.get("ref_filename"),
@@ -235,7 +262,7 @@ async def execute_clean(request: CleanRequest):
 
 @router.get("/export/excel/{session_id}")
 async def export_excel_download(session_id: str):
-    """Generates and streams the 3-tab Excel report workbook."""
+    """Generates and streams the 6-tab Excel report workbook V2."""
     session = SESSIONS.get(session_id)
     if not session or "cleaned_df" not in session:
         raise HTTPException(status_code=404, detail="Données nettoyées non disponibles pour cette session.")
@@ -248,12 +275,98 @@ async def export_excel_download(session_id: str):
     LinelistCleaner.export_excel(df_clean, report, buffer, reference_df=ref_df)
     buffer.seek(0)
 
-    filename = f"LineList_Nettoyee_PCode_PratiSIG.xlsx"
+    filename = f"LineList_Nettoyee_PCode_PratiSIG_V2.xlsx"
     return Response(
         content=buffer.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+@router.get("/export/geojson/{session_id}")
+async def export_geojson_download(session_id: str):
+    """V2: Generates and streams cleaned GeoJSON FeatureCollection."""
+    session = SESSIONS.get(session_id)
+    if not session or "cleaned_df" not in session:
+        raise HTTPException(status_code=404, detail="Données nettoyées non disponibles pour GeoJSON.")
+    df_clean = session["cleaned_df"]
+    # Build geojson
+    geo = LinelistCleaner.export_geojson(df_clean)
+    import json as _json
+    return Response(
+        content=_json.dumps(geo, ensure_ascii=False, indent=2),
+        media_type="application/geo+json",
+        headers={"Content-Disposition": f"attachment; filename=LineList_Geocoded_V2.geojson"}
+    )
+
+@router.get("/analytics/advanced/{session_id}")
+async def get_advanced_analytics(session_id: str):
+    """V2: Returns advanced epidemiological metrics for a session without re-cleaning."""
+    session = SESSIONS.get(session_id)
+    if not session or "cleaned_df" not in session:
+        raise HTTPException(status_code=404, detail="Données nettoyées non disponibles.")
+    df_clean = session["cleaned_df"]
+    report = session["report"]
+    tag_to_col = {v: k for k, v in report.columns_mapped.items()}
+    epi = EpiAnalytics(df_clean, tag_to_col)
+    return {
+        "advanced_metrics": epi.get_advanced_metrics(),
+        "delays": epi.get_delay_distributions(),
+        "pyramid": epi.get_demographic_pyramid(),
+        "outbreak_alerts": getattr(report, "outbreak_alerts", []),
+        "incidence_trend": getattr(report, "incidence_trend", None),
+        "epi_curve_weekly": epi.get_epi_curve(time_unit="week", stratify_by="outcome"),
+    }
+
+@router.post("/validate")
+async def validate_dataset(
+    file: UploadFile = File(...),
+    session_id: Optional[str] = Form(None),
+):
+    """V2: Quick validation without full cleaning (profile + issues preview)."""
+    try:
+        contents = await file.read()
+        df = load_dataset(contents)
+        from linelist_cleaner.core.column_standardizer import map_linelist_columns as _map
+        from linelist_cleaner.core.logic_validator import LogicValidator
+        from linelist_cleaner.core.deduplicator import Deduplicator as _Dup
+        from linelist_cleaner.core.auditor import DataQualityAuditor as _Aud
+        m = _map(df)
+        tag_to_col = {v["mapped_tag"]: k for k, v in m.items() if v["mapped_tag"]}
+        validator = LogicValidator()
+        issues = validator.validate(df, tag_to_col)
+        dups = _Dup().find_duplicates(df, tag_to_col)
+        qs = _Aud.calculate_quality_scores(df, issues, dups, tag_to_col)
+        profiles = _Aud.profile_columns(df, tag_to_col, issues)
+        return {
+            "rows": len(df),
+            "columns": list(df.columns),
+            "detected_mappings": m,
+            "quality_scores": qs.model_dump(),
+            "issues_count": len(issues),
+            "issues_by_severity": {k: sum(1 for i in issues if i.severity==k) for k in ["ERROR","WARNING","INFO"]},
+            "duplicate_groups": len(dups),
+            "profiles": {k: v.model_dump() for k, v in profiles.items()},
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erreur validation: {str(e)}")
+
+@router.post("/preview_diff/{session_id}")
+async def preview_diff(session_id: str):
+    """V2: Returns side-by-side diff of raw vs cleaned preview (first 50 rows)."""
+    session = SESSIONS.get(session_id)
+    if not session or "raw_df" not in session or "cleaned_df" not in session:
+        raise HTTPException(status_code=404, detail="Previews non disponibles (lancer nettoyage d'abord).")
+    raw = session["raw_df"].head(50)
+    cleaned = session["cleaned_df"].head(50)
+    # Build column diff
+    added_cols = [c for c in cleaned.columns if c not in raw.columns]
+    return {
+        "raw_columns": list(raw.columns),
+        "cleaned_columns": list(cleaned.columns),
+        "added_columns": added_cols,
+        "raw_preview": df_to_json_records(raw, 50),
+        "cleaned_preview": df_to_json_records(cleaned, 50),
+    }
 
 
 @router.get("/export/csv/{session_id}")

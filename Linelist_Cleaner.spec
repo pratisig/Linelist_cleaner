@@ -45,6 +45,10 @@ hiddenimports = [
     'jinja2',
     'multipart',
     'python_multipart',
+    # V2 new modules
+    'linelist_cleaner.core.coordinate_cleaner',
+    'linelist_cleaner.core.phone_cleaner',
+    'linelist_cleaner.core.outbreak_detector',
 ]
 
 a = Analysis(

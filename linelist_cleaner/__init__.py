@@ -10,6 +10,8 @@ from linelist_cleaner.schemas.models import (
     DataQualityScores,
     DuplicateGroup,
     CleaningReport,
+    OutbreakAlert,
+    IncidenceTrend,
 )
 from linelist_cleaner.schemas.epi_dictionary import CANONICAL_TAGS
 from linelist_cleaner.core.pipeline import LinelistCleaner, load_dataset
@@ -34,7 +36,8 @@ from linelist_cleaner.core.epi_analytics import EpiAnalytics
 from linelist_cleaner.core.auditor import DataQualityAuditor
 from linelist_cleaner.datasets import get_sample_dataset
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
+__version_v2__ = "2.0.0"
 
 __all__ = [
     "LinelistCleaner",
@@ -45,6 +48,8 @@ __all__ = [
     "ColumnProfile",
     "DataQualityScores",
     "DuplicateGroup",
+    "OutbreakAlert",
+    "IncidenceTrend",
     "CANONICAL_TAGS",
     "DateCleaner",
     "AgeCleaner",

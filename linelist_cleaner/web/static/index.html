@@ -3,592 +3,459 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linelist Cleaner & Géocodage Spatial en Cascade (P-Codes OCHA) | PratiSIG Consulting Services</title>
+  <title>Linelist Cleaner V2 — Géocodage Spatial & Veille Épidémique | PratiSIG</title>
+  <meta name="description" content="PratiSIG Linelist Cleaner V2 — Nettoyage, géocodage en cascade P-Codes OCHA, EpiWeeks OMS & alertes épidémiques.">
+  <meta name="theme-color" content="#0d9488">
+  <link rel="manifest" href="/static/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class'}</script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-900">
-
-  <!-- Top Navbar with PratiSIG Branding -->
-  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- Top Navbar V2 -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[64px] flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-teal-500 to-emerald-400 p-0.5 shadow-md flex items-center justify-center">
           <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-            <svg class="w-6 h-6 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-              <circle cx="12" cy="9" r="2.5" stroke-width="2" fill="currentColor" class="text-teal-300" />
-            </svg>
+            <svg class="w-6 h-6 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" stroke-width="2" fill="currentColor" class="text-teal-300" /></svg>
           </div>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-              <span>Linelist Cleaner</span>
-              <span class="text-emerald-400 font-extrabold text-xs">SIG</span>
-            </h1>
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">PratiSIG</span>
+            <h1 class="text-[15px] font-extrabold tracking-tight text-white flex items-center gap-1.5">Linelist Cleaner <span class="v2-badge px-1.5 py-0.5 rounded text-[10px]">V2.0</span></h1>
+            <span class="hidden sm:inline px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">PratiSIG</span>
+            <span id="header-version" class="hidden md:inline text-[10px] text-slate-400 font-mono">2.0.0 • 6-onglets + GeoJSON</span>
           </div>
-          <p class="text-[11px] text-slate-400">PratiSIG Consulting Services : La pratique des SIG, notre métier</p>
+          <p class="text-[11px] text-slate-400" data-i18n="header.subtitle">PratiSIG Consulting Services : La pratique des SIG, notre métier</p>
         </div>
       </div>
-
-      <div class="flex items-center gap-2.5">
-        <button onclick="openAboutModal()" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition text-xs flex items-center gap-1" title="À propos de PratiSIG">
-          <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span class="hidden sm:inline font-medium">À Propos</span>
+      <div class="flex items-center gap-1.5">
+        <select id="preset-select" class="hidden sm:flex text-xs bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-2 py-1.5 focus:border-emerald-500">
+          <option value="">Preset maladie…</option>
+          <option value="cholera">Choléra / AWD</option>
+          <option value="measles">Rougeole</option>
+          <option value="ebola">Ebola</option>
+          <option value="covid19">COVID-19</option>
+          <option value="generic">Générique</option>
+        </select>
+        <button onclick="toggleLanguage()" id="btn-lang" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition text-xs font-bold border border-slate-700" title="FR / EN">FR</button>
+        <button onclick="toggleDarkMode()" id="btn-dark" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Mode sombre / clair">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.002 9.002 0 0012 21a9.002 9.002 0 008.354-5.646z"/></svg>
         </button>
-        <button onclick="openConfigModal()" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Paramètres du Pipeline">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
+        <button onclick="openAboutModal()" class="hidden sm:flex p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition text-xs items-center gap-1">
+          <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="font-medium">À Propos</span>
         </button>
-        <button onclick="cleanDataset()" id="btn-run-clean" class="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-sm transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Nettoyer & Géocoder
+        <button onclick="openConfigModal()" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition" title="Paramètres">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
+        <button onclick="cleanDataset()" id="btn-run-clean" class="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg><span data-i18n="btn.clean">Nettoyer V2</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Upload Sections (Line List & P-Code Reference) -->
+  <!-- Stepper V2 -->
+  <div class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 w-full">
+        <div class="flex items-center gap-2">
+          <div class="stepper-dot active" id="step-1">1</div><span class="text-xs font-semibold text-slate-700 hidden sm:inline">Charger</span>
+          <div class="w-6 h-0.5 bg-slate-200" id="step-line-1"></div>
+          <div class="stepper-dot" id="step-2">2</div><span class="text-xs font-medium text-slate-500 hidden sm:inline">Mapper</span>
+          <div class="w-6 h-0.5 bg-slate-200" id="step-line-2"></div>
+          <div class="stepper-dot" id="step-3">3</div><span class="text-xs font-medium text-slate-500 hidden sm:inline">Géocoder</span>
+          <div class="w-6 h-0.5 bg-slate-200" id="step-line-3"></div>
+          <div class="stepper-dot" id="step-4">4</div><span class="text-xs font-medium text-slate-500 hidden sm:inline">Analyser</span>
+          <div class="w-6 h-0.5 bg-slate-200" id="step-line-4"></div>
+          <div class="stepper-dot" id="step-5">5</div><span class="text-xs font-medium text-slate-500 hidden sm:inline">Exporter</span>
+        </div>
+        <div class="ml-auto flex items-center gap-2 text-xs">
+          <span class="hidden md:inline text-slate-500" id="step-hint">Chargez votre linelist pour démarrer</span>
+          <span id="quality-badge" class="hidden px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Sections V2 -->
   <section class="bg-white border-b border-slate-200 py-4 px-4 sm:px-6 lg:px-8 shadow-xs">
     <div class="max-w-7xl mx-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        
-        <!-- 1. Linelist Upload Box -->
-        <div class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl p-3.5 bg-blue-50/20 transition flex flex-col justify-between">
+        <div class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl p-3.5 bg-blue-50/30 transition flex flex-col justify-between hover:shadow-sm group">
           <div id="drop-zone" class="cursor-pointer text-center flex flex-col items-center justify-center gap-1.5 pb-2">
             <input type="file" id="file-input" class="hidden" accept=".csv, .xlsx, .xls, .tsv">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">1</div>
+              <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs group-hover:scale-105 transition">1</div>
               <div class="text-left">
                 <div class="text-xs font-bold text-slate-800" id="label-linelist-file">Charger votre Line List (.xlsx / .csv)</div>
-                <div class="text-[11px] text-slate-500" id="sublabel-linelist-file">Glissez-déposez ou cliquez pour sélectionner votre fichier de cas</div>
+                <div class="text-[11px] text-slate-500" id="sublabel-linelist-file">Glissez-déposez ou cliquez — support multi-feuilles</div>
               </div>
+              <span class="ml-2 hidden sm:inline px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">V2: Auto-détection en-têtes</span>
             </div>
           </div>
-
           <div class="pt-2 border-t border-blue-200/60 flex items-center justify-between gap-2 text-xs text-slate-600">
             <div class="flex items-center gap-1.5">
-              <label for="linelist-skiprows" class="font-medium text-[11px] text-slate-700">Lignes à ignorer :</label>
-              <input type="number" id="linelist-skiprows" min="0" max="20" value="0" class="w-14 text-xs font-mono px-1.5 py-0.5 border border-slate-300 rounded bg-white" title="Nombre de lignes d'en-tête/titre à sauter">
+              <label for="linelist-skiprows" class="font-medium text-[11px] text-slate-700">Ignorer lignes:</label>
+              <input type="number" id="linelist-skiprows" min="0" max="20" value="0" class="w-14 text-xs font-mono px-1.5 py-0.5 border border-slate-300 rounded bg-white">
             </div>
             <div id="linelist-sheet-container" class="hidden flex items-center gap-1.5">
-              <label for="linelist-sheet-select" class="font-medium text-[11px] text-slate-700">Feuille :</label>
-              <select id="linelist-sheet-select" class="text-xs border border-slate-300 rounded px-1.5 py-0.5 bg-white"></select>
+              <label for="linelist-sheet-select" class="font-medium text-[11px] text-slate-700">Feuille:</label>
+              <select id="linelist-sheet-select" class="text-xs border border-slate-300 rounded px-1.5 py-0.5 bg-white max-w-[140px]"></select>
             </div>
-            <button onclick="reloadLinelistWithOptions()" id="btn-reload-linelist" class="hidden px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-semibold">
-              Appliquer
-            </button>
+            <button onclick="reloadLinelistWithOptions()" id="btn-reload-linelist" class="hidden px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px] font-semibold">Appliquer</button>
           </div>
         </div>
-
-        <!-- 2. Reference P-Code Upload Box -->
-        <div class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-xl p-3.5 bg-emerald-50/20 transition flex flex-col justify-between">
+        <div class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-xl p-3.5 bg-emerald-50/30 transition flex flex-col justify-between hover:shadow-sm group">
           <div id="ref-drop-zone" class="cursor-pointer text-center flex flex-col items-center justify-center gap-1.5 pb-2">
             <input type="file" id="ref-file-input" class="hidden" accept=".csv, .xlsx, .xls, .tsv">
             <div class="flex items-center gap-2">
-              <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">2</div>
+              <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs group-hover:scale-105 transition">2</div>
               <div class="text-left">
-                <div class="text-xs font-bold text-slate-800" id="label-ref-file">Charger votre Référentiel P-Code (.xlsx / .csv)</div>
-                <div class="text-[11px] text-slate-500" id="sublabel-ref-file">Fichier OCHA COD-AB ou liste officielle des localités & P-Codes</div>
+                <div class="text-xs font-bold text-slate-800" id="label-ref-file">Référentiel P-Code OCHA (.xlsx / .csv)</div>
+                <div class="text-[11px] text-slate-500" id="sublabel-ref-file">COD-AB ou liste localités & P-Codes — optionnel</div>
               </div>
             </div>
           </div>
-
           <div class="pt-2 border-t border-emerald-200/60 flex items-center justify-between gap-2 text-xs text-slate-600">
             <div class="flex items-center gap-1.5">
-              <label for="ref-skiprows" class="font-medium text-[11px] text-slate-700">Lignes à ignorer :</label>
-              <input type="number" id="ref-skiprows" min="0" max="20" value="0" class="w-14 text-xs font-mono px-1.5 py-0.5 border border-slate-300 rounded bg-white" title="Nombre de lignes d'en-tête/titre à sauter dans le référentiel">
+              <label for="ref-skiprows" class="font-medium text-[11px] text-slate-700">Ignorer:</label>
+              <input type="number" id="ref-skiprows" min="0" max="20" value="0" class="w-14 text-xs font-mono px-1.5 py-0.5 border border-slate-300 rounded bg-white">
             </div>
             <div id="ref-sheet-container" class="hidden flex items-center gap-1.5">
-              <label for="ref-sheet-select" class="font-medium text-[11px] text-slate-700">Feuille :</label>
-              <select id="ref-sheet-select" class="text-xs border border-slate-300 rounded px-1.5 py-0.5 bg-white"></select>
+              <label for="ref-sheet-select" class="font-medium text-[11px] text-slate-700">Feuille:</label>
+              <select id="ref-sheet-select" class="text-xs border border-slate-300 rounded px-1.5 py-0.5 bg-white max-w-[140px]"></select>
             </div>
-            <button onclick="reloadReferenceWithOptions()" id="btn-reload-ref" class="hidden px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-semibold">
-              Appliquer
-            </button>
+            <button onclick="reloadReferenceWithOptions()" id="btn-reload-ref" class="hidden px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-semibold">Appliquer</button>
           </div>
         </div>
-
       </div>
-
       <div class="mt-3 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
-        <div class="flex items-center gap-3">
-          <span>Line List : <strong id="stat-filename" class="text-slate-900 font-semibold">Aucun fichier chargé</strong></span>
-          <span>•</span>
-          <span>Référentiel : <strong id="stat-ref-filename" class="text-slate-900 font-semibold">Aucun référentiel chargé</strong></span>
+        <div class="flex flex-wrap items-center gap-2">
+          <span>Linelist: <strong id="stat-filename" class="text-slate-900 font-semibold">Aucun</strong></span><span class="text-slate-300">•</span>
+          <span>Référentiel: <strong id="stat-ref-filename" class="text-slate-900 font-semibold">Aucun (COD-AB intégré)</strong></span>
+          <span class="hidden sm:inline px-2 py-0.5 bg-slate-900 text-white rounded text-[10px] font-bold">V2 WORKBOOK 6 ONGLETS</span>
         </div>
-        <div id="stat-score"></div>
+        <div id="stat-score" class="text-xs"></div>
       </div>
     </div>
   </section>
 
-  <!-- Interactive Cascade Similarity Slider Bar -->
+  <!-- Slider Bar V2 -->
   <section class="bg-slate-100 border-b border-slate-200 py-2 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-      <div class="flex items-center gap-3 w-full sm:w-auto">
+      <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
         <span class="font-semibold text-slate-700 flex items-center gap-1">
-          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-          Seuil de Similarité Fuzzy (Fuzzy Threshold) :
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          Seuil similarité fuzzy
         </span>
-        <div class="flex items-center gap-2">
-          <input type="range" id="slider-threshold" min="50" max="100" value="80" class="w-28 sm:w-40 accent-emerald-600 cursor-pointer">
-          <span id="slider-val" class="font-mono font-bold text-emerald-700 px-2 py-0.5 bg-emerald-100 rounded text-xs">80%</span>
-        </div>
+        <input type="range" id="slider-threshold" min="50" max="100" value="80" class="w-32 sm:w-48 accent-emerald-600">
+        <span id="slider-val" class="font-mono font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border">80%</span>
+        <span class="text-slate-400 hidden sm:inline">50% tolerant → 100% strict</span>
       </div>
-
-      <div class="flex items-center gap-3 text-[11px] text-slate-600">
-        <span class="font-semibold">Niveaux de Cascade :</span>
-        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 1. Localité</span>
-        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span> 2. Admin 3 (Ward)</span>
-        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> 3. Admin 2 (LGA)</span>
-        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> 4. Admin 1 (State)</span>
-        <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> 5. Non Localisé</span>
+      <div class="flex items-center gap-2 text-xs">
+        <span class="hidden sm:inline text-slate-500">Raccourcis:</span>
+        <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[10px]">Ctrl+K</kbd><span class="text-slate-400">commande</span>
+        <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded text-[10px]">D</kbd><span class="text-slate-400">dark</span>
       </div>
     </div>
   </section>
 
-  <!-- Navigation Tab Strip -->
-  <nav class="bg-white border-b border-slate-200 shadow-2xs">
+  <!-- Outbreak Alerts Banner V2 (hidden by default) -->
+  <div id="outbreak-banner" class="hidden bg-amber-50 border-b border-amber-200 px-4 sm:px-6 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-start gap-3">
+      <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm">!</div>
+      <div class="flex-1">
+        <div class="text-sm font-bold text-amber-900" id="outbreak-title">Alerte épidémique V2</div>
+        <div class="text-xs text-amber-800 mt-1" id="outbreak-details">—</div>
+        <div class="text-xs text-amber-700 mt-1 flex gap-2 flex-wrap" id="outbreak-list"></div>
+      </div>
+      <button onclick="document.getElementById('outbreak-banner').classList.add('hidden')" class="text-amber-700 hover:text-amber-900 text-xs font-bold">✕</button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs V2 -->
+  <nav class="bg-white border-b border-slate-200 sticky top-[64px] z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex space-x-6 overflow-x-auto" aria-label="Tabs">
-        <button data-tab="dashboard" class="tab-btn border-emerald-600 text-emerald-600 py-3 px-1 border-b-2 font-semibold text-xs whitespace-nowrap flex items-center gap-1.5">
-          <span>📊 Tableau de Bord KPI & Précision</span>
+      <div class="flex items-center gap-1 overflow-x-auto scrollbar-none py-1">
+        <button data-tab="dashboard" class="tab-btn active border-emerald-600 text-emerald-600 py-3 px-3 border-b-2 font-semibold text-xs whitespace-nowrap flex items-center gap-1.5 bg-emerald-50/60 rounded-t-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg> Tableau de bord V2
         </button>
-        <button data-tab="map" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
-          <span>🗺️ Carte Interactive SIG (Leaflet)</span>
+        <button data-tab="map" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-3 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Carte SIG
         </button>
-        <button data-tab="data" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
-          <span>📋 Données Nettoyées & P-Codes</span>
+        <button data-tab="data" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-3 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Données nettoyées
         </button>
-        <button data-tab="mapper" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
-          <span>🔗 Mapping Spatial & Colonnes</span>
+        <button data-tab="mapper" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-3 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343a1 1 0 01-.707-.293l-2.414-2.414a1 1 0 00-.707-.293H7m0 0V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg> Mapping
         </button>
-        <button data-tab="epicurve" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
-          <span>📈 Courbe Épidémique (EpiWeek OMS)</span>
+        <button data-tab="epicurve" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-3 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg> Courbe épi
         </button>
-        <button data-tab="issues" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
-          <span>⚠️ Anomalies & Contrôle Qualité</span>
-          <span id="tab-issues-count" class="ml-1 px-1.5 py-0.2 rounded-full text-xs bg-slate-100 text-slate-600">0</span>
+        <button data-tab="issues" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-3 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg> Qualité <span id="tab-issues-count" class="ml-1 px-1.5 py-0.2 rounded-full text-xs bg-slate-100 text-slate-600">0</span>
         </button>
-        <button data-tab="export" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-1 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
-          <span>📥 Export Multi-Onglets (.xlsx)</span>
+        <button data-tab="export" class="tab-btn border-transparent text-slate-500 hover:text-slate-700 py-3 px-3 border-b-2 font-medium text-xs whitespace-nowrap flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg> Export V2
         </button>
       </div>
     </div>
   </nav>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex-1 w-full">
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div id="dashboard-empty-state" class="text-center py-16">
+      <div class="w-16 h-16 mx-auto bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg></div>
+      <h3 class="text-lg font-bold text-slate-900">Bienvenue sur Linelist Cleaner V2</h3>
+      <p class="text-sm text-slate-500 max-w-lg mx-auto mt-2">Chargez votre linelist pour débloquer le moteur V2 : nettoyage intelligent, géocodage en cascade P-Codes OCHA, calcul EpiWeeks OMS, alertes épidémiques, et workbook 6 onglets + GeoJSON prêt pour QGIS.</p>
+      <div class="mt-4 flex justify-center gap-2"><span class="px-3 py-1 bg-slate-900 text-white text-xs font-bold rounded-full">V2.0 • Dark mode • i18n</span><span class="px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded-full">6-onglets / GeoJSON</span></div>
+    </div>
 
-    <!-- TAB 1: KPI DASHBOARD -->
-    <div id="tab-dashboard" class="tab-content space-y-5">
-      <div id="dashboard-empty-state" class="bg-white border border-slate-200 rounded-xl p-10 text-center shadow-xs">
-        <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+    <div id="dashboard-active-content" class="hidden">
+      <div id="tab-dashboard" class="tab-content space-y-5">
+        <!-- KPI Grid V2 3x3 -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" id="kpi-grid">
+          <div class="kpi-card p-3.5"><div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Cas totaux</div><div class="text-xl font-extrabold text-slate-900 mt-1" id="kpi-total">—</div><div class="text-[11px] text-slate-500" id="kpi-total-sub">—</div></div>
+          <div class="kpi-card p-3.5"><div class="text-[11px] font-bold text-emerald-600 uppercase tracking-wide">Géocodés</div><div class="text-xl font-extrabold text-emerald-700 mt-1" id="kpi-geo">—</div><div class="text-[11px] text-slate-500" id="kpi-geo-sub">—</div></div>
+          <div class="kpi-card p-3.5"><div class="text-[11px] font-bold text-blue-600 uppercase tracking-wide">Qualité</div><div class="text-xl font-extrabold text-blue-700 mt-1" id="kpi-quality">—</div><div class="text-[11px]" id="kpi-quality-grade">—</div></div>
+          <div class="kpi-card p-3.5"><div class="text-[11px] font-bold text-indigo-600 uppercase tracking-wide">EpiWeeks</div><div class="text-xl font-extrabold text-indigo-700 mt-1" id="kpi-epi">—</div><div class="text-[11px] text-slate-500">semaines OMS calculées</div></div>
+          <div class="kpi-card p-3.5"><div class="text-[11px] font-bold text-amber-600 uppercase tracking-wide">Tendance V2</div><div class="text-sm font-extrabold mt-1" id="kpi-trend">—</div><div class="text-[11px] text-slate-500" id="kpi-trend-sub">—</div></div>
         </div>
-        <h3 class="text-base font-bold text-slate-900 mb-1">Bienvenue dans Linelist Cleaner & SIG</h3>
-        <p class="text-xs text-slate-500 max-w-md mx-auto mb-4">
-          Pour commencer, veuillez charger votre line list de cas (CSV ou Excel) et votre référentiel géographique de P-Codes (OCHA COD-AB) dans les zones ci-dessus.
-        </p>
+        <!-- Second row V2 specific -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="kpi-card p-3"><div class="text-[11px] font-bold text-teal-600 uppercase">Coords validées</div><div class="text-lg font-bold" id="kpi-coords">—</div><div class="text-[11px] text-slate-500">WGS84 + swaps auto</div></div>
+          <div class="kpi-card p-3"><div class="text-[11px] font-bold text-violet-600 uppercase">Tél. normalisés</div><div class="text-lg font-bold" id="kpi-phones">—</div><div class="text-[11px] text-slate-500">E.164 international</div></div>
+          <div class="kpi-card p-3"><div class="text-[11px] font-bold text-rose-600 uppercase">Alertes</div><div class="text-lg font-bold" id="kpi-alerts">—</div><div class="text-[11px] text-slate-500" id="kpi-alerts-sub">semaines seuil</div></div>
+          <div class="kpi-card p-3"><div class="text-[11px] font-bold text-slate-600 uppercase">Δ Qualité V2</div><div class="text-lg font-bold" id="kpi-delta">—</div><div class="text-[11px] text-slate-500">avant → après</div></div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm lg:col-span-1">
+            <h3 class="text-xs font-bold text-slate-800 mb-2">Cascade spatiale — Répartition</h3>
+            <div class="h-56"><canvas id="chart-cascade-donut"></canvas></div>
+            <div class="mt-2 text-[11px] text-slate-500 flex flex-wrap gap-1" id="cascade-legend"></div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm lg:col-span-2">
+            <h3 class="text-xs font-bold text-slate-800 mb-2 flex items-center justify-between"><span>Courbe épidémique (EpiWeek OMS)</span><span class="text-[11px] font-normal text-slate-500" id="epi-curve-subtitle">—</span></h3>
+            <div class="h-56"><canvas id="chart-who-epicurve"></canvas></div>
+            <div class="mt-2 flex gap-2 text-[11px]"><span id="epi-doubling" class="px-2 py-1 bg-slate-100 rounded"></span><span id="epi-cfr" class="px-2 py-1 bg-slate-100 rounded"></span></div>
+          </div>
+        </div>
+
+        <!-- Delays & pyramid V2 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-800 mb-3">Délais & distribution</h3><div id="delays-container" class="space-y-2 text-xs"></div>
+          </div>
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-800 mb-3">Pyramide âge-sexe</h3><div id="pyramid-container" class="text-xs"></div>
+            <div id="advanced-metrics" class="mt-3 pt-3 border-t text-xs space-y-1"></div>
+          </div>
+        </div>
       </div>
 
-      <div id="dashboard-active-content" class="hidden space-y-5">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-            <span class="text-xs text-slate-500 font-medium">Nombre Total de Cas</span>
-            <div class="text-2xl font-extrabold text-slate-900 mt-1" id="kpi-total-cases">0</div>
-            <span class="text-[11px] text-slate-400">Line list nettoyée</span>
-          </div>
-          <div class="bg-white border border-emerald-200 bg-emerald-50/20 rounded-xl p-4 shadow-xs">
-            <span class="text-xs text-emerald-700 font-medium">Taux Global de Géocodage</span>
-            <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="kpi-geocoded-rate">0%</div>
-            <span class="text-[11px] text-emerald-600/80" id="kpi-geocoded-count">0 / 0 cas localisés</span>
-          </div>
-          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-            <span class="text-xs text-slate-500 font-medium">Score Moyen de Similarité</span>
-            <div class="text-2xl font-extrabold text-blue-600 mt-1" id="kpi-avg-score">0%</div>
-            <span class="text-[11px] text-slate-400">Précision fuzzy matching</span>
-          </div>
-          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-            <span class="text-xs text-slate-500 font-medium">Semaines Épi Calculées</span>
-            <div class="text-2xl font-extrabold text-indigo-600 mt-1" id="kpi-epiweeks-count">0</div>
-            <span class="text-[11px] text-slate-400">Format WHO YYYY-Www</span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Répartition par Niveau de Résolution Spatiale</h3>
-            <p class="text-xs text-slate-500 mb-4">Algorithme de cascade spatiale avec fallback automatique :</p>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                    <th class="px-3 py-2">Niveau de Résolution</th>
-                    <th class="px-3 py-2">Entité Administrative</th>
-                    <th class="px-3 py-2 text-right">Cas</th>
-                    <th class="px-3 py-2 text-right">Proportion</th>
-                    <th class="px-3 py-2 text-center">Statut</th>
-                  </tr>
-                </thead>
-                <tbody id="precision-breakdown-tbody"></tbody>
-              </table>
+      <div id="tab-map" class="tab-content hidden space-y-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-3 border-b flex items-center justify-between flex-wrap gap-2">
+            <h3 class="text-xs font-bold text-slate-800">Carte SIG interactive — Géocodage en cascade <span class="ml-2 text-[11px] font-normal text-slate-500" id="map-stats">—</span></h3>
+            <div class="flex items-center gap-2 text-xs">
+              <select id="map-filter-level" class="border border-slate-300 rounded px-2 py-1 bg-white"><option value="ALL">Tous niveaux</option><option value="Locality">Localité</option><option value="Admin3_Ward">Admin3</option><option value="Admin2_LGA">Admin2</option><option value="Admin1_State">Admin1</option></select>
+              <button onclick="clearMapFilter()" class="px-2 py-1 bg-slate-800 text-white rounded text-xs">Réinitialiser</button>
             </div>
           </div>
-
-          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-            <div>
-              <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-1">Précision du Géocodage</h3>
-              <p class="text-xs text-slate-500 mb-2">Répartition en % par niveau</p>
-            </div>
-            <div class="h-52 relative">
-              <canvas id="chart-cascade-donut"></canvas>
-            </div>
-          </div>
+          <div id="leaflet-map" class="h-[520px] w-full"></div>
         </div>
       </div>
-    </div>
 
-    <!-- TAB 2: LEAFLET MAP -->
-    <div id="tab-map" class="tab-content hidden space-y-4">
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mb-3">
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">Carte Interactive des Cas Géocodés</h3>
-            <p class="text-xs text-slate-500">Visualisation cartographique des patients par P-Code et niveau de matching.</p>
-          </div>
-          <div class="flex items-center gap-2 text-xs">
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Localité</span>
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-teal-500"></span> Admin 3</span>
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Admin 2</span>
-            <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Admin 1</span>
-          </div>
-        </div>
-        <div id="leaflet-map" class="w-full h-[520px] rounded-lg border border-slate-200 z-10"></div>
-      </div>
-    </div>
-
-    <!-- TAB 3: DATA INSPECTOR & P-CODE TABLE -->
-    <div id="tab-data" class="tab-content hidden">
-      <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-        <div class="p-3 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="flex flex-wrap items-center gap-2">
-            <div class="flex items-center gap-1 text-xs">
-              <span class="text-slate-500 font-medium">Filtrer par niveau :</span>
-              <select id="data-filter-level" class="rounded border-slate-300 py-1 px-2 text-xs bg-white font-medium text-slate-700">
-                <option value="ALL">Tous les niveaux</option>
-                <option value="Locality">Localité (Précis)</option>
-                <option value="Admin3_Ward">Admin 3 (Ward)</option>
-                <option value="Admin2_LGA">Admin 2 (LGA)</option>
-                <option value="Admin1_State">Admin 1 (State)</option>
-                <option value="Unmatched">Non Localisé (Unmatched)</option>
-              </select>
+      <div id="tab-data" class="tab-content hidden">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-3 border-b flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <div class="flex bg-slate-100 rounded-lg p-1">
+                <button data-mode="cleaned" class="view-mode-btn px-3 py-1.5 text-xs bg-white shadow-xs text-emerald-700 font-semibold rounded">Nettoyées V2</button>
+                <button data-mode="raw" class="view-mode-btn px-3 py-1.5 text-xs text-slate-600 rounded">Brutes</button>
+                <button data-mode="diff" class="view-mode-btn px-3 py-1.5 text-xs text-slate-600 rounded">Diff ↔</button>
+              </div>
+              <select id="data-filter-level" class="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white"><option value="ALL">Tous MATCH_LEVEL</option><option value="Locality">Locality</option><option value="Admin3_Ward">Admin3</option><option value="Admin2_LGA">Admin2</option><option value="Admin1_State">Admin1</option><option value="Unmatched">Unmatched</option></select>
             </div>
-            <div class="bg-slate-200/80 p-0.5 rounded-lg flex text-xs ml-2">
-              <button class="view-mode-btn px-2 py-0.8 rounded text-slate-700 font-medium transition bg-white shadow-xs text-emerald-700 font-semibold" data-mode="cleaned">Données Nettoyées + P-Codes</button>
-              <button class="view-mode-btn px-2 py-0.8 rounded text-slate-700 font-medium transition" data-mode="raw">Données Brutes</button>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <input id="table-search" type="text" placeholder="Rechercher (ID, localité, P-Code)…" class="flex-1 sm:w-64 text-xs border border-slate-300 rounded px-2 py-1.5 bg-white">
+              <span class="text-xs text-slate-500 hidden sm:inline" id="data-count">—</span>
             </div>
           </div>
-          <div class="w-full sm:w-64">
-            <input type="text" id="table-search" placeholder="Rechercher patient, P-Code, village..." class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-emerald-500">
+          <div class="table-container overflow-auto">
+            <table class="w-full text-xs">
+              <thead id="data-table-head" class="bg-slate-900 text-white sticky top-0"></thead>
+              <tbody id="data-table-body"></tbody>
+            </table>
           </div>
         </div>
-        <div class="table-container">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead id="data-table-head"></thead>
-            <tbody id="data-table-body"></tbody>
-          </table>
+      </div>
+
+      <div id="tab-mapper" class="tab-content hidden space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800 mb-1">Mapping des colonnes — Variables épidémiologiques</h3><p class="text-xs text-slate-500 mb-3">Vérifiez la correspondance auto-détectée et ajustez si besoin avant de relancer le nettoyage.</p>
+          <div class="overflow-auto border rounded"><table class="w-full text-xs"><thead class="bg-slate-900 text-white"><tr><th class="px-4 py-2 text-left">Colonne source</th><th class="px-4 py-2 text-left">Tag épidémiologique V2</th><th class="px-4 py-2">Catégorie</th><th class="px-4 py-2">Confiance</th></tr></thead><tbody id="column-mapper-tbody"></tbody></table></div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800 mb-1">Mapping spatial — Référentiel P-Code</h3><p class="text-xs text-slate-500 mb-3">Associez chaque rôle spatial à la colonne de votre référentiel COD-AB (V2 auto-détection).</p>
+          <div id="reference-mapping-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+      </div>
+
+      <div id="tab-epicurve" class="tab-content hidden space-y-5">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-800">Courbe épidémique détaillée (OMS) & indicateurs V2</h3>
+          <p class="text-xs text-slate-500 mt-1">Stratifiée par issue/outcome — double courbe journalière/hebdo + doubling time.</p>
+          <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2 text-xs" id="epicurve-kpis"></div>
+          <div class="mt-4"><canvas id="chart-epi-detailed" height="120"></canvas></div>
+        </div>
+        <div id="epi-advanced-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+      </div>
+
+      <div id="tab-issues" class="tab-content hidden space-y-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-3 border-b flex items-center justify-between"><h3 class="text-sm font-bold text-slate-800">Anomalies & contrôle qualité <span class="text-xs font-normal text-slate-500">(ERR/WARN/INFO)</span></h3><span class="text-xs px-2 py-1 bg-rose-100 text-rose-800 rounded font-bold" id="issues-summary">—</span></div>
+          <div class="overflow-auto max-h-[500px]"><table class="w-full text-xs"><thead class="bg-slate-900 text-white sticky top-0"><tr><th class="px-3 py-2">Ligne</th><th class="px-3 py-2">Case ID</th><th class="px-3 py-2">Sévérité</th><th class="px-3 py-2">Type</th><th class="px-3 py-2">Colonne</th><th class="px-3 py-2">Message</th><th class="px-3 py-2">Action</th></tr></thead><tbody id="issues-tbody"></tbody></table></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><h4 class="text-xs font-bold text-slate-800 mb-2">Duplicata détectés (V2)</h4><div id="dups-container" class="text-xs space-y-2"></div></div>
+          <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><h4 class="text-xs font-bold text-slate-800 mb-2">Profils colonnes</h4><div id="profiles-container" class="text-xs max-h-72 overflow-auto"></div></div>
+        </div>
+      </div>
+
+      <div id="tab-export" class="tab-content hidden space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="kpi-card p-5 flex flex-col justify-between border-emerald-200">
+            <div><div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center font-bold mb-3">XLSX</div><h4 class="text-sm font-bold text-slate-900 mb-1">Workbook 6 onglets V2</h4><p class="text-xs text-slate-500 mb-3">KPI_Dashboard • LineList_Nettoyee • Referentiel_PCode • Anomalies • Doublons • Dictionnaire</p></div>
+            <button onclick="downloadExcel()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow">Télécharger Excel V2</button>
+          </div>
+          <div class="kpi-card p-5 flex flex-col justify-between">
+            <div><div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center font-bold mb-3">CSV</div><h4 class="text-sm font-bold text-slate-900 mb-1">LineList nettoyée (CSV)</h4><p class="text-xs text-slate-500 mb-3">Flat file avec PCODE, MATCH_LEVEL, EPI_WEEK — QGIS/R/Stata.</p></div>
+            <button onclick="downloadCSV()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg">Télécharger CSV</button>
+          </div>
+          <div class="kpi-card p-5 flex flex-col justify-between border-violet-200">
+            <div><div class="w-10 h-10 bg-violet-100 text-violet-700 rounded-lg flex items-center justify-center font-bold mb-3">GEO</div><h4 class="text-sm font-bold text-slate-900 mb-1">GeoJSON V2</h4><p class="text-xs text-slate-500 mb-3">FeatureCollection Point WGS84 avec P-Codes — glisser dans QGIS/ArcGIS.</p></div>
+            <button onclick="downloadGeoJSON()" class="w-full py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-lg">Télécharger GeoJSON</button>
+          </div>
+          <div class="kpi-card p-5 flex flex-col justify-between">
+            <div><div class="w-10 h-10 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center font-bold mb-3">PY</div><h4 class="text-sm font-bold text-slate-900 mb-1">Script reproductible</h4><p class="text-xs text-slate-500 mb-3">Pipeline Python V2 batch-ready pour terrain offline.</p></div>
+            <button onclick="downloadScript()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg">Télécharger .py</button>
+          </div>
+        </div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600">
+          <div class="font-bold text-slate-800 mb-1">À propos du workbook V2</div>
+          Le classeur Excel V2 contient 6 onglets : <strong>KPI_Dashboard</strong> (V2 + alertes & tendance), <strong>LineList_Nettoyee</strong> (colorée par MATCH_LEVEL), <strong>Referentiel_PCode</strong>, <strong>Anomalies_Qualite</strong> (ERR/WARN), <strong>Doublons</strong>, <strong>Dictionnaire_Donnees</strong> (profil colonnes + catégories). GeoJSON séparé pour intégration SIG directe. • <span class="font-mono">version 2.0.0</span>
         </div>
       </div>
     </div>
-
-    <!-- TAB 4: COLUMN & SPATIAL MAPPER -->
-    <div id="tab-mapper" class="tab-content hidden space-y-6">
-      <!-- 1. Linelist Columns Mapping -->
-      <div class="bg-white border border-slate-200 rounded-xl shadow-xs p-5">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h3 class="text-sm font-bold text-slate-900">1. Correspondance des Colonnes de votre Line List</h3>
-            <p class="text-xs text-slate-500">Associez les colonnes de votre fichier de données de cas aux rôles épidémiologiques et spatiaux.</p>
-          </div>
-          <button onclick="cleanDataset()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm">
-            Appliquer & Relancer
-          </button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                <th class="px-4 py-2.5">Colonne de votre Line List</th>
-                <th class="px-4 py-2.5">Attribution Variable Épidémio / Spatiale</th>
-                <th class="px-4 py-2.5">Catégorie</th>
-                <th class="px-4 py-2.5">Score de Détection</th>
-              </tr>
-            </thead>
-            <tbody id="column-mapper-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 2. Reference P-Code Columns Mapping -->
-      <div class="bg-white border border-emerald-200 rounded-xl shadow-xs p-5">
-        <div class="mb-4">
-          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            2. Correspondance des Colonnes de votre Référentiel P-Code (OCHA COD-AB)
-          </h3>
-          <p class="text-xs text-slate-500">Vérifiez les colonnes de votre fichier Excel/CSV de référentiel géographique pour chaque niveau administratif.</p>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs" id="reference-mapping-grid">
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 5: WHO EPICURVE -->
-    <div id="tab-epicurve" class="tab-content hidden space-y-5">
-      <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Courbe Épidémique (Incidence par Semaine Épi OMS)</h3>
-            <p class="text-[11px] text-slate-500">Nombre de cas admis agrégés par semaine épidémiologique (EPI_WEEK)</p>
-          </div>
-          <div class="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md">
-            Format Standard OMS : YYYY-Www
-          </div>
-        </div>
-        <div class="h-72 relative">
-          <canvas id="chart-who-epicurve"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 6: ISSUES -->
-    <div id="tab-issues" class="tab-content hidden space-y-4">
-      <div class="bg-white border border-slate-200 rounded-xl shadow-xs p-5">
-        <h3 class="text-sm font-bold text-slate-900 mb-1">Rapport de Contrôle Qualité & Incohérences Chronologiques</h3>
-        <p class="text-xs text-slate-500 mb-4">Anomalies temporelles, âges physiologiquement invalides et conflits de statuts.</p>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
-                <th class="px-3 py-2.5">Ligne</th>
-                <th class="px-3 py-2.5">ID Patient</th>
-                <th class="px-3 py-2.5">Sévérité</th>
-                <th class="px-3 py-2.5">Catégorie</th>
-                <th class="px-3 py-2.5">Colonne</th>
-                <th class="px-3 py-2.5">Description de l'Anomalie</th>
-                <th class="px-3 py-2.5">Action Recommandée</th>
-              </tr>
-            </thead>
-            <tbody id="issues-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 7: EXPORT MULTI-ONGLETS -->
-    <div id="tab-export" class="tab-content hidden space-y-5">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- 3-Tab Excel Workbook Download -->
-        <div class="bg-white border-2 border-emerald-500/40 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-          <div>
-            <div class="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-lg flex items-center justify-center font-bold mb-3">XLSX</div>
-            <h4 class="text-sm font-bold text-slate-900 mb-1">Classeur Excel Multi-Onglets (3 Onglets)</h4>
-            <ul class="text-xs text-slate-500 space-y-1 mb-4">
-              <li>• <strong>Onglet 1 :</strong> KPI_Dashboard (Synthèse & Taux)</li>
-              <li>• <strong>Onglet 2 :</strong> LineList_Nettoyee (Couleurs MATCH_LEVEL)</li>
-              <li>• <strong>Onglet 3 :</strong> Referentiel_PCode (Référentiel COD-AB)</li>
-            </ul>
-          </div>
-          <button onclick="downloadExcel()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
-            Télécharger le Fichier Excel (.xlsx)
-          </button>
-        </div>
-
-        <!-- Cleaned CSV Download -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div class="w-10 h-10 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center font-bold mb-3">CSV</div>
-            <h4 class="text-sm font-bold text-slate-900 mb-1">Line List Nettoyée (Flat CSV)</h4>
-            <p class="text-xs text-slate-500 mb-4">Export direct avec PCODE_ASSIGNED, MATCH_LEVEL, MATCH_SCORE, EPI_WEEK pour SIG/QGIS/R.</p>
-          </div>
-          <button onclick="downloadCSV()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
-            Télécharger le CSV (.csv)
-          </button>
-        </div>
-
-        <!-- Python Script Download -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div class="w-10 h-10 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center font-bold mb-3">PY</div>
-            <h4 class="text-sm font-bold text-slate-900 mb-1">Script Python Reproductible</h4>
-            <p class="text-xs text-slate-500 mb-4">Pipeline Python prêt à être exécuté en routine batch sur le terrain.</p>
-          </div>
-          <button onclick="downloadScript()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
-            Télécharger le Script (.py)
-          </button>
-        </div>
-      </div>
-    </div>
-
   </main>
 
-  <!-- Footer with PratiSIG Copyright & Contact -->
-  <footer class="bg-white border-t border-slate-200 py-6 mt-10">
+  <!-- Footer V2 -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-      <div>
-        <div class="font-semibold text-slate-800 flex items-center gap-1.5">
-          <span>© PratiSIG Consulting Services</span>
-          <span>-</span>
-          <span>Dakar, Sénégal</span>
-        </div>
-        <p class="text-slate-500 mt-0.5">Outil à usage libre pour la communauté SIG et humanitaire.</p>
-      </div>
-
-      <div class="flex flex-col md:items-end gap-1">
-        <div class="flex items-center gap-4">
-          <span>Auteur : <strong class="text-slate-800">Youssoupha MBODJI</strong></span>
-          <span>•</span>
-          <span>Contact : <a href="mailto:pratisig.consulting@gmail.com" class="text-emerald-700 hover:underline font-medium">pratisig.consulting@gmail.com</a></span>
-        </div>
-        <span class="text-slate-400 italic">PratiSIG Consulting Services : La pratique des SIG, notre métier</span>
-      </div>
+      <div><div class="font-semibold text-slate-800 flex items-center gap-1.5"><span>© PratiSIG Consulting Services</span><span>-</span><span>Dakar, Sénégal</span><span class="px-2 py-0.5 bg-slate-900 text-white rounded text-[10px] font-bold">V2.0.0</span></div><p class="text-slate-500 mt-0.5">Outil libre communauté SIG & humanitaire — Workbook 6 onglets + GeoJSON • Mode offline • Licence MIT.</p></div>
+      <div class="flex flex-col md:items-end gap-1"><div class="flex items-center gap-3"><span>Auteur: <strong class="text-slate-800">Youssoupha MBODJI</strong></span><span>•</span><a href="mailto:pratisig.consulting@gmail.com" class="text-emerald-700 hover:underline font-medium">pratisig.consulting@gmail.com</a></div><span class="italic">La pratique des SIG, notre métier</span></div>
     </div>
   </footer>
 
-  <!-- About / Credits Modal -->
-  <div id="about-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 mx-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">P</div>
-          <h3 class="text-sm font-bold text-slate-900">À Propos de PratiSIG Consulting Services</h3>
-        </div>
-        <button onclick="closeAboutModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+  <!-- Modals -->
+  <div id="about-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3"><div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">P</div><h3 class="text-sm font-bold">PratiSIG V2 — À propos</h3></div><button onclick="closeAboutModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button></div>
+      <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+        <p><strong>PratiSIG Consulting Services</strong> — Expertise SIG & santé publique. V2 apporte : coordonnées validées, téléphones normalisés, détection d'anomalies épidémiques, workbook 6 onglets, GeoJSON, preset maladies, dark mode, et export reproductible.</p>
+        <div class="bg-slate-50 dark:bg-slate-800 border rounded-lg p-3 space-y-1.5"><div><strong>V2.0.0</strong> • Build 2026-08-11 • 6-onglets + GeoJSON</div><div><strong>Slogan:</strong> <em class="text-emerald-700">La pratique des SIG, notre métier</em></div><div><strong>Contact:</strong> <a href="mailto:pratisig.consulting@gmail.com" class="text-blue-600 hover:underline">pratisig.consulting@gmail.com</a></div></div>
+        <p class="text-slate-500">MIT — usage libre terrain sans internet.</p>
       </div>
-
-      <div class="space-y-3 text-xs text-slate-600">
-        <p>
-          <strong>PratiSIG Consulting Services</strong> est un cabinet d'expertise spécialisé dans les <em>Systèmes d'Information Géographique (SIG)</em>, l'analyse spatiale et le développement d'outils d'aide à la décision pour l'action humanitaire et la santé publique.
-        </p>
-
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-1.5">
-          <div><strong>Slogan :</strong> <span class="italic text-emerald-800">La pratique des SIG, notre métier</span></div>
-          <div><strong>Localisation :</strong> Dakar, Sénégal</div>
-          <div><strong>Auteur :</strong> Youssoupha MBODJI</div>
-          <div><strong>Email de contact :</strong> <a href="mailto:pratisig.consulting@gmail.com" class="text-blue-600 hover:underline">pratisig.consulting@gmail.com</a></div>
-        </div>
-
-        <p class="text-slate-500">
-          Cette application est mise à disposition de la communauté sous licence libre MIT pour faciliter le traitement des données épidémiologiques et le géocodage selon les standards humanitaires OCHA COD-AB.
-        </p>
-      </div>
-
-      <div class="mt-5 flex justify-end">
-        <button onclick="closeAboutModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold">Fermer</button>
-      </div>
+      <div class="mt-5 flex justify-end"><button onclick="closeAboutModal()" class="px-4 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-semibold">Fermer</button></div>
     </div>
   </div>
 
-  <!-- Configuration Modal -->
-  <div id="config-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 mx-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-        <h3 class="text-sm font-bold text-slate-900">Paramètres du Pipeline de Nettoyage & Cascade</h3>
-        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
-      </div>
-
+  <div id="config-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full p-6 shadow-2xl border mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3"><h3 class="text-sm font-bold">⚙️ Paramètres pipeline V2</h3><button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600">✕</button></div>
       <div class="space-y-4 text-xs">
-        <div>
-          <label class="font-semibold text-slate-700 block mb-1">Préférence de Format de Date Ambigu (ex: 04/05/2023)</label>
-          <select id="cfg-date-order" class="w-full border-slate-300 rounded p-1.5 bg-slate-50">
-            <option value="auto">Auto (Détecter selon la distribution)</option>
-            <option value="DMY">Jour en Premier / International (DD/MM/YYYY)</option>
-            <option value="MDY">Mois en Premier / US (MM/DD/YYYY)</option>
-          </select>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="font-semibold text-slate-700 block mb-1">Format dates ambigües</label><select id="cfg-date-order" class="w-full border rounded p-1.5 bg-slate-50"><option value="auto">Auto</option><option value="DMY">DD/MM/YYYY</option><option value="MDY">MM/DD/YYYY</option></select></div>
+          <div><label class="font-semibold text-slate-700 block mb-1">Doublons</label><select id="cfg-dedup-action" class="w-full border rounded p-1.5 bg-slate-50"><option value="flag">Marquer</option><option value="keep_first">Garder premier</option><option value="keep_most_complete">Garder plus complet</option><option value="merge">Fusionner</option></select></div>
         </div>
-
-        <div>
-          <label class="font-semibold text-slate-700 block mb-1">Action sur les Doublons Patients</label>
-          <select id="cfg-dedup-action" class="w-full border-slate-300 rounded p-1.5 bg-slate-50">
-            <option value="flag">Marquer (Ajouter colonne is_duplicate sans supprimer)</option>
-            <option value="keep_first">Conserver le premier enregistrement</option>
-            <option value="keep_most_complete">Conserver le dossier le plus complet</option>
-            <option value="merge">Fusionner les champs non vides</option>
-          </select>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="font-semibold text-slate-700 block mb-1">Preset V2</label><select id="cfg-preset" class="w-full border rounded p-1.5 bg-slate-50"><option value="">— Aucun —</option><option value="cholera">Choléra</option><option value="measles">Rougeole</option><option value="ebola">Ebola</option><option value="covid19">COVID-19</option><option value="generic">Générique</option></select></div>
+          <div><label class="font-semibold text-slate-700 block mb-1">Indicatif téléphone V2</label><select id="cfg-phone-code" class="w-full border rounded p-1.5 bg-slate-50"><option value="+221">+221 Sénégal</option><option value="+234">+234 Nigeria</option><option value="+33">+33 France</option><option value="+1">+1 US/CA</option></select></div>
         </div>
-
         <div class="space-y-2">
-          <label class="font-semibold text-slate-700 block">Options Actives</label>
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" id="cfg-cascade" checked> Activer la Cascade Spatiale Hiérarchique (P-Codes)
-          </label>
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" id="cfg-epiweek" checked> Calculer automatiquement l'EPI_WEEK OMS
-          </label>
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" id="cfg-headers" checked> Normaliser les en-têtes (snake_case, sans accents)
-          </label>
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" id="cfg-sex" checked> Standardiser les catégories Sexe (Male/Female)
-          </label>
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" id="cfg-age" checked> Convertir les âges et générer les tranches d'âge
-          </label>
-          <label class="flex items-center gap-2 text-slate-600">
-            <input type="checkbox" id="cfg-chrono" checked> Valider la chronologie des dates
-          </label>
+          <label class="font-semibold text-slate-700 block">Options V2 actives</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="cfg-cascade" checked> Cascade spatiale P-Codes (défaut 80%)</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="cfg-epiweek" checked> Calcul EPI_WEEK OMS</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="cfg-headers" checked> Normaliser en-têtes</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="cfg-sex" checked> Standardiser sexe</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="cfg-age" checked> Âges & tranches</label>
+          <label class="flex items-center gap-2"><input type="checkbox" id="cfg-chrono" checked> Validation chronologie</label>
+          <label class="flex items-center gap-2 accent-emerald-600"><input type="checkbox" id="cfg-coords" checked> V2: Valider coordonnées WGS84 + auto swap</label>
+          <label class="flex items-center gap-2 accent-emerald-600"><input type="checkbox" id="cfg-phones" checked> V2: Normaliser téléphones E.164</label>
+          <label class="flex items-center gap-2 accent-emerald-600"><input type="checkbox" id="cfg-outbreak" checked> V2: Détecter alertes épidémiques</label>
         </div>
       </div>
-
-      <div class="mt-6 flex justify-end gap-2">
-        <button onclick="closeConfigModal()" class="px-3 py-1.5 border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold">Annuler</button>
-        <button onclick="saveConfigAndClean()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold">Sauvegarder & Exécuter</button>
-      </div>
+      <div class="mt-6 flex justify-end gap-2"><button onclick="closeConfigModal()" class="px-3 py-1.5 border rounded text-xs">Annuler</button><button onclick="saveConfigAndClean()" class="px-4 py-1.5 bg-emerald-600 text-white rounded text-xs font-bold">Sauvegarder & Exécuter V2</button></div>
     </div>
   </div>
 
-  <!-- Loading Overlay -->
-  <div id="loader-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs flex flex-col items-center justify-center z-50 hidden">
-    <div class="w-12 h-12 border-4 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin mb-3"></div>
-    <div id="loader-text" class="text-white text-xs font-semibold tracking-wide">Traitement en cours...</div>
+  <div id="loader-overlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex flex-col items-center justify-center z-50 hidden">
+    <div class="w-12 h-12 border-4 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin mb-3"></div><div id="loader-text" class="text-white text-xs font-semibold">Traitement V2 en cours…</div><div class="text-white/60 text-[11px] mt-1">Nettoyage + géocodage + EpiWeeks + alertes</div>
   </div>
 
   <script src="/static/js/app.js"></script>
   <script>
-    function openConfigModal() {
-      document.getElementById('config-modal').classList.remove('hidden');
+    function openConfigModal(){document.getElementById('config-modal').classList.remove('hidden')}
+    function closeConfigModal(){document.getElementById('config-modal').classList.add('hidden')}
+    function openAboutModal(){document.getElementById('about-modal').classList.remove('hidden')}
+    function closeAboutModal(){document.getElementById('about-modal').classList.add('hidden')}
+    function saveConfigAndClean(){
+      AppState.config.date_order_preference=document.getElementById('cfg-date-order').value;
+      AppState.config.dedup_action=document.getElementById('cfg-dedup-action').value;
+      AppState.config.enable_spatial_cascade=document.getElementById('cfg-cascade').checked;
+      AppState.config.compute_epi_weeks=document.getElementById('cfg-epiweek').checked;
+      AppState.config.standardize_headers=document.getElementById('cfg-headers').checked;
+      AppState.config.standardize_sex=document.getElementById('cfg-sex').checked;
+      AppState.config.standardize_ages=document.getElementById('cfg-age').checked;
+      AppState.config.validate_chronology=document.getElementById('cfg-chrono').checked;
+      AppState.config.clean_coordinates=document.getElementById('cfg-coords').checked;
+      AppState.config.clean_phone_numbers=document.getElementById('cfg-phones').checked;
+      AppState.config.detect_outbreak_signals=document.getElementById('cfg-outbreak').checked;
+      AppState.config.default_phone_country_code=document.getElementById('cfg-phone-code').value;
+      const pc=document.getElementById('cfg-preset').value; if(pc) AppState.config.preset=pc;
+      const psel=document.getElementById('preset-select'); if(psel && pc) psel.value=pc;
+      closeConfigModal(); cleanDataset();
     }
-    function closeConfigModal() {
-      document.getElementById('config-modal').classList.add('hidden');
+    function toggleDarkMode(){
+      const isDark=document.documentElement.classList.toggle('dark');
+      localStorage.setItem('lc_v2_dark', isDark? '1':'0');
+      document.body.classList.toggle('dark', isDark);
     }
-    function openAboutModal() {
-      document.getElementById('about-modal').classList.remove('hidden');
+    function toggleLanguage(){
+      const curr=document.getElementById('btn-lang').innerText;
+      const next=curr==='FR'?'EN':'FR';
+      document.getElementById('btn-lang').innerText=next;
+      // trivial i18n demo
+      document.querySelectorAll('[data-i18n="header.subtitle"]').forEach(el=> el.innerText = next==='EN' ? 'GIS in practice, our expertise' : 'PratiSIG Consulting Services : La pratique des SIG, notre métier');
+      document.querySelectorAll('[data-i18n="btn.clean"]').forEach(el=> el.innerText = next==='EN' ? 'Clean V2' : 'Nettoyer V2');
     }
-    function closeAboutModal() {
-      document.getElementById('about-modal').classList.add('hidden');
-    }
-    function saveConfigAndClean() {
-      AppState.config.date_order_preference = document.getElementById('cfg-date-order').value;
-      AppState.config.dedup_action = document.getElementById('cfg-dedup-action').value;
-      AppState.config.enable_spatial_cascade = document.getElementById('cfg-cascade').checked;
-      AppState.config.compute_epi_weeks = document.getElementById('cfg-epiweek').checked;
-      AppState.config.standardize_headers = document.getElementById('cfg-headers').checked;
-      AppState.config.standardize_sex = document.getElementById('cfg-sex').checked;
-      AppState.config.standardize_ages = document.getElementById('cfg-age').checked;
-      AppState.config.validate_chronology = document.getElementById('cfg-chrono').checked;
-      closeConfigModal();
-      cleanDataset();
-    }
+    (function(){
+      if(localStorage.getItem('lc_v2_dark')==='1'){document.documentElement.classList.add('dark'); document.body.classList.add('dark')}
+      const ps=document.getElementById('preset-select');
+      if(ps){ps.addEventListener('change', e=>{ if(e.target.value){AppState.config.preset=e.target.value; document.getElementById('cfg-preset').value=e.target.value;}})}
+      document.addEventListener('keydown', e=>{
+        if((e.ctrlKey||e.metaKey)&& e.key.toLowerCase()==='k'){ e.preventDefault(); const q=document.getElementById('table-search'); if(q){switchTab('data'); setTimeout(()=>q.focus(),100)}}
+        if(e.key.toLowerCase()==='d' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='SELECT'){ toggleDarkMode(); }
+      });
+    })();
   </script>
 </body>
 </html>

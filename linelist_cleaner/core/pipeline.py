@@ -42,6 +42,9 @@ from linelist_cleaner.core.deduplicator import Deduplicator
 from linelist_cleaner.core.anonymizer import Anonymizer
 from linelist_cleaner.core.auditor import DataQualityAuditor
 from linelist_cleaner.core.epi_analytics import EpiAnalytics
+from linelist_cleaner.core.coordinate_cleaner import clean_coordinate_columns
+from linelist_cleaner.core.phone_cleaner import clean_phone_column
+from linelist_cleaner.core.outbreak_detector import detect_outbreak_alerts, compute_incidence_trend
 
 
 def _find_best_header_row(df_raw_no_header: pd.DataFrame) -> int:
@@ -179,6 +182,9 @@ class LinelistCleaner:
         reference_pcode_df: Optional[pd.DataFrame] = None,
         skiprows: int = 0
     ) -> Tuple[pd.DataFrame, CleaningReport]:
+        # Apply preset if set
+        if self.config.preset:
+            self.config.apply_preset()
         start_time = time.time()
         df_raw = load_dataset(source, skiprows=skiprows)
         original_shape = df_raw.shape
@@ -341,6 +347,45 @@ class LinelistCleaner:
                 details=sp_stats
             ))
 
+        # Step 5b: V2 Coordinate & Phone Cleaning
+        coords_cleaned = 0
+        phones_standardized = 0
+        if self.config.clean_coordinates:
+            try:
+                df_curr, coord_stats = clean_coordinate_columns(df_curr)
+                coords_cleaned = int(coord_stats.get("cleaned", 0))
+                if coords_cleaned > 0 or coord_stats.get("swapped_fixed", 0) > 0:
+                    logs.append(CleaningLogEntry(
+                        step="Coordinate Cleaning V2",
+                        action="Validation WGS84 et correction des latitudes/longitudes inversees",
+                        affected_rows=coords_cleaned + int(coord_stats.get("swapped_fixed", 0)),
+                        affected_columns=[coord_stats.get("lat_col") or "LATITUDE", coord_stats.get("lon_col") or "LONGITUDE"],
+                        details=coord_stats
+                    ))
+                # expose cleaned LAT/LON to tag mapping for later analytics
+                if "LATITUDE" in df_curr.columns and "LONGITUDE" in df_curr.columns:
+                    tag_to_col.setdefault("latitude", "LATITUDE")
+                    tag_to_col.setdefault("longitude", "LONGITUDE")
+            except Exception:
+                pass
+
+        if self.config.clean_phone_numbers and "phone" in tag_to_col:
+            phone_col = tag_to_col["phone"]
+            if phone_col in df_curr.columns:
+                try:
+                    cleaned_phones, phone_stats = clean_phone_column(df_curr[phone_col], self.config.default_phone_country_code)
+                    df_curr[phone_col] = cleaned_phones
+                    phones_standardized = int(phone_stats.get("valid", 0))
+                    logs.append(CleaningLogEntry(
+                        step="Phone Standardization V2",
+                        action=f"Normalisation des numeros vers format international ({self.config.default_phone_country_code})",
+                        affected_rows=phones_standardized,
+                        affected_columns=[phone_col],
+                        details=phone_stats
+                    ))
+                except Exception:
+                    pass
+
         # Step 6: Demographic & Categorical Standardization
         if self.config.standardize_sex and "sex" in tag_to_col:
             sex_col = tag_to_col["sex"]
@@ -422,6 +467,20 @@ class LinelistCleaner:
             df_curr, tag_to_col, final_issues
         )
 
+        # V2: Outbreak Detection & Incidence Trend
+        outbreak_alerts = []
+        incidence_trend = None
+        if self.config.detect_outbreak_signals and "EPI_WEEK" in df_curr.columns:
+            try:
+                outbreak_alerts = detect_outbreak_alerts(
+                    df_curr, epi_week_col="EPI_WEEK",
+                    threshold_multiplier=self.config.outbreak_alert_threshold_multiplier
+                )
+                incidence_trend = compute_incidence_trend(df_curr, epi_week_col="EPI_WEEK")
+            except Exception:
+                outbreak_alerts = []
+                incidence_trend = None
+
         exec_time = round((time.time() - start_time) * 1000, 2)
 
         report = CleaningReport(
@@ -444,7 +503,12 @@ class LinelistCleaner:
             issues_by_type=issues_by_type,
             column_profiles=col_profiles,
             cleaning_logs=logs,
-            execution_time_ms=exec_time
+            execution_time_ms=exec_time,
+            coordinates_cleaned=coords_cleaned,
+            phones_standardized=phones_standardized,
+            outbreak_alerts=outbreak_alerts,  # type: ignore
+            incidence_trend=incidence_trend,  # type: ignore
+            version="2.0.0"
         )
 
         return df_curr, report
@@ -459,21 +523,59 @@ class LinelistCleaner:
         DataQualityAuditor.export_excel_audit_workbook(df_clean, report, output_path_or_buffer, ref_df=reference_df)
 
     @staticmethod
+    def export_geojson(df_clean: pd.DataFrame, output_path_or_buffer: Any = None) -> Dict[str, Any]:
+        """V2: Export cleaned geocoded data as GeoJSON FeatureCollection."""
+        import json as _json
+        features = []
+        if "LATITUDE" in df_clean.columns and "LONGITUDE" in df_clean.columns:
+            for _, row in df_clean.iterrows():
+                lat = row.get("LATITUDE")
+                lon = row.get("LONGITUDE")
+                if pd.notna(lat) and pd.notna(lon):
+                    try:
+                        lat_f = float(lat); lon_f = float(lon)
+                        if -90 <= lat_f <= 90 and -180 <= lon_f <= 180:
+                            props = {}
+                            for c in df_clean.columns:
+                                if c not in ["LATITUDE", "LONGITUDE"]:
+                                    v = row[c]
+                                    props[c] = None if pd.isna(v) else (str(v) if not isinstance(v, (int, float, bool)) else v)
+                            # keep key metadata at top
+                            props["_pcode"] = row.get("PCODE_ASSIGNED")
+                            props["_match_level"] = row.get("MATCH_LEVEL")
+                            features.append({
+                                "type": "Feature",
+                                "geometry": {"type": "Point", "coordinates": [lon_f, lat_f]},
+                                "properties": props
+                            })
+                    except:
+                        continue
+        collection = {"type": "FeatureCollection", "features": features, "generated_by": "Linelist Cleaner V2 - PratiSIG", "count": len(features)}
+        if output_path_or_buffer:
+            if isinstance(output_path_or_buffer, str):
+                with open(output_path_or_buffer, "w", encoding="utf-8") as f:
+                    _json.dump(collection, f, ensure_ascii=False, indent=2)
+            else:
+                output_path_or_buffer.write(_json.dumps(collection, ensure_ascii=False, indent=2))
+        return collection
+
+    @staticmethod
     def export_csv(df_clean: pd.DataFrame, output_path_or_buffer: Any) -> None:
         df_clean.to_csv(output_path_or_buffer, index=False)
 
     @staticmethod
     def generate_reproducible_python_script(config: CleaningConfig) -> str:
         return f'''"""
-Pipeline Reproductible de Nettoyage de Line List et Geocodage en Cascade (P-Codes OCHA)
+Pipeline Reproductible V2 - Nettoyage Linelist & Geocodage Cascade (P-Codes OCHA)
 PratiSIG Consulting Services - Dakar, Senegal.
 Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
+Version pipeline: 2.0.0
 """
 
 import pandas as pd
 from linelist_cleaner import LinelistCleaner, CleaningConfig
 
-# 1. Configuration du Moteur
+# 1. Configuration du Moteur V2
 config = CleaningConfig(
     standardize_headers={config.standardize_headers},
     auto_map_epi_tags={config.auto_map_epi_tags},
@@ -486,7 +588,12 @@ config = CleaningConfig(
     create_age_groups={config.create_age_groups},
     validate_chronology={config.validate_chronology},
     detect_duplicates={config.detect_duplicates},
-    dedup_action="{config.dedup_action}"
+    dedup_action="{config.dedup_action}",
+    clean_coordinates={config.clean_coordinates},
+    clean_phone_numbers={config.clean_phone_numbers},
+    default_phone_country_code="{config.default_phone_country_code}",
+    detect_outbreak_signals={config.detect_outbreak_signals},
+    preset="{config.preset or ''}"
 )
 
 # 2. Chargement de la Line List Brute et du Referentiel P-Code OCHA

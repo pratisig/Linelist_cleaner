@@ -225,6 +225,56 @@ class EpiAnalytics:
             "onset_to_death": calc_delay("date_onset", "date_death", "Onset to Death Delay"),
         }
 
+    def get_advanced_metrics(self) -> Dict[str, Any]:
+        """V2: Attack rates, CFR by strata, weekly incidence, growth rate stub."""
+        # Attack-rate-like weekly incidence per 10k (pseudo denominator = total)
+        n_total = len(self.df)
+        # CFR by age_group / sex if available
+        cfr_by_age = {}
+        cfr_by_sex = {}
+        outcome_s = self._get_series("outcome")
+        if outcome_s is not None and n_total > 0:
+            # by sex
+            sex_s = self._get_series("sex")
+            if sex_s is not None:
+                for sex_val in ["Male", "Female"]:
+                    mask = sex_s.str.lower() == sex_val.lower()
+                    total = int(mask.sum())
+                    deaths = int(((sex_s.str.lower() == sex_val.lower()) & (outcome_s.str.lower() == "dead")).sum())
+                    if total > 0:
+                        cfr_by_sex[sex_val] = round(deaths/total*100, 2)
+            # by age_group
+            if "age_group" in self.df.columns:
+                ag = self.df["age_group"]
+                for grp in sorted(ag.dropna().unique().tolist()):
+                    mask = ag == grp
+                    total = int(mask.sum())
+                    deaths = int((mask & (outcome_s.str.lower() == "dead")).sum())
+                    if total > 0:
+                        cfr_by_age[str(grp)] = round(deaths/total*100, 2)
+        # Weekly incidence & doubling
+        weekly = self.get_epi_curve(time_unit="week", stratify_by="none")
+        weekly_counts = list(weekly.get("total_by_period", {}).values())
+        growth = 0.0
+        doubling = None
+        if len(weekly_counts) >= 2 and weekly_counts[-2] > 0:
+            growth = round((weekly_counts[-1] - weekly_counts[-2]) / weekly_counts[-2] * 100, 1)
+            if growth > 0:
+                try:
+                    import math
+                    # simple doubling time: ln2 / ln(1 + r) where r = growth/100 weekly
+                    r = growth/100
+                    doubling = round(math.log(2)/math.log(1+r), 1) if r>0 else None
+                except:
+                    doubling = None
+        return {
+            "cfr_by_sex_pct": cfr_by_sex,
+            "cfr_by_age_group_pct": cfr_by_age,
+            "weekly_growth_pct": growth,
+            "estimated_doubling_time_weeks": doubling,
+            "total_cases": n_total,
+        }
+
     def get_demographic_pyramid(self) -> Dict[str, Any]:
         """Calculates age-sex demographic breakdown."""
         age_group_s = None
