@@ -1,6 +1,7 @@
 """
 Desktop Entrypoint for Windows Executable (.exe).
 Launches the FastAPI server and automatically opens the user's default web browser.
+PratiSIG Consulting Services - Dakar, Sénégal.
 """
 
 import sys
@@ -37,7 +38,7 @@ def open_browser_delayed(url: str, delay: float = 1.2):
     try:
         webbrowser.open(url)
     except Exception as e:
-        print(f"[*] Note: Veuillez ouvrir manuellement votre navigateur à l'adresse : {url}")
+        print(f"[*] Note: Veuillez ouvrir manuellement votre navigateur a l'adresse : {url}")
 
 
 def main():
@@ -46,15 +47,19 @@ def main():
 
     banner = f"""
 ===================================================================
-   🩺 LINELIST CLEANER & GÉOCODAGE EN CASCADE (P-CODES OCHA)
+   PRATISIG CONSULTING SERVICES - DAKAR, SENEGAL
+   La pratique des SIG, notre metier
+-------------------------------------------------------------------
+   LINELIST CLEANER & GEOCODAGE EN CASCADE (P-CODES OCHA)
+   Auteur  : Youssoupha MBODJI
+   Contact : pratisig.consulting@gmail.com
 ===================================================================
-   [+] Application prête pour une utilisation hors-ligne (Desktop).
-   [+] L'interface web s'ouvre automatiquement à l'adresse :
+   [+] Application prete pour une utilisation hors-ligne (Desktop).
+   [+] L'interface web s'ouvre automatiquement a l'adresse :
        -> {url}
 
-   [!] CONSEIL : Laissez cette fenêtre de terminal ouverte pendant
-       l'utilisation de l'outil.
-   [!] Pour quitter, fermez simplement cette fenêtre ou appuyez sur Ctrl+C.
+   [!] Laissez cette fenetre ouverte pendant l'utilisation.
+   [!] Pour quitter, fermez simplement cette fenetre ou faites Ctrl+C.
 ===================================================================
 """
     print(banner)
@@ -72,7 +77,7 @@ def main():
             access_log=False
         )
     except (KeyboardInterrupt, SystemExit):
-        print("\n[*] Arrêt de Linelist Cleaner. À bientôt !")
+        print("\n[*] Arret de Linelist Cleaner. A bientot !")
 
 
 if __name__ == "__main__":

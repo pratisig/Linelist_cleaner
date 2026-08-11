@@ -5,17 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "linelist-cleaner"
 version = "1.0.0"
-description = "A comprehensive Python library and web application for cleaning, standardizing, validating, and profiling epidemiological line list data."
+description = "Application de nettoyage épidémiologique et de géocodage spatial en cascade (P-Codes OCHA COD-AB) par PratiSIG Consulting Services."
 readme = "README.md"
-authors = [{ name = "Epidemiology & Public Health Data Tools", email = "info@example.com" }]
+authors = [{ name = "Youssoupha MBODJI", email = "pratisig.consulting@gmail.com" }]
 license = { text = "MIT" }
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: GIS",
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
-    "Topic :: Scientific/Engineering :: Information Analysis",
 ]
 dependencies = [
     "pandas>=2.0.0",
@@ -37,5 +37,5 @@ linelist-cleaner = "linelist_cleaner.cli:main"
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
+    "httpx>=0.24.0",
 ]

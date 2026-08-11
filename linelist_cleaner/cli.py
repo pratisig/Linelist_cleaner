@@ -1,5 +1,7 @@
 """
 Command-Line Interface (CLI) for Linelist Cleaner.
+PratiSIG Consulting Services - Dakar, Sénégal.
+Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
 """
 
 import sys
@@ -19,12 +21,12 @@ from linelist_cleaner.datasets import get_sample_dataset
 def print_banner():
     banner = """
 ===================================================================
-     _     _            _ _     _      ____ _                              
-    | |   (_)_ __   ___| (_)___| |_   / ___| | ___  __ _ _ __   ___ _ __ 
-    | |   | | '_ \ / _ \ | / __| __| | |   | |/ _ \/ _` | '_ \ / _ \ '__|
-    | |___| | | | |  __/ | \__ \ |_  | |___| |  __/ (_| | | | |  __/ |   
-    |_____|_|_| |_|\___|_|_|___/\__|  \____|_|\___|\__,_|_| |_|\___|_|   
-    Epidemiological Data Cleaning, Validation & Profiling Engine
+   PRATISIG CONSULTING SERVICES - DAKAR, SENEGAL
+   La pratique des SIG, notre metier
+-------------------------------------------------------------------
+   Linelist Cleaner & Geocodage Spatial en Cascade (P-Codes OCHA)
+   Auteur  : Youssoupha MBODJI
+   Contact : pratisig.consulting@gmail.com
 ===================================================================
 """
     print(banner)
@@ -33,7 +35,7 @@ def print_banner():
 def cmd_clean(args):
     """Clean a linelist dataset and output results."""
     print_banner()
-    print(f"[*] Reading linelist from: {args.input}")
+    print(f"[*] Lecture de la line list : {args.input}")
     
     config = CleaningConfig()
     if args.config and os.path.exists(args.config):
@@ -56,87 +58,87 @@ def cmd_clean(args):
     if output_path.endswith((".xlsx", ".xls")) or args.excel:
         if not output_path.endswith(".xlsx"):
             output_path += ".xlsx"
-        print(f"[*] Exporting multi-sheet audit Excel workbook to: {output_path}")
+        print(f"[*] Export du classeur Excel 3 onglets vers : {output_path}")
         cleaner.export_excel(df_clean, report, output_path)
     else:
-        print(f"[*] Exporting cleaned dataset to: {output_path}")
+        print(f"[*] Export du fichier nettoye vers : {output_path}")
         cleaner.export_csv(df_clean, output_path)
 
     # Print summary
     qs = report.quality_scores_after
     print("\n" + "=" * 60)
-    print(f" CLEANING SUMMARY")
+    print(" SYNTHESE DU TRAITEMENT")
     print("=" * 60)
-    print(f" Records: {report.original_shape[0]} rows -> {report.cleaned_shape[0]} rows ({report.cleaned_shape[1]} columns)")
-    print(f" Data Quality Score: {qs.overall_score}% [Grade: {qs.grade}]")
-    print(f"   • Completeness: {qs.completeness_score}%")
-    print(f"   • Chronological Consistency: {qs.chronology_score}%")
-    print(f"   • Format & Value Validity: {qs.validity_score}%")
-    print(f"   • Uniqueness: {qs.uniqueness_score}%")
-    print(f" Issues Detected: {len(report.validation_issues)} (Errors: {report.issues_by_severity.get('ERROR', 0)}, Warnings: {report.issues_by_severity.get('WARNING', 0)})")
-    print(f" Duplicates Detected: {report.duplicates_detected} (Resolved: {report.duplicates_resolved})")
-    print(f" Execution Time: {report.execution_time_ms} ms")
+    print(f" Lignes : {report.original_shape[0]} brutes -> {report.cleaned_shape[0]} nettoyees ({report.cleaned_shape[1]} colonnes)")
+    print(f" Score Qualite Global : {qs.overall_score}% [Grade: {qs.grade}]")
+    if report.spatial_summary:
+        sp = report.spatial_summary
+        print(f" Taux de Geocodage (P-Codes) : {sp.geocoded_rate_pct}% ({sp.geocoded_count}/{sp.total_records})")
+        print(f" Score Moyen de Similarite : {sp.average_match_score}%")
+    print(f" Semaines Epi OMS Calculees : {report.epi_weeks_computed}")
+    print(f" Anomalies Detectees : {len(report.validation_issues)}")
+    print(f" Temps d'Execution : {report.execution_time_ms} ms")
     print("=" * 60)
+    print("(c) PratiSIG Consulting Services - Dakar, Senegal")
 
 
 def cmd_audit(args):
     """Audit dataset data quality and output report."""
     print_banner()
-    print(f"[*] Auditing linelist data quality: {args.input}")
+    print(f"[*] Audit qualite de la line list : {args.input}")
     
     cleaner = LinelistCleaner()
     df_clean, report = cleaner.clean(args.input)
     
     output_path = args.output or "linelist_quality_audit.xlsx"
     cleaner.export_excel(df_clean, report, output_path)
-    print(f"[+] Audit report generated successfully: {output_path}")
+    print(f"[+] Rapport d'audit genere : {output_path}")
 
-    # Display console scorecard
     qs = report.quality_scores_after
     score_table = [
-        ["Overall Quality Score", f"{qs.overall_score}%", f"Grade {qs.grade}"],
-        ["Completeness", f"{qs.completeness_score}%", "Non-missingness across key variables"],
-        ["Chronological Sequence", f"{qs.chronology_score}%", "Timeline order & logic rules"],
-        ["Validity & Conformity", f"{qs.validity_score}%", "Valid standard codes & plausible ranges"],
-        ["Uniqueness", f"{qs.uniqueness_score}%", "Absence of duplicate records"],
+        ["Score Qualite Global", f"{qs.overall_score}%", f"Grade {qs.grade}"],
+        ["Completude", f"{qs.completeness_score}%", "Variables cles renseignees"],
+        ["Sequence Chronologique", f"{qs.chronology_score}%", "Coherence temporelle des dates"],
+        ["Validite & Conformite", f"{qs.validity_score}%", "Codes valides et plages plausibles"],
+        ["Unicite", f"{qs.uniqueness_score}%", "Absence de doublons"],
     ]
-    print("\n" + tabulate(score_table, headers=["Metric", "Score", "Description"], tablefmt="fancy_grid"))
+    print("\n" + tabulate(score_table, headers=["Indicateur", "Score", "Description"], tablefmt="fancy_grid"))
 
 
 def cmd_inspect(args):
     """Inspect columns, types, missingness, and detected epi tags in terminal."""
     print_banner()
     df = load_dataset(args.input)
-    print(f"[*] Dataset Shape: {df.shape[0]} rows x {df.shape[1]} columns\n")
+    print(f"[*] Dimensions du jeu de donnees : {df.shape[0]} lignes x {df.shape[1]} colonnes\n")
 
     mapping = map_linelist_columns(df)
     table_data = []
 
     for col in df.columns:
         meta = mapping.get(col, {})
-        tag = meta.get("mapped_tag") or "—"
-        cat = meta.get("category") or "—"
+        tag = meta.get("mapped_tag") or "N/A"
+        cat = meta.get("category") or "N/A"
         missing_count = int(df[col].isna().sum())
         missing_pct = round((missing_count / len(df)) * 100, 1) if len(df) > 0 else 0.0
         unique_cnt = int(df[col].nunique())
-        sample_val = str(df[col].dropna().iloc[0]) if not df[col].dropna().empty else "—"
+        sample_val = str(df[col].dropna().iloc[0]) if not df[col].dropna().empty else "N/A"
 
         table_data.append([col, tag, cat, f"{100 - missing_pct:.1f}%", unique_cnt, sample_val[:25]])
 
     print(tabulate(
         table_data,
-        headers=["Column", "Mapped Epi Tag", "Category", "Completeness", "Unique", "Sample Value"],
+        headers=["Colonne", "Tag Epidemio / Spatial", "Categorie", "Completude", "Valeurs Uniques", "Exemple"],
         tablefmt="fancy_grid"
     ))
 
 
 def cmd_sample(args):
     """Generate sample dataset."""
-    disease = args.type or "cholera"
+    disease = args.type or "borno"
     out_file = args.output or f"{disease}_sample_linelist.csv"
     df = get_sample_dataset(disease)
     df.to_csv(out_file, index=False)
-    print(f"[+] Sample {disease.upper()} linelist created: {out_file} ({len(df)} rows)")
+    print(f"[+] Line list exemple [{disease.upper()}] generee : {out_file} ({len(df)} lignes)")
 
 
 def cmd_serve(args):
@@ -144,43 +146,43 @@ def cmd_serve(args):
     import uvicorn
     from linelist_cleaner.web.app import app
     print_banner()
-    print(f"[*] Starting Linelist Cleaner Web Dashboard on http://{args.host}:{args.port}")
+    print(f"[*] Demarrage du serveur web PratiSIG sur http://{args.host}:{args.port}")
     uvicorn.run(app, host=args.host, port=args.port)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Linelist Cleaner: Epidemiological Data Cleaning, Validation, and Profiling Engine"
+        description="Linelist Cleaner & Geocodage Spatial (PratiSIG Consulting Services - Dakar, Senegal)"
     )
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", help="Commandes disponibles")
 
     # Clean command
-    p_clean = subparsers.add_parser("clean", help="Clean and standardize a linelist dataset")
-    p_clean.add_argument("input", help="Input dataset path (.csv, .xlsx, .json, .tsv)")
-    p_clean.add_argument("-o", "--output", help="Output path")
-    p_clean.add_argument("--excel", action="store_true", help="Output as full Excel audit workbook (.xlsx)")
-    p_clean.add_argument("--config", help="Path to JSON config file")
-    p_clean.add_argument("--anonymize", action="store_true", help="Enable PII anonymization")
-    p_clean.add_argument("--dedup-action", choices=["flag", "keep_first", "keep_most_complete", "merge"], help="Deduplication action")
+    p_clean = subparsers.add_parser("clean", help="Nettoyer et geocoder une line list")
+    p_clean.add_argument("input", help="Fichier d'entree (.csv, .xlsx, .json, .tsv)")
+    p_clean.add_argument("-o", "--output", help="Chemin du fichier de sortie")
+    p_clean.add_argument("--excel", action="store_true", help="Generer le classeur Excel 3 onglets (.xlsx)")
+    p_clean.add_argument("--config", help="Fichier de configuration JSON")
+    p_clean.add_argument("--anonymize", action="store_true", help="Activer l'anonymisation RGPD")
+    p_clean.add_argument("--dedup-action", choices=["flag", "keep_first", "keep_most_complete", "merge"], help="Action sur les doublons")
 
     # Audit command
-    p_audit = subparsers.add_parser("audit", help="Audit dataset quality without modifying records")
-    p_audit.add_argument("input", help="Input dataset path")
-    p_audit.add_argument("-o", "--output", help="Output path for Excel quality audit report")
+    p_audit = subparsers.add_parser("audit", help="Auditer la qualite d'une line list")
+    p_audit.add_argument("input", help="Fichier d'entree")
+    p_audit.add_argument("-o", "--output", help="Chemin du rapport Excel")
 
     # Inspect command
-    p_inspect = subparsers.add_parser("inspect", help="Quick terminal inspection of columns and mapped tags")
-    p_inspect.add_argument("input", help="Input dataset path")
+    p_inspect = subparsers.add_parser("inspect", help="Inspecter les colonnes et tags dans le terminal")
+    p_inspect.add_argument("input", help="Fichier d'entree")
 
     # Sample command
-    p_sample = subparsers.add_parser("sample", help="Generate realistic outbreak sample dataset")
-    p_sample.add_argument("-t", "--type", choices=["cholera", "covid19", "ebola", "measles"], default="cholera", help="Disease type")
-    p_sample.add_argument("-o", "--output", help="Output file path")
+    p_sample = subparsers.add_parser("sample", help="Generer un jeu de donnees d'exemple")
+    p_sample.add_argument("-t", "--type", choices=["borno", "cholera", "covid19", "ebola", "measles", "pcode_reference"], default="borno", help="Type d'epidemie")
+    p_sample.add_argument("-o", "--output", help="Fichier de sortie")
 
     # Serve command
-    p_serve = subparsers.add_parser("serve", help="Launch interactive web application and API")
-    p_serve.add_argument("--host", default="0.0.0.0", help="Host address (default 0.0.0.0)")
-    p_serve.add_argument("--port", type=int, default=8000, help="Port (default 8000)")
+    p_serve = subparsers.add_parser("serve", help="Lancer l'application web interactive")
+    p_serve.add_argument("--host", default="0.0.0.0", help="Adresse IP hote (defaut 0.0.0.0)")
+    p_serve.add_argument("--port", type=int, default=8000, help="Port TCP (defaut 8000)")
 
     args = parser.parse_args()
 

@@ -1,5 +1,7 @@
 """
 Data Quality Profiling, Auditing, and Multi-Sheet Excel/HTML Report Generator with Spatial P-Code Support.
+PratiSIG Consulting Services - Dakar, Sénégal.
+Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
 """
 
 import io
@@ -170,26 +172,26 @@ class DataQualityAuditor:
         - Tab 3: Referentiel_PCode (P-code reference dataset)
         """
         wb = openpyxl.Workbook()
-        wb.remove(wb.active)  # Remove default sheet
+        wb.remove(wb.active)
 
         # Palette definition
         navy_fill = PatternFill(start_color="0F172A", end_color="0F172A", fill_type="solid")
         blue_fill = PatternFill(start_color="1E40AF", end_color="1E40AF", fill_type="solid")
         teal_fill = PatternFill(start_color="0D9488", end_color="0D9488", fill_type="solid")
-        subhead_fill = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
 
         # Match level color fills for LineList_Nettoyee rows
         match_colors = {
-            "Locality": PatternFill(start_color="DCFCE7", end_color="DCFCE7", fill_type="solid"),      # Light Emerald
-            "Admin3_Ward": PatternFill(start_color="CCFBF1", end_color="CCFBF1", fill_type="solid"),   # Light Teal
-            "Admin2_LGA": PatternFill(start_color="DBEAFE", end_color="DBEAFE", fill_type="solid"),    # Light Blue
-            "Admin1_State": PatternFill(start_color="FEF3C7", end_color="FEF3C7", fill_type="solid"),  # Light Amber
-            "Unmatched": PatternFill(start_color="FEE2E2", end_color="FEE2E2", fill_type="solid"),     # Light Rose
+            "Locality": PatternFill(start_color="DCFCE7", end_color="DCFCE7", fill_type="solid"),
+            "Admin3_Ward": PatternFill(start_color="CCFBF1", end_color="CCFBF1", fill_type="solid"),
+            "Admin2_LGA": PatternFill(start_color="DBEAFE", end_color="DBEAFE", fill_type="solid"),
+            "Admin1_State": PatternFill(start_color="FEF3C7", end_color="FEF3C7", fill_type="solid"),
+            "Unmatched": PatternFill(start_color="FEE2E2", end_color="FEE2E2", fill_type="solid"),
         }
 
         header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
-        title_font = Font(name="Calibri", size=15, bold=True, color="0F172A")
-        section_font = Font(name="Calibri", size=12, bold=True, color="FFFFFF")
+        title_font = Font(name="Calibri", size=14, bold=True, color="0F172A")
+        sub_title_font = Font(name="Calibri", size=10, italic=True, color="475569")
+        section_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
         bold_font = Font(name="Calibri", size=10, bold=True)
         regular_font = Font(name="Calibri", size=10)
 
@@ -206,14 +208,16 @@ class DataQualityAuditor:
         ws_kpi = wb.create_sheet(title="KPI_Dashboard")
         ws_kpi.views.sheetView[0].showGridLines = True
 
-        ws_kpi["A1"] = "TABLEAU DE BORD QUALITÉ & GÉOCODAGE EN CASCADE"
+        ws_kpi["A1"] = "TABLEAU DE BORD QUALITE & GEOCODAGE EN CASCADE"
         ws_kpi["A1"].font = title_font
+        ws_kpi["A2"] = "PratiSIG Consulting Services - Dakar, Senegal | Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)"
+        ws_kpi["A2"].font = sub_title_font
 
         # 1. Spatial Cascade Geocoding KPI Box
-        ws_kpi["A3"] = "1. Indicateurs Clés de Géocodage Spatial (P-Codes)"
-        ws_kpi["A3"].font = section_font
-        ws_kpi["A3"].fill = blue_fill
-        ws_kpi.merge_cells("A3:E3")
+        ws_kpi["A4"] = "1. Indicateurs Cles de Geocodage Spatial (P-Codes)"
+        ws_kpi["A4"].font = section_font
+        ws_kpi["A4"].fill = blue_fill
+        ws_kpi.merge_cells("A4:E4")
 
         spatial = report.spatial_summary
         total_rows = report.cleaned_shape[0]
@@ -223,20 +227,20 @@ class DataQualityAuditor:
             geo_count = f"{spatial.geocoded_count} / {spatial.total_records}"
             avg_score = f"{spatial.average_match_score}%"
         else:
-            geo_rate = "—"
+            geo_rate = "N/A"
             geo_count = f"{total_rows} records"
-            avg_score = "—"
+            avg_score = "N/A"
 
         kpi_metrics = [
-            ("Nombre Total de Cas (Cleaned Line List)", str(total_rows), "Lignes exploitables après validation"),
-            ("Taux Global de Géocodage (%)", geo_rate, "Proportion de cas rattachés à un P-Code valide"),
-            ("Cas Géocodés avec Succès", geo_count, "Nombre absolu de cas localisés"),
-            ("Score Moyen de Similarité Fuzzy", avg_score, "Précision moyenne du matching textuel"),
-            ("Score Global de Qualité des Données", f"{report.quality_scores_after.overall_score}%", f"Grade: {report.quality_scores_after.grade}"),
-            ("Semaines Épidémiologiques Calculées", f"{report.epi_weeks_computed} / {total_rows}", "Dates normalisées vers EPI_WEEK OMS")
+            ("Nombre Total de Cas (Line List Nettoyee)", str(total_rows), "Lignes exploitables apres validation"),
+            ("Taux Global de Geocodage (%)", geo_rate, "Proportion de cas rattaches a un P-Code valide"),
+            ("Cas Geocodes avec Succes", geo_count, "Nombre absolu de cas localises"),
+            ("Score Moyen de Similarite Fuzzy", avg_score, "Precision moyenne du rapprochement textuel"),
+            ("Score Global de Qualite des Donnees", f"{report.quality_scores_after.overall_score}%", f"Grade: {report.quality_scores_after.grade}"),
+            ("Semaines Epidemiologiques Calculees", f"{report.epi_weeks_computed} / {total_rows}", "Dates normalisees vers EPI_WEEK OMS")
         ]
 
-        for idx, (label, val, note) in enumerate(kpi_metrics, start=4):
+        for idx, (label, val, note) in enumerate(kpi_metrics, start=5):
             ws_kpi[f"A{idx}"] = label
             ws_kpi[f"A{idx}"].font = bold_font
             ws_kpi[f"B{idx}"] = val
@@ -248,13 +252,13 @@ class DataQualityAuditor:
                 ws_kpi[f"{c}{idx}"].border = thin_border
 
         # 2. Precision Breakdown Table
-        start_cascade_row = len(kpi_metrics) + 6
-        ws_kpi[f"A{start_cascade_row}"] = "2. Répartition par Niveau de Précision Spatiale (Spatial Fallback Cascade)"
+        start_cascade_row = len(kpi_metrics) + 7
+        ws_kpi[f"A{start_cascade_row}"] = "2. Repartition par Niveau de Resolution Spatiale (Spatial Fallback Cascade)"
         ws_kpi[f"A{start_cascade_row}"].font = section_font
         ws_kpi[f"A{start_cascade_row}"].fill = teal_fill
         ws_kpi.merge_cells(f"A{start_cascade_row}:E{start_cascade_row}")
 
-        casc_headers = ["Niveau de Résolution (MATCH_LEVEL)", "Description", "Nombre de Cas", "Proportion (%)", "Couleur Assignée"]
+        casc_headers = ["Niveau de Resolution (MATCH_LEVEL)", "Description", "Nombre de Cas", "Proportion (%)", "Couleur Assignee"]
         h_row = start_cascade_row + 1
         for col_i, h_text in enumerate(casc_headers, start=1):
             cell = ws_kpi.cell(row=h_row, column=col_i, value=h_text)
@@ -262,11 +266,11 @@ class DataQualityAuditor:
             cell.fill = navy_fill
 
         levels_info = [
-            ("Locality", "Village / Localité / Camp IDP (Précision Maximale)", match_colors["Locality"]),
-            ("Admin3_Ward", "Admin 3 / Ward / Aire de Santé (Fallback 1)", match_colors["Admin3_Ward"]),
-            ("Admin2_LGA", "Admin 2 / LGA / Zone de Santé (Fallback 2)", match_colors["Admin2_LGA"]),
-            ("Admin1_State", "Admin 1 / État / Province (Fallback 3)", match_colors["Admin1_State"]),
-            ("Unmatched", "Non Localisé (Aucune correspondance trouvée)", match_colors["Unmatched"])
+            ("Locality", "Village / Localite / Camp IDP (Precision Maximale)", match_colors["Locality"]),
+            ("Admin3_Ward", "Admin 3 / Ward / Aire de Sante (Fallback 1)", match_colors["Admin3_Ward"]),
+            ("Admin2_LGA", "Admin 2 / LGA / Zone de Sante (Fallback 2)", match_colors["Admin2_LGA"]),
+            ("Admin1_State", "Admin 1 / Etat / Province (Fallback 3)", match_colors["Admin1_State"]),
+            ("Unmatched", "Non Localise (Aucune correspondance trouvee)", match_colors["Unmatched"])
         ]
 
         curr_r = h_row + 1
@@ -279,7 +283,7 @@ class DataQualityAuditor:
             ws_kpi.cell(row=curr_r, column=3, value=cnt).font = bold_font
             ws_kpi.cell(row=curr_r, column=4, value=f"{pct}%").font = bold_font
             
-            c_cell = ws_kpi.cell(row=curr_r, column=5, value="■ Accent")
+            c_cell = ws_kpi.cell(row=curr_r, column=5, value="Accent")
             c_cell.font = bold_font
             c_cell.fill = fill_style
             c_cell.alignment = Alignment(horizontal="center")
@@ -291,13 +295,13 @@ class DataQualityAuditor:
         # 3. EpiWeek Distribution Table
         if "EPI_WEEK" in df_clean.columns:
             start_epi_row = curr_r + 2
-            ws_kpi[f"A{start_epi_row}"] = "3. Synthèse par Semaine Épidémiologique (WHO EpiWeeks)"
+            ws_kpi[f"A{start_epi_row}"] = "3. Synthese par Semaine Epidemiologique (WHO EpiWeeks)"
             ws_kpi[f"A{start_epi_row}"].font = section_font
             ws_kpi[f"A{start_epi_row}"].fill = blue_fill
             ws_kpi.merge_cells(f"A{start_epi_row}:E{start_epi_row}")
 
             epi_h_row = start_epi_row + 1
-            for col_i, h_text in enumerate(["Semaine Épi (EPI_WEEK)", "Nombre de Cas", "Proportion (%)"], start=1):
+            for col_i, h_text in enumerate(["Semaine Epi (EPI_WEEK)", "Nombre de Cas", "Proportion (%)"], start=1):
                 cell = ws_kpi.cell(row=epi_h_row, column=col_i, value=h_text)
                 cell.font = header_font
                 cell.fill = navy_fill
@@ -312,6 +316,11 @@ class DataQualityAuditor:
                 for c in range(1, 4):
                     ws_kpi.cell(row=curr_epi_r, column=c).border = thin_border
                 curr_epi_r += 1
+
+        # Footer Branding
+        footer_r = curr_r + 8 if "EPI_WEEK" not in df_clean.columns else curr_epi_r + 3
+        ws_kpi[f"A{footer_r}"] = "(c) PratiSIG Consulting Services - Dakar, Senegal. Outil a usage libre pour la communaute SIG et humanitaire."
+        ws_kpi[f"A{footer_r}"].font = sub_title_font
 
         ws_kpi.column_dimensions["A"].width = 38
         ws_kpi.column_dimensions["B"].width = 25
@@ -344,14 +353,12 @@ class DataQualityAuditor:
                 cell.font = regular_font
                 cell.border = thin_border
                 
-                # Apply row highlight or cell highlight for MATCH_LEVEL
                 if col_idx - 1 == match_level_col_idx and lvl_fill:
                     cell.fill = lvl_fill
                     cell.font = bold_font
                 elif val_to_write == "":
                     cell.fill = PatternFill(start_color="F8FAFC", fill_type="solid")
 
-        # Auto-adjust column widths
         for col in ws_data.columns:
             max_len = max(len(str(cell.value or "")) for cell in col[:40])
             col_letter = get_column_letter(col[0].column)
@@ -382,7 +389,7 @@ class DataQualityAuditor:
                 col_letter = get_column_letter(col[0].column)
                 ws_ref.column_dimensions[col_letter].width = max(max_len + 3, 14)
         else:
-            ws_ref["A1"] = "Aucun référentiel P-Code externe chargé."
+            ws_ref["A1"] = "Aucun referentiel P-Code externe charge."
             ws_ref["A1"].font = regular_font
 
         wb.save(output_path_or_buffer)

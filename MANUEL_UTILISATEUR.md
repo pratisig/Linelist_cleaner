@@ -1,22 +1,34 @@
-# 📖 Manuel de l'Utilisateur — Linelist Cleaner & Géocodage en Cascade (P-Codes OCHA)
+# 📖 Manuel de l'Utilisateur : Linelist Cleaner & Géocodage en Cascade (P-Codes OCHA)
 
-Bienvenue dans le manuel d'utilisation de **Linelist Cleaner**, l'application conçue pour le nettoyage, la validation épidémiologique, le calcul des semaines épidémiologiques OMS et le géocodage spatial en cascade avec attribution des P-Codes de référence (OCHA COD-AB).
+**Linelist Cleaner & SIG**
+*Application de Nettoyage de Données Épidémiologiques et de Rapprochement Spatial Hiérarchique*
+
+---
+
+### 🏛️ Informations & Droits d'Auteur
+
+- **Organisation** : PratiSIG Consulting Services
+- **Devise / Slogan** : *La pratique des SIG, notre métier*
+- **Siège** : Dakar, Sénégal
+- **Auteur Principal** : **Youssoupha MBODJI**
+- **Contact** : [pratisig.consulting@gmail.com](mailto:pratisig.consulting@gmail.com)
+- **Droits & Licence** : © PratiSIG Consulting Services - Dakar, Sénégal. Outil à usage libre pour la communauté SIG et humanitaire (Licence Open Source MIT).
 
 ---
 
 ## 📑 Table des Matières
 
 1. [Introduction & Contexte Métier](#1-introduction--contexte-métier)
-2. [Modes de Lancement de l'Application](#2-modes-de-lancement-de-lapplication)
-   - [Lancement sous Windows via l'Exécutable (.exe)](#a-lancement-sans-python-fichier-exe-windows)
-   - [Lancement via Navigateur Web / Serveur](#b-lancement-serveur-web--docker)
+2. [Lancement de l'Application](#2-lancement-de-lapplication)
+   - [Version Portable Windows (.exe) sans installation](#a-version-portable-windows-exe)
+   - [Mode Serveur Web Local / Docker](#b-mode-serveur-web-local--docker)
 3. [Guide Étape par Étape d'Utilisation](#3-guide-étape-par-étape-dutilisation)
    - [Étape 1 : Charger une Line List de Terrain](#étape-1--charger-une-line-list-de-terrain)
    - [Étape 2 : Charger ou Utiliser le Référentiel P-Code OCHA](#étape-2--charger-ou-utiliser-le-référentiel-p-code-ocha)
-   - [Étape 3 : Vérifier et Ajuster la Correspondance des Colonnes (Column Mapping)](#étape-3--vérifier-et-ajuster-la-correspondance-des-colonnes)
+   - [Étape 3 : Vérifier et Ajuster le Mapping des Colonnes](#étape-3--vérifier-et-ajuster-le-mapping-des-colonnes)
    - [Étape 4 : Régler le Seuil de Similarité Floue (Fuzzy Threshold)](#étape-4--régler-le-seuil-de-similarité-floue)
    - [Étape 5 : Lancer le Traitement et Analyser les Résultats](#étape-5--lancer-le-traitement-et-analyser-les-résultats)
-4. [Comprendre les Onglets de l'Application](#4-comprendre-les-onglets-de-lapplication)
+4. [Description Détaillée des Onglets](#4-description-détaillée-des-onglets)
    - [📊 Onglet 1 : Tableau de Bord KPI & Précision](#-onglet-1--tableau-de-bord-kpi--précision)
    - [🗺️ Onglet 2 : Carte Interactive SIG (Leaflet)](#️-onglet-2--carte-interactive-sig-leaflet)
    - [📋 Onglet 3 : Données Nettoyées & P-Codes](#-onglet-3--données-nettoyées--p-codes)
@@ -24,36 +36,35 @@ Bienvenue dans le manuel d'utilisation de **Linelist Cleaner**, l'application co
    - [📈 Onglet 5 : Courbe Épidémique (EPI_WEEK OMS)](#-onglet-5--courbe-épidémique-epi_week-oms)
    - [⚠️ Onglet 6 : Anomalies & Contrôle Qualité](#️-onglet-6--anomalies--contrôle-qualité)
    - [📥 Onglet 7 : Exportation des Données & Classeur 3 Onglets](#-onglet-7--exportation-des-données--classeur-3-onglets)
-5. [Spécification du Fichier Référentiel P-Code OCHA](#5-spécification-du-fichier-référentiel-p-code-ocha)
+5. [Structure Recommandée du Référentiel P-Code OCHA](#5-structure-recommandée-du-référentiel-p-code-ocha)
 6. [Foire Aux Questions & Résolution des Problèmes (FAQ)](#6-foire-aux-questions--résolution-des-problèmes-faq)
 
 ---
 
 ## 1. Introduction & Contexte Métier
 
-Lors des épidémies et urgences sanitaires (ex. choléra, rougeole, fièvres hémorragiques virales), les données individuelles des patients (*Line Lists*) recueillies dans les centres de santé ou camps de déplacés souffrent fréquemment :
-- D'erreurs d'orthographe sur les noms de localités ou de quartiers (`"Bollori"` au lieu de `"Bolori I"`, `"Muna Garage Camp"` au lieu de `"Muna Garage IDP Camp"`).
+Lors des épidémies et urgences sanitaires (ex. choléra, rougeole, fièvres hémorragiques), les données individuelles des patients (*Line Lists*) recueillies dans les structures de soins ou camps de déplacés souffrent fréquemment :
+- D'erreurs d'orthographe sur les noms de localités (`"Bollori"` au lieu de `"Bolori I"`, `"Muna Garage Camp"` au lieu de `"Muna Garage IDP Camp"`).
 - De dates hétérogènes (`04/09/2023`, `2023-09-04`, `4 sept 2023`, entiers Excel `45173`).
 - D'incohérences chronologiques (date de sortie antérieure à l'admission, âge négatif).
 
-Ces erreurs empêchent la jointure directe avec les référentiels géographiques standards (P-Codes OCHA COD-AB) et la production cartographique rapide.
+Ces erreurs bloquent le rapprochement avec les référentiels géographiques standards (P-Codes OCHA COD-AB) et la production cartographique rapide.
 
-**Linelist Cleaner résout ce problème** grâce à un **algorithme de cascade spatiale hiérarchique** qui tente de localiser chaque patient au niveau le plus précis possible, et rétrograde automatiquement vers le niveau supérieur si la localité est introuvable.
+**Linelist Cleaner résout ce problème** grâce à son **moteur de cascade spatiale hiérarchique** qui tente d'abord de localiser chaque patient au niveau le plus fin possible (Localité), et rétrograde automatiquement vers le niveau supérieur (Admin 3, Admin 2, Admin 1) si la localité est introuvable.
 
 ---
 
-## 2. Modes de Lancement de l'Application
+## 2. Lancement de l'Application
 
-### A. Lancement sans Python (Fichier .exe Windows)
+### A. Version Portable Windows (.exe)
 
-Si vous utilisez la version exécutable Windows :
-1. Téléchargez `Linelist_Cleaner.exe` depuis la section **Releases** de votre dépôt GitHub.
+1. Téléchargez `Linelist_Cleaner.exe` depuis la section **Releases** du dépôt GitHub.
 2. **Double-cliquez sur `Linelist_Cleaner.exe`**.
-3. Une fenêtre noire s'ouvre pour initialiser l'application en arrière-plan.
+3. Une console s'ouvre pour initialiser l'application.
 4. **Votre navigateur web s'ouvre automatiquement** sur `http://127.0.0.1:8000`.
-5. *Conseil : Ne fermez pas la fenêtre noire pendant que vous utilisez l'application.*
+5. *Conseil : Laissez la fenêtre de console ouverte pendant l'utilisation.*
 
-### B. Lancement Serveur Web / Docker
+### B. Mode Serveur Web Local / Docker
 
 - **En ligne de commande Python** :
   ```bash
@@ -69,15 +80,15 @@ Si vous utilisez la version exécutable Windows :
 ## 3. Guide Étape par Étape d'Utilisation
 
 ### Étape 1 : Charger une Line List de Terrain
-1. Dans la bannière du haut, cliquez sur la zone bleue **"Charger Line List (.csv / .xlsx)"**.
-2. Sélectionnez votre fichier de cas bruts sur votre ordinateur.
-3. *Astuce : Vous pouvez aussi cliquer directement sur le bouton d'exemple **"📍 Borno Choléra (P-Codes)"** pour explorer immédiatement avec un jeu de données réel.*
+1. Dans la bannière supérieure, cliquez sur la zone bleue **"Charger Line List (.csv / .xlsx)"**.
+2. Sélectionnez votre fichier de cas sur votre ordinateur.
+3. *Astuce : Vous pouvez cliquer directement sur le bouton d'exemple **"📍 Borno Choléra (P-Codes)"** pour explorer immédiatement avec un jeu de données réel.*
 
 ### Étape 2 : Charger ou Utiliser le Référentiel P-Code OCHA
 1. Par défaut, le référentiel OCHA COD-AB standard (Borno/Yobe, Nigéria) est préchargé.
 2. Pour utiliser votre propre référentiel (ex. RDC Nord-Kivu, Haïti, Cameroun) : cliquez sur la zone verte **"Référentiel P-Code (OCHA COD-AB)"** et sélectionnez votre fichier CSV ou Excel.
 
-### Étape 3 : Vérifier et Ajuster la Correspondance des Colonnes
+### Étape 3 : Vérifier et Ajuster le Mapping des Colonnes
 1. Rendez-vous dans l'onglet **"🔗 Mapping Spatial & Colonnes"**.
 2. L'algorithme détecte automatiquement les variables :
    - `Localité / Village`
@@ -95,13 +106,13 @@ Si vous utilisez la version exécutable Windows :
    - **60% - 70% (Tolérant)** : Utile si les noms de villages ont des variations phonétiques importantes.
 
 ### Étape 5 : Lancer le Traitement et Analyser les Résultats
-1. Cliquez sur le bouton vert **"Exécuter Nettoyage & Cascade"** en haut à droite.
+1. Cliquez sur le bouton vert **"Nettoyer & Géocoder"** en haut à droite.
 2. Le traitement s'exécute en quelques secondes.
 3. Consultez les indicateurs du tableau de bord et la carte interactive.
 
 ---
 
-## 4. Comprendre les Onglets de l'Application
+## 4. Description Détaillée des Onglets
 
 ### 📊 Onglet 1 : Tableau de Bord KPI & Précision
 Cet onglet présente la synthèse opérationnelle :
@@ -113,7 +124,7 @@ Cet onglet présente la synthèse opérationnelle :
   - **Étape 2 (Admin 3)** : Cas rattachés au Ward / Aire de santé.
   - **Étape 3 (Admin 2)** : Cas rattachés au LGA / District.
   - **Étape 4 (Admin 1)** : Cas rattachés à l'État / Province.
-  - **Étape 5 (Unmatched)** : Cas non localisés.
+  - **Étape 5 (Non Localisé)** : Cas non localisés.
 - **Graphique Donut** illustrant visuellement la précision géographique.
 
 ---
@@ -171,9 +182,9 @@ Trois options de téléchargement en 1 clic :
 
 ---
 
-## 5. Spécification du Fichier Référentiel P-Code OCHA
+## 5. Structure Recommandée du Référentiel P-Code OCHA
 
-Pour que le géocodage fonctionne de manière optimale, votre fichier de référentiel (CSV ou Excel) doit contenir les colonnes suivantes (les noms peuvent varier, ils sont mappés automatiquement) :
+Pour que le géocodage fonctionne de manière optimale, votre fichier de référentiel (CSV ou Excel) doit contenir les colonnes suivantes :
 
 | Rôle Spatial | Exemple de Nom de Colonne | Exemple de Valeur |
 | :--- | :--- | :--- |
@@ -205,3 +216,8 @@ Un cas est marqué `Unmatched` si le nom de localité, de Ward, de LGA et d'Éta
 
 ### Q4 : L'application fonctionne-t-elle sans connexion Internet ?
 **Oui, à 100%.** Que ce soit via l'exécutable Windows `.exe` ou via le serveur local, tous les algorithmes de nettoyage, de cascade spatiale et les bibliothèques fonctionnent intégralement hors-ligne.
+
+---
+
+© PratiSIG Consulting Services - Dakar, Sénégal. Outil à usage libre pour la communauté SIG et humanitaire.
+*Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)*

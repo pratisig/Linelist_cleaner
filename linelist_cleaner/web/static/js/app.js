@@ -1,5 +1,7 @@
 /**
  * Linelist Cleaner & Spatial Fallback Cascade (OCHA COD-AB) - Interactive Web Application
+ * PratiSIG Consulting Services - Dakar, Sénégal
+ * Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
  */
 
 const AppState = {
@@ -355,7 +357,7 @@ function renderDashboard() {
 
   document.getElementById('kpi-total-cases').innerText = AppState.report.cleaned_shape[0];
   document.getElementById('kpi-geocoded-rate').innerText = spatial ? `${spatial.geocoded_rate_pct}%` : '0%';
-  document.getElementById('kpi-geocoded-count').innerText = spatial ? `${spatial.geocoded_count} / ${spatial.total_records} cas localisés` : '—';
+  document.getElementById('kpi-geocoded-count').innerText = spatial ? `${spatial.geocoded_count} / ${spatial.total_records} cas localisés` : 'N/A';
   document.getElementById('kpi-avg-score').innerText = spatial ? `${spatial.average_match_score}%` : '0%';
   document.getElementById('kpi-epiweeks-count').innerText = `${AppState.report.epi_weeks_computed} cas`;
 
@@ -405,7 +407,7 @@ function renderLeafletMap() {
   if (!AppState.leafletMap) {
     AppState.leafletMap = L.map('leaflet-map').setView([11.8333, 13.1500], 9);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '&copy; OpenStreetMap contributors | PratiSIG Consulting Services'
     }).addTo(AppState.leafletMap);
     AppState.leafletMarkersLayer = L.layerGroup().addTo(AppState.leafletMap);
   }
@@ -415,10 +417,10 @@ function renderLeafletMap() {
   if (AppState.mapPoints && AppState.mapPoints.length > 0) {
     const latlngs = [];
     const colors = {
-      'Locality': '#10b981',      // Emerald
-      'Admin3_Ward': '#0d9488',   // Teal
-      'Admin2_LGA': '#2563eb',    // Blue
-      'Admin1_State': '#d97706'   // Amber
+      'Locality': '#10b981',
+      'Admin3_Ward': '#0d9488',
+      'Admin2_LGA': '#2563eb',
+      'Admin1_State': '#d97706'
     };
 
     AppState.mapPoints.forEach(pt => {
@@ -616,7 +618,7 @@ function renderCharts() {
     if (AppState.charts.cascadeDonut) AppState.charts.cascadeDonut.destroy();
 
     const dist = AppState.report.spatial_summary.level_distribution;
-    const labels = ['Localité (Village)', 'Admin 3 (Ward)', 'Admin 2 (LGA)', 'Admin 1 (State)', 'Unmatched'];
+    const labels = ['Localité (Village)', 'Admin 3 (Ward)', 'Admin 2 (LGA)', 'Admin 1 (State)', 'Non Localisé'];
     const dataVals = [
       dist['Locality'] || 0,
       dist['Admin3_Ward'] || 0,
@@ -706,12 +708,12 @@ function renderIssues() {
     html += `
       <tr class="border-b border-slate-100 hover:bg-slate-50/60">
         <td class="px-3 py-2 font-mono font-medium text-slate-600">${iss.row_idx}</td>
-        <td class="px-3 py-2 font-mono text-slate-700">${escapeHtml(iss.case_id || '—')}</td>
+        <td class="px-3 py-2 font-mono text-slate-700">${escapeHtml(iss.case_id || 'N/A')}</td>
         <td class="px-3 py-2"><span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${sevBadge}">${iss.severity}</span></td>
         <td class="px-3 py-2 text-slate-600">${iss.issue_type}</td>
-        <td class="px-3 py-2 font-mono text-slate-700">${escapeHtml(iss.column || '—')}</td>
+        <td class="px-3 py-2 font-mono text-slate-700">${escapeHtml(iss.column || 'N/A')}</td>
         <td class="px-3 py-2 text-slate-800">${escapeHtml(iss.message)}</td>
-        <td class="px-3 py-2 text-slate-500 italic">${escapeHtml(iss.suggested_action || '—')}</td>
+        <td class="px-3 py-2 text-slate-500 italic">${escapeHtml(iss.suggested_action || 'N/A')}</td>
       </tr>
     `;
   });

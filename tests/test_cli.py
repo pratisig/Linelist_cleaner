@@ -6,7 +6,7 @@ import pytest
 def test_cli_help():
     result = subprocess.run(["python3", "-m", "linelist_cleaner.cli", "--help"], capture_output=True, text=True)
     assert result.returncode == 0
-    assert "Linelist Cleaner" in result.stdout
+    assert "PratiSIG" in result.stdout or "Linelist Cleaner" in result.stdout
 
 
 def test_cli_sample_and_inspect(tmp_path):
@@ -26,7 +26,7 @@ def test_cli_sample_and_inspect(tmp_path):
         text=True
     )
     assert res_inspect.returncode == 0
-    assert "Mapped Epi Tag" in res_inspect.stdout
+    assert "Colonne" in res_inspect.stdout or "Tag Epidemio" in res_inspect.stdout
 
     # Clean
     cleaned_file = tmp_path / "test_cholera_cleaned.csv"
