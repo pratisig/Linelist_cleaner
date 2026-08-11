@@ -75,6 +75,27 @@ const AppState = {
 
 let CANONICAL_DICT = {};
 
+// Fonctions d'acces securise au DOM pour eviter les erreurs null
+function safeSetText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = text;
+}
+
+function safeSetHtml(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
+
+function safeAddClass(id, className) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add(className);
+}
+
+function safeRemoveClass(id, className) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove(className);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   await loadDictionary();
@@ -93,7 +114,6 @@ async function loadDictionary() {
 }
 
 function setupEventListeners() {
-  // Tab switching
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const tab = e.currentTarget.dataset.tab;
@@ -101,7 +121,6 @@ function setupEventListeners() {
     });
   });
 
-  // Linelist File Upload
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
   if (dropZone && fileInput) {
@@ -114,7 +133,6 @@ function setupEventListeners() {
     });
   }
 
-  // Reference P-Code File Upload
   const refDropZone = document.getElementById('ref-drop-zone');
   const refFileInput = document.getElementById('ref-file-input');
   if (refDropZone && refFileInput) {
@@ -127,31 +145,25 @@ function setupEventListeners() {
     });
   }
 
-  // Linelist Skiprows input change
   const linelistSkipInput = document.getElementById('linelist-skiprows');
   if (linelistSkipInput) {
     linelistSkipInput.addEventListener('change', () => {
-      const reloadBtn = document.getElementById('btn-reload-linelist');
-      if (reloadBtn && AppState.linelistFile) reloadBtn.classList.remove('hidden');
+      if (AppState.linelistFile) safeRemoveClass('btn-reload-linelist', 'hidden');
     });
   }
 
-  // Reference Skiprows input change
   const refSkipInput = document.getElementById('ref-skiprows');
   if (refSkipInput) {
     refSkipInput.addEventListener('change', () => {
-      const reloadBtn = document.getElementById('btn-reload-ref');
-      if (reloadBtn && AppState.refFile) reloadBtn.classList.remove('hidden');
+      if (AppState.refFile) safeRemoveClass('btn-reload-ref', 'hidden');
     });
   }
 
-  // Similarity Threshold Slider
   const slider = document.getElementById('slider-threshold');
-  const sliderVal = document.getElementById('slider-val');
-  if (slider && sliderVal) {
+  if (slider) {
     slider.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      sliderVal.innerText = `${val}%`;
+      safeSetText('slider-val', `${val}%`);
       AppState.config.spatial_similarity_threshold = val;
     });
     slider.addEventListener('change', async () => {
@@ -161,7 +173,6 @@ function setupEventListeners() {
     });
   }
 
-  // Table search
   const searchInput = document.getElementById('table-search');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
@@ -170,7 +181,6 @@ function setupEventListeners() {
     });
   }
 
-  // Filter by Match Level
   const levelFilter = document.getElementById('data-filter-level');
   if (levelFilter) {
     levelFilter.addEventListener('change', (e) => {
@@ -179,7 +189,6 @@ function setupEventListeners() {
     });
   }
 
-  // View mode toggles
   document.querySelectorAll('.view-mode-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.view-mode-btn').forEach(b => b.classList.remove('bg-white', 'shadow-xs', 'text-emerald-700', 'font-semibold'));
@@ -191,10 +200,8 @@ function setupEventListeners() {
 }
 
 function renderEmptyState() {
-  const emptyState = document.getElementById('dashboard-empty-state');
-  const activeContent = document.getElementById('dashboard-active-content');
-  if (emptyState) emptyState.classList.remove('hidden');
-  if (activeContent) activeContent.classList.add('hidden');
+  safeRemoveClass('dashboard-empty-state', 'hidden');
+  safeAddClass('dashboard-active-content', 'hidden');
 }
 
 function switchTab(tabId) {
@@ -257,17 +264,14 @@ async function uploadLinelistFile(file, skiprows = 0, sheetName = null) {
       }
     }
 
-    document.getElementById('label-linelist-file').innerText = `✔️ Line list : ${file.name}`;
-    document.getElementById('sublabel-linelist-file').innerText = `${data.rows_count} cas chargés (${data.columns_count} colonnes)`;
+    safeSetText('label-linelist-file', `✔️ Line list : ${file.name}`);
+    safeSetText('sublabel-linelist-file', `${data.rows_count} cas chargés (${data.columns_count} colonnes)`);
 
-    const sheetContainer = document.getElementById('linelist-sheet-container');
     const sheetSelect = document.getElementById('linelist-sheet-select');
-    const reloadBtn = document.getElementById('btn-reload-linelist');
-
-    if (data.sheets && data.sheets.length > 1 && sheetContainer && sheetSelect) {
-      sheetContainer.classList.remove('hidden');
+    if (data.sheets && data.sheets.length > 1 && sheetSelect) {
+      safeRemoveClass('linelist-sheet-container', 'hidden');
       sheetSelect.innerHTML = data.sheets.map(s => `<option value="${escapeHtml(s)}" ${data.selected_sheet === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
-      if (reloadBtn) reloadBtn.classList.remove('hidden');
+      safeRemoveClass('btn-reload-linelist', 'hidden');
     }
 
     updateHeaderStats();
@@ -306,18 +310,15 @@ async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
       AppState.spatialMapping = Object.assign(AppState.spatialMapping, data.detected_spatial_mapping);
     }
 
-    document.getElementById('label-ref-file').innerText = `✔️ Référentiel : ${file.name}`;
-    document.getElementById('sublabel-ref-file').innerText = `${data.reference_rows} entités administratives prêtes pour la cascade`;
-    document.getElementById('stat-ref-filename').innerText = file.name;
+    safeSetText('label-ref-file', `✔️ Référentiel : ${file.name}`);
+    safeSetText('sublabel-ref-file', `${data.reference_rows} entités administratives prêtes pour la cascade`);
+    safeSetText('stat-ref-filename', file.name);
 
-    const sheetContainer = document.getElementById('ref-sheet-container');
     const sheetSelect = document.getElementById('ref-sheet-select');
-    const reloadBtn = document.getElementById('btn-reload-ref');
-
-    if (data.sheets && data.sheets.length > 1 && sheetContainer && sheetSelect) {
-      sheetContainer.classList.remove('hidden');
+    if (data.sheets && data.sheets.length > 1 && sheetSelect) {
+      safeRemoveClass('ref-sheet-container', 'hidden');
       sheetSelect.innerHTML = data.sheets.map(s => `<option value="${escapeHtml(s)}" ${data.selected_sheet === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
-      if (reloadBtn) reloadBtn.classList.remove('hidden');
+      safeRemoveClass('btn-reload-ref', 'hidden');
     }
 
     renderReferenceMapping();
@@ -336,7 +337,8 @@ async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
 
 async function reloadLinelistWithOptions() {
   if (!AppState.linelistFile) return;
-  const skiprows = parseInt(document.getElementById('linelist-skiprows').value) || 0;
+  const skipEl = document.getElementById('linelist-skiprows');
+  const skiprows = skipEl ? parseInt(skipEl.value) || 0 : 0;
   const sheetSelect = document.getElementById('linelist-sheet-select');
   const sheetName = sheetSelect ? sheetSelect.value : null;
   await uploadLinelistFile(AppState.linelistFile, skiprows, sheetName);
@@ -344,7 +346,8 @@ async function reloadLinelistWithOptions() {
 
 async function reloadReferenceWithOptions() {
   if (!AppState.refFile) return;
-  const skiprows = parseInt(document.getElementById('ref-skiprows').value) || 0;
+  const skipEl = document.getElementById('ref-skiprows');
+  const skiprows = skipEl ? parseInt(skipEl.value) || 0 : 0;
   const sheetSelect = document.getElementById('ref-sheet-select');
   const sheetName = sheetSelect ? sheetSelect.value : null;
   await uploadReferenceFile(AppState.refFile, skiprows, sheetName);
@@ -390,10 +393,8 @@ async function cleanDataset() {
       AppState.referenceColumns = data.reference_columns;
     }
 
-    const emptyState = document.getElementById('dashboard-empty-state');
-    const activeContent = document.getElementById('dashboard-active-content');
-    if (emptyState) emptyState.classList.add('hidden');
-    if (activeContent) activeContent.classList.remove('hidden');
+    safeAddClass('dashboard-empty-state', 'hidden');
+    safeRemoveClass('dashboard-active-content', 'hidden');
 
     updateHeaderStats();
     renderDashboard();
@@ -413,29 +414,22 @@ async function cleanDataset() {
 }
 
 function updateHeaderStats() {
-  const fileElem = document.getElementById('stat-filename');
-  const refFileElem = document.getElementById('stat-ref-filename');
-  const scoreElem = document.getElementById('stat-score');
-  const issuesBadge = document.getElementById('tab-issues-count');
+  const fileNameText = AppState.filename ? `${AppState.filename} (${AppState.report ? AppState.report.cleaned_shape[0] : AppState.rowsCount} cas)` : 'Aucun fichier chargé';
+  safeSetText('stat-filename', fileNameText);
+  safeSetText('stat-ref-filename', AppState.refFilename || 'Aucun référentiel chargé');
 
-  if (fileElem) fileElem.innerText = AppState.filename ? `${AppState.filename} (${AppState.report ? AppState.report.cleaned_shape[0] : AppState.rowsCount} cas)` : 'Aucun fichier chargé';
-  if (refFileElem) refFileElem.innerText = AppState.refFilename || 'Aucun référentiel chargé';
-
-  if (scoreElem && AppState.report) {
+  if (AppState.report) {
     const spatial = AppState.report.spatial_summary;
     const geoRate = spatial ? spatial.geocoded_rate_pct : 0.0;
-    scoreElem.innerHTML = `
+    const scoreHtml = `
       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
         geoRate >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800'
       }">
         Taux Géocodage : ${geoRate}%
       </span>
     `;
-  }
-
-  if (issuesBadge && AppState.report) {
-    const n = AppState.report.validation_issues.length;
-    issuesBadge.innerText = n;
+    safeSetHtml('stat-score', scoreHtml);
+    safeSetText('tab-issues-count', String(AppState.report.validation_issues.length));
   }
 }
 
@@ -443,11 +437,11 @@ function renderDashboard() {
   if (!AppState.report) return;
   const spatial = AppState.report.spatial_summary;
 
-  document.getElementById('kpi-total-cases').innerText = AppState.report.cleaned_shape[0];
-  document.getElementById('kpi-geocoded-rate').innerText = spatial ? `${spatial.geocoded_rate_pct}%` : '0%';
-  document.getElementById('kpi-geocoded-count').innerText = spatial ? `${spatial.geocoded_count} / ${spatial.total_records} cas localisés` : 'N/A';
-  document.getElementById('kpi-avg-score').innerText = spatial ? `${spatial.average_match_score}%` : '0%';
-  document.getElementById('kpi-epiweeks-count').innerText = `${AppState.report.epi_weeks_computed} cas`;
+  safeSetText('kpi-total-cases', String(AppState.report.cleaned_shape[0]));
+  safeSetText('kpi-geocoded-rate', spatial ? `${spatial.geocoded_rate_pct}%` : '0%');
+  safeSetText('kpi-geocoded-count', spatial ? `${spatial.geocoded_count} / ${spatial.total_records} cas localisés` : 'N/A');
+  safeSetText('kpi-avg-score', spatial ? `${spatial.average_match_score}%` : '0%');
+  safeSetText('kpi-epiweeks-count', `${AppState.report.epi_weeks_computed} cas`);
 
   const tbody = document.getElementById('precision-breakdown-tbody');
   if (tbody && spatial) {
@@ -857,15 +851,12 @@ function downloadScript() {
 }
 
 function showLoader(msg) {
-  const overlay = document.getElementById('loader-overlay');
-  const text = document.getElementById('loader-text');
-  if (overlay) overlay.classList.remove('hidden');
-  if (text) text.innerText = msg || 'Traitement en cours...';
+  safeRemoveClass('loader-overlay', 'hidden');
+  safeSetText('loader-text', msg || 'Traitement en cours...');
 }
 
 function hideLoader() {
-  const overlay = document.getElementById('loader-overlay');
-  if (overlay) overlay.classList.add('hidden');
+  safeAddClass('loader-overlay', 'hidden');
 }
 
 function escapeHtml(str) {
