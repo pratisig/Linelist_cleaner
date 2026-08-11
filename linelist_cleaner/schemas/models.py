@@ -75,6 +75,22 @@ class SpatialCascadeSummary(BaseModel):
     level_percentages: Dict[str, float] = Field(default_factory=dict)
 
 
+class OutbreakAlert(BaseModel):
+    """V2: Outbreak signal alert."""
+    epi_week: str
+    cases: int
+    baseline_mean: float
+    severity: str
+    message: str
+
+class IncidenceTrend(BaseModel):
+    """V2: Incidence trend metadata."""
+    trend: str
+    weekly_growth_pct: float
+    peak_week: Optional[str] = None
+    last_week_cases: Optional[int] = None
+    previous_week_cases: Optional[int] = None
+
 class CleaningReport(BaseModel):
     """Comprehensive report returned after linelist cleaning pipeline execution."""
     original_shape: Tuple[int, int]
@@ -97,3 +113,9 @@ class CleaningReport(BaseModel):
     column_profiles: Dict[str, ColumnProfile] = Field(default_factory=dict)
     cleaning_logs: List[CleaningLogEntry] = Field(default_factory=list)
     execution_time_ms: float = 0.0
+    # V2 extensions
+    coordinates_cleaned: int = 0
+    phones_standardized: int = 0
+    outbreak_alerts: List[OutbreakAlert] = Field(default_factory=list)
+    incidence_trend: Optional[IncidenceTrend] = None
+    version: str = Field("2.0.0", description="Pipeline version")

@@ -20,9 +20,9 @@ if not os.path.exists(STATIC_DIR):
     STATIC_DIR = os.path.join(BASE_DIR, "static")
 
 app = FastAPI(
-    title="Linelist Cleaner",
-    description="Epidemiological Linelist Data Cleaning, Validation, and Spatial Cascade Engine",
-    version="1.0.0"
+    title="Linelist Cleaner V2",
+    description="Epidemiological Linelist Data Cleaning, Validation, Spatial Cascade & Outbreak Intelligence (V2)",
+    version="2.0.0"
 )
 
 # CORS configuration

@@ -37,6 +37,10 @@ const AppState = {
   cleanedColumns: [],
   mapPoints: [],
   report: null,
+  advancedMetrics: null,
+  qualityDelta: 0,
+  outbreakAlerts: [],
+  incidenceTrend: null,
   indicators: null,
   epiDaily: null,
   epiWeekly: null,
@@ -63,7 +67,13 @@ const AppState = {
     validate_chronology: true,
     detect_duplicates: true,
     dedup_action: 'flag',
-    fuzzy_similarity_threshold: 0.80
+    fuzzy_similarity_threshold: 0.80,
+    clean_coordinates: true,
+    clean_phone_numbers: true,
+    default_phone_country_code: '+221',
+    detect_outbreak_signals: true,
+    outbreak_alert_threshold_multiplier: 1.5,
+    preset: null
   },
   leafletMap: null,
   leafletMarkersLayer: null,
@@ -181,6 +191,8 @@ function setupEventListeners() {
     });
   }
 
+  const mapLevelFilter = document.getElementById('map-filter-level');
+  if (mapLevelFilter) { mapLevelFilter.addEventListener('change', ()=> renderLeafletMap()); }
   const levelFilter = document.getElementById('data-filter-level');
   if (levelFilter) {
     levelFilter.addEventListener('change', (e) => {
@@ -224,6 +236,7 @@ function switchTab(tabId) {
     }
   });
 
+  if (tabId === 'dashboard') { renderV2Kpis(); setTimeout(renderCharts, 100); }
   if (tabId === 'map') {
     setTimeout(renderLeafletMap, 200);
   } else if (tabId === 'epicurve' || tabId === 'dashboard') {
@@ -275,6 +288,7 @@ async function uploadLinelistFile(file, skiprows = 0, sheetName = null) {
     }
 
     updateHeaderStats();
+    updateStepper(2);
     await cleanDataset();
   } catch (e) {
     alert(`Erreur lors du chargement de la line list : ${e.message}`);
@@ -353,7 +367,7 @@ async function reloadReferenceWithOptions() {
   await uploadReferenceFile(AppState.refFile, skiprows, sheetName);
 }
 
-async function cleanDataset() {
+async function cleanDataset()  // V2 — includes preset, coords, phones {
   if (!AppState.sessionId || !AppState.filename) {
     alert('Veuillez d abord charger un fichier de line list.');
     return;
@@ -361,6 +375,9 @@ async function cleanDataset() {
   showLoader('Exécution du nettoyage épidémiologique et du géocodage en cascade...');
 
   try {
+    // V2: sync preset from select if any
+    const presetSel = document.getElementById('preset-select');
+    if (presetSel && presetSel.value) AppState.config.preset = presetSel.value;
     const payload = {
       session_id: AppState.sessionId,
       config: AppState.config,
@@ -382,8 +399,14 @@ async function cleanDataset() {
     const data = await res.json();
     AppState.report = data.report;
     AppState.indicators = data.indicators;
-    AppState.epiDaily = data.epi_curve_daily;
-    AppState.epiWeekly = data.epi_curve_weekly;
+    AppState.advancedMetrics = data.advanced_metrics || null;
+    AppState.qualityDelta = data.quality_delta ?? 0;
+    AppState.outbreakAlerts = data.outbreak_alerts || data.report?.outbreak_alerts || [];
+    AppState.incidenceTrend = data.incidence_trend || data.report?.incidence_trend || null;
+    AppState.epiWeekly = data.epi_curve_weekly || AppState.epiWeekly;
+    AppState.epiDaily = data.epi_curve_daily || AppState.epiDaily;
+    AppState.delays = data.delays || {};
+    AppState.pyramid = data.pyramid || {};
     AppState.mapPoints = data.map_points || [];
     AppState.cleanedColumns = data.cleaned_columns;
     AppState.cleanedPreview = data.cleaned_preview;
@@ -402,7 +425,9 @@ async function cleanDataset() {
     renderColumnMapper();
     renderReferenceMapping();
     renderIssues();
+    renderV2Kpis();
     renderCharts();
+    updateStepper(4);
     if (AppState.activeTab === 'map') {
       renderLeafletMap();
     }
@@ -413,6 +438,18 @@ async function cleanDataset() {
   }
 }
 
+function updateStepper(step) {
+  for(let i=1;i<=5;i++){
+    const dot=document.getElementById('step-'+i);
+    const line=document.getElementById('step-line-'+i);
+    if(!dot) continue;
+    if(i < step){ dot.classList.remove('active'); dot.classList.add('done'); dot.innerText='✓'; if(line) line.classList.add('bg-emerald-500'); }
+    else if(i==step){ dot.classList.add('active'); dot.classList.remove('done'); dot.innerText=String(i); }
+    else { dot.classList.remove('active','done'); dot.innerText=String(i); if(line) line.classList.remove('bg-emerald-500'); }
+  }
+  const hints={1:'Chargez votre linelist',2:'Vérifiez le mapping',3:'Géocodage en cascade',4:'Analyse épidémique',5:'Export prêt'};
+  const h=document.getElementById('step-hint'); if(h) h.innerText=hints[step]||'';
+}
 function updateHeaderStats() {
   const fileNameText = AppState.filename ? `${AppState.filename} (${AppState.report ? AppState.report.cleaned_shape[0] : AppState.rowsCount} cas)` : 'Aucun fichier chargé';
   safeSetText('stat-filename', fileNameText);
@@ -442,6 +479,8 @@ function renderDashboard() {
   safeSetText('kpi-geocoded-count', spatial ? `${spatial.geocoded_count} / ${spatial.total_records} cas localisés` : 'N/A');
   safeSetText('kpi-avg-score', spatial ? `${spatial.average_match_score}%` : '0%');
   safeSetText('kpi-epiweeks-count', `${AppState.report.epi_weeks_computed} cas`);
+  // V2: also update new dashboard KPIs
+  if (typeof renderV2Kpis === 'function') renderV2Kpis();
 
   const tbody = document.getElementById('precision-breakdown-tbody');
   if (tbody && spatial) {
@@ -478,6 +517,11 @@ function renderDashboard() {
   }
 }
 
+function getFilteredMapPoints() {
+  const lvl=document.getElementById('map-filter-level')?.value || 'ALL';
+  if(lvl==='ALL') return AppState.mapPoints;
+  return AppState.mapPoints.filter(p=> p.match_level===lvl);
+}
 function renderLeafletMap() {
   const mapContainer = document.getElementById('leaflet-map');
   if (!mapContainer || typeof L === 'undefined') return;
@@ -845,9 +889,105 @@ function downloadCSV() {
   window.open(`/api/export/csv/${AppState.sessionId}`, '_blank');
 }
 
+
+function downloadGeoJSON() {
+  if (!AppState.sessionId) return;
+  window.open(`/api/export/geojson/${AppState.sessionId}`, '_blank');
+}
+function clearMapFilter() {
+  const sel=document.getElementById('map-filter-level'); if(sel) sel.value='ALL';
+  if(AppState.leafletMap) renderLeafletMap();
+}
+
 function downloadScript() {
   if (!AppState.sessionId) return;
   window.open(`/api/export/script/${AppState.sessionId}`, '_blank');
+}
+
+
+function renderV2Kpis() {
+  const r = AppState.report; if(!r) return;
+  const s = r.spatial_summary;
+  safeSetText('kpi-total', String(r.cleaned_shape ? r.cleaned_shape[0] : AppState.rowsCount));
+  safeSetText('kpi-total-sub', `${r.original_shape ? r.original_shape[0] : AppState.rowsCount} brutes → ${r.cleaned_shape ? r.cleaned_shape[0] : '-'} nettoyées`);
+  if(s){ safeSetText('kpi-geo', `${s.geocoded_rate_pct}%`); safeSetText('kpi-geo-sub', `${s.geocoded_count}/${s.total_records} géocodés`);} else { safeSetText('kpi-geo','N/A'); }
+  const qs = r.quality_scores_after; if(qs){ safeSetText('kpi-quality', `${qs.overall_score}%`); safeSetText('kpi-quality-grade', `Grade ${qs.grade} Δ ${(AppState.qualityDelta ?? 0) >0 ? '+'+AppState.qualityDelta : AppState.qualityDelta}%`); }
+  safeSetText('kpi-epi', String(r.epi_weeks_computed || 0));
+  // V2
+  safeSetText('kpi-coords', String(r.coordinates_cleaned ?? 0));
+  safeSetText('kpi-phones', String(r.phones_standardized ?? 0));
+  const alerts = AppState.outbreakAlerts || r.outbreak_alerts || [];
+  safeSetText('kpi-alerts', String(alerts.length));
+  safeSetText('kpi-alerts-sub', alerts.length ? `${alerts.length} semaine(s) > seuil` : 'Aucune alerte');
+  safeSetText('kpi-delta', `${(AppState.qualityDelta ?? 0) >0 ? '+'+AppState.qualityDelta : AppState.qualityDelta}%`);
+  const tr = AppState.incidenceTrend || r.incidence_trend;
+  if(tr){
+    const t = tr.trend || tr['trend']; const g = tr.weekly_growth_pct ?? tr['weekly_growth_pct']; const peak = tr.peak_week || tr['peak_week'];
+    let label = '→ Stable'; let cls='text-slate-700';
+    if(t==='increasing'){ label='↗ Hausse'; cls='text-rose-600';} else if(t==='decreasing'){ label='↘ Baisse'; cls='text-emerald-600';}
+    safeSetText('kpi-trend', `${label} ${g ?? 0}%`);
+    const el=document.getElementById('kpi-trend'); if(el){ el.className='text-sm font-extrabold mt-1 '+cls; }
+    safeSetText('kpi-trend-sub', peak ? `pic ${peak}` : '');
+  }
+  // outbreak banner
+  const banner=document.getElementById('outbreak-banner');
+  if(alerts && alerts.length>0 && banner){
+    banner.classList.remove('hidden');
+    safeSetText('outbreak-title', `🚨 ${alerts.length} alerte(s) épidémique(s) détectée(s) (V2)`);
+    safeSetText('outbreak-details', `Tendance: ${tr ? tr.trend : '—'} | Pic: ${tr ? tr.peak_week : '—'} | Croissance hebdo: ${tr ? tr.weekly_growth_pct : 0}%`);
+    const list=document.getElementById('outbreak-list'); if(list){ list.innerHTML = alerts.slice(0,5).map(a=> `<span class="px-2 py-1 bg-amber-100 border border-amber-200 rounded font-mono text-[11px]">${a.epi_week}: ${a.cases} cas</span>`).join(''); }
+  } else if(banner){ banner.classList.add('hidden'); }
+  // advanced
+  const adv=AppState.advancedMetrics; if(adv){
+    safeSetText('epi-doubling', adv.estimated_doubling_time_weeks ? `Doubling: ${adv.estimated_doubling_time_weeks} sem` : 'Doubling: N/A');
+    const cfrVals = Object.values(adv.cfr_by_age_group_pct || {}); const avgCfr = cfrVals.length? (cfrVals.reduce((a,b)=>a+b,0)/cfrVals.length).toFixed(1):'—';
+    safeSetText('epi-cfr', `CFR moyen âge: ${avgCfr}%`);
+    const cont=document.getElementById('advanced-metrics');
+    if(cont){
+      cont.innerHTML = `
+        <div class="flex justify-between"><span>CFR par sexe</span><span class="font-mono">${JSON.stringify(adv.cfr_by_sex_pct||{})}</span></div>
+        <div class="flex justify-between"><span>Croissance hebdo</span><span class="font-mono font-bold ${adv.weekly_growth_pct>0?'text-rose-600':'text-emerald-600'}">${adv.weekly_growth_pct}%</span></div>
+        <div class="flex justify-between"><span>Doubling</span><span class="font-mono">${adv.estimated_doubling_time_weeks||'N/A'} sem</span></div>
+      `;
+    }
+    const ek=document.getElementById('epicurve-kpis');
+    if(ek){
+      ek.innerHTML = `
+        <div class="bg-slate-50 border rounded p-2"><div class="font-bold">CFR Global</div><div class="text-lg font-extrabold text-rose-600">${AppState.indicators?.case_fatality_ratio_pct ?? '—'}%</div></div>
+        <div class="bg-slate-50 border rounded p-2"><div class="font-bold">Croissance</div><div class="text-lg font-bold ${adv.weekly_growth_pct>0?'text-rose-600':'text-emerald-600'}">${adv.weekly_growth_pct}% / sem</div></div>
+        <div class="bg-slate-50 border rounded p-2"><div class="font-bold">Doubling</div><div class="text-lg font-bold">${adv.estimated_doubling_time_weeks||'—'} sem</div></div>
+      `;
+    }
+    const cards=document.getElementById('epi-advanced-cards');
+    if(cards){
+      const byAge = adv.cfr_by_age_group_pct||{};
+      cards.innerHTML = Object.entries(byAge).slice(0,6).map(([k,v])=> `<div class="bg-white border rounded p-3"><div class="text-[11px] text-slate-500">CFR ${k}</div><div class="text-lg font-bold text-rose-700">${v}%</div></div>`).join('') || '<div class="text-xs text-slate-500">Pas de stratification âge disponible</div>';
+    }
+  }
+  // quality badge
+  const qb=document.getElementById('quality-badge');
+  if(qb && qs){ qb.classList.remove('hidden'); qb.innerText = `Qualité ${qs.overall_score}% Grade ${qs.grade}`; qb.className = `px-2 py-1 rounded-full font-bold text-[11px] ${qs.overall_score>=80?'bg-emerald-100 text-emerald-800':'bg-amber-100 text-amber-800'}`; }
+  // dups & profiles
+  const dups = r.duplicate_groups || [];
+  const dupsCont=document.getElementById('dups-container');
+  if(dupsCont){
+    if(dups.length===0) dupsCont.innerHTML='<div class="text-slate-500">Aucun doublon détecté.</div>';
+    else dupsCont.innerHTML = dups.slice(0,8).map(g=> `<div class="border rounded p-2 bg-amber-50"><div class="font-bold">Groupe #${g.group_id} • ${g.duplicate_type} • score ${Math.round((g.match_score||0)*100)}%</div><div class="font-mono text-[11px]">Lignes: ${g.row_indices?.join(', ')}</div><div class="text-[11px]">IDs: ${(g.case_ids||[]).join(', ')}</div></div>`).join('');
+  }
+  const profiles = r.column_profiles || {};
+  const profCont=document.getElementById('profiles-container');
+  if(profCont){
+    const rows = Object.entries(profiles).slice(0,10).map(([col, pr])=> `<div class="flex justify-between border-b py-1"><span class="font-mono font-bold">${col}</span><span class="text-slate-500">${pr.missing_percentage}% manq • ${pr.unique_count} uniq</span></div>`).join('');
+    profCont.innerHTML = rows || '<div class="text-slate-500">Aucun profil</div>';
+  }
+  // delays
+  const delays = AppState.delays || {};
+  const dCont=document.getElementById('delays-container');
+  if(dCont && delays){
+    const entries = Object.entries(delays).filter(([k,v])=> v);
+    if(entries.length===0) dCont.innerHTML='<div class="text-slate-500">Pas de délais calculables (dates manquantes).</div>';
+    else dCont.innerHTML = entries.map(([k,v])=> `<div class="border rounded p-2"><div class="font-bold">${v.name}</div><div class="flex justify-between text-[11px]"><span>Médiane ${v.median_days}j</span><span>Moy ${v.mean_days}j</span><span>n=${v.count}</span></div></div>`).join('');
+  }
 }
 
 function showLoader(msg) {
@@ -868,3 +1008,6 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+// V2: Expose AppState for debugging
+window.AppState = AppState;

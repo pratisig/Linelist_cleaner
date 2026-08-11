@@ -50,10 +50,11 @@ def main():
    PRATISIG CONSULTING SERVICES - DAKAR, SENEGAL
    La pratique des SIG, notre metier
 -------------------------------------------------------------------
-   LINELIST CLEANER & GEOCODAGE EN CASCADE (P-CODES OCHA)
+   LINELIST CLEANER V2.0 — GEOCODAGE CASCADE & VEILLE EPI (P-Codes OCHA)
    Auteur  : Youssoupha MBODJI
    Contact : pratisig.consulting@gmail.com
 ===================================================================
+   [+] V2.0 — Workbook 6 onglets + GeoJSON | Dark mode | Offline PWA
    [+] Application prete pour une utilisation hors-ligne (Desktop).
    [+] L'interface web s'ouvre automatiquement a l'adresse :
        -> {url}

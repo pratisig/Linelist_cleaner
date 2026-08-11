@@ -31,6 +31,9 @@ from linelist_cleaner.core.anonymizer import Anonymizer
 from linelist_cleaner.core.epi_analytics import EpiAnalytics
 from linelist_cleaner.core.auditor import DataQualityAuditor
 from linelist_cleaner.core.pipeline import LinelistCleaner, load_dataset
+from linelist_cleaner.core.coordinate_cleaner import clean_coordinate_columns, parse_coordinate
+from linelist_cleaner.core.phone_cleaner import clean_phone_number, clean_phone_column
+from linelist_cleaner.core.outbreak_detector import detect_outbreak_alerts, compute_incidence_trend
 
 __all__ = [
     "clean_string_identifier",
@@ -61,4 +64,10 @@ __all__ = [
     "DataQualityAuditor",
     "LinelistCleaner",
     "load_dataset",
+    "clean_coordinate_columns",
+    "parse_coordinate",
+    "clean_phone_number",
+    "clean_phone_column",
+    "detect_outbreak_alerts",
+    "compute_incidence_trend",
 ]

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "linelist-cleaner"
-version = "1.0.0"
-description = "Application de nettoyage epidemiologique et de geocodage spatial en cascade (P-Codes OCHA COD-AB) par PratiSIG Consulting Services."
+version = "2.0.0"
+description = "Linelist Cleaner V2 — Nettoyage epidemiologique, geocodage spatial en cascade (P-Codes OCHA) & intelligence epidémique par PratiSIG Consulting Services."
 readme = "README.md"
 authors = [{ name = "Youssoupha MBODJI", email = "pratisig.consulting@gmail.com" }]
 license = { text = "MIT" }

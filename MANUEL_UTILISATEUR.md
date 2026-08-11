@@ -4,6 +4,9 @@
 *Application de Nettoyage de Données Épidémiologiques et de Rapprochement Spatial Hiérarchique*
 
 ---
+> **🆕 V2.0.0 (2026-08-11) disponible !** Voir [README V2](README.md) & [CHANGELOG_V2.md](CHANGELOG_V2.md) : workbook 6 onglets + GeoJSON, veille épidémique, téléphones/coordonnées, presets, dark mode. Workbook 3→6 onglets, nouveaux endpoints & CLI.
+
+
 
 ### 🏛️ Informations & Droits d'Auteur
 

@@ -157,3 +157,50 @@ class CleaningConfig(BaseModel):
         default_factory=lambda: ["full_name", "first_name", "last_name", "phone", "address", "national_id"],
         description="Column tags to anonymize."
     )
+
+    # V2: Extended Cleaning & Intelligence
+    clean_coordinates: bool = Field(
+        True,
+        description="V2: Validate and standardize GPS coordinates (lat/lon) and detect swapped coords."
+    )
+    clean_phone_numbers: bool = Field(
+        True,
+        description="V2: Standardize phone numbers to international format."
+    )
+    default_phone_country_code: str = Field(
+        "+221",
+        description="Default country code for phone normalization (e.g., +221 Senegal, +234 Nigeria)."
+    )
+    detect_outbreak_signals: bool = Field(
+        True,
+        description="V2: Enable outbreak alert detection based on EpiWeek anomaly thresholds."
+    )
+    outbreak_alert_threshold_multiplier: float = Field(
+        1.5,
+        description="Multiplier over baseline mean for outbreak alert."
+    )
+    preset: Optional[str] = Field(
+        None,
+        description="V2: Preset configuration ('cholera', 'measles', 'ebola', 'covid19', 'generic')."
+    )
+
+    @property
+    def resolved_preset(self) -> Optional[str]:
+        return self.preset.lower().strip() if self.preset else None
+
+    def apply_preset(self) -> "CleaningConfig":
+        """Apply disease-specific presets (mutates and returns self)."""
+        p = self.resolved_preset
+        if not p:
+            return self
+        presets = {
+            "cholera": {"age_group_breaks": [0, 5, 15, 30, 50, 65, 80], "spatial_similarity_threshold": 78.0},
+            "measles": {"age_group_breaks": [0, 1, 5, 10, 15, 30, 50], "spatial_similarity_threshold": 80.0},
+            "ebola": {"age_group_breaks": [0, 5, 15, 30, 50, 65, 80], "spatial_similarity_threshold": 85.0, "validate_clinical_logic": True},
+            "covid19": {"age_group_breaks": [0, 10, 20, 30, 40, 50, 60, 70, 80], "spatial_similarity_threshold": 80.0},
+            "covid": {"age_group_breaks": [0, 10, 20, 30, 40, 50, 60, 70, 80], "spatial_similarity_threshold": 80.0},
+        }
+        if p in presets:
+            for k, v in presets[p].items():
+                setattr(self, k, v)
+        return self
