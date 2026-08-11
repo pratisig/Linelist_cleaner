@@ -47,6 +47,7 @@ from linelist_cleaner.core.epi_analytics import EpiAnalytics
 def _find_best_header_row(df_raw_no_header: pd.DataFrame) -> int:
     """
     Auto-detects the most probable header row if metadata/title rows exist at the top.
+    Looks for the row with the maximum count of distinct string column names.
     """
     if len(df_raw_no_header) == 0:
         return 0
