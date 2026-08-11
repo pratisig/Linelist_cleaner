@@ -7,11 +7,31 @@
 const AppState = {
   sessionId: null,
   filename: null,
+  refFilename: null,
+  linelistFile: null,
+  refFile: null,
+  linelistSkiprows: 0,
+  refSkiprows: 0,
+  linelistSheet: null,
+  refSheet: null,
   rowsCount: 0,
   columnsCount: 0,
   columns: [],
   detectedMappings: {},
   customMappings: {},
+  referenceColumns: [],
+  spatialMapping: {
+    admin1_name: '',
+    admin1_pcode: '',
+    admin2_name: '',
+    admin2_pcode: '',
+    admin3_name: '',
+    admin3_pcode: '',
+    locality_name: '',
+    locality_pcode: '',
+    lat: '',
+    long: ''
+  },
   rawPreview: [],
   cleanedPreview: [],
   cleanedColumns: [],
@@ -58,8 +78,7 @@ let CANONICAL_DICT = {};
 document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
   await loadDictionary();
-  // Auto-load Borno Cholera P-Code line list by default
-  await loadSample('borno');
+  renderEmptyState();
 });
 
 async function loadDictionary() {
@@ -69,7 +88,7 @@ async function loadDictionary() {
       CANONICAL_DICT = await res.json();
     }
   } catch (e) {
-    console.error('Failed to load dictionary', e);
+    console.error('Erreur lors du chargement du dictionnaire', e);
   }
 }
 
@@ -88,7 +107,10 @@ function setupEventListeners() {
   if (dropZone && fileInput) {
     dropZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) uploadLinelistFile(e.target.files[0]);
+      if (e.target.files && e.target.files[0]) {
+        AppState.linelistFile = e.target.files[0];
+        uploadLinelistFile(e.target.files[0]);
+      }
     });
   }
 
@@ -98,7 +120,28 @@ function setupEventListeners() {
   if (refDropZone && refFileInput) {
     refDropZone.addEventListener('click', () => refFileInput.click());
     refFileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files[0]) uploadReferenceFile(e.target.files[0]);
+      if (e.target.files && e.target.files[0]) {
+        AppState.refFile = e.target.files[0];
+        uploadReferenceFile(e.target.files[0]);
+      }
+    });
+  }
+
+  // Linelist Skiprows input change
+  const linelistSkipInput = document.getElementById('linelist-skiprows');
+  if (linelistSkipInput) {
+    linelistSkipInput.addEventListener('change', () => {
+      const reloadBtn = document.getElementById('btn-reload-linelist');
+      if (reloadBtn && AppState.linelistFile) reloadBtn.classList.remove('hidden');
+    });
+  }
+
+  // Reference Skiprows input change
+  const refSkipInput = document.getElementById('ref-skiprows');
+  if (refSkipInput) {
+    refSkipInput.addEventListener('change', () => {
+      const reloadBtn = document.getElementById('btn-reload-ref');
+      if (reloadBtn && AppState.refFile) reloadBtn.classList.remove('hidden');
     });
   }
 
@@ -112,7 +155,9 @@ function setupEventListeners() {
       AppState.config.spatial_similarity_threshold = val;
     });
     slider.addEventListener('change', async () => {
-      await cleanDataset();
+      if (AppState.sessionId && AppState.filename) {
+        await cleanDataset();
+      }
     });
   }
 
@@ -145,6 +190,13 @@ function setupEventListeners() {
   });
 }
 
+function renderEmptyState() {
+  const emptyState = document.getElementById('dashboard-empty-state');
+  const activeContent = document.getElementById('dashboard-active-content');
+  if (emptyState) emptyState.classList.remove('hidden');
+  if (activeContent) activeContent.classList.add('hidden');
+}
+
 function switchTab(tabId) {
   AppState.activeTab = tabId;
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -172,54 +224,24 @@ function switchTab(tabId) {
   }
 }
 
-async function loadSample(sampleId) {
-  showLoader(`Chargement du jeu de données : ${sampleId.toUpperCase()}...`);
-  try {
-    const formData = new FormData();
-    formData.append('sample_id', sampleId);
-
-    const res = await fetch('/api/load_sample', {
-      method: 'POST',
-      body: formData
-    });
-
-    if (!res.ok) throw new Error('Échec du chargement du sample');
-    const data = await res.json();
-
-    AppState.sessionId = data.session_id;
-    AppState.filename = data.filename;
-    AppState.rowsCount = data.rows_count;
-    AppState.columnsCount = data.columns_count;
-    AppState.columns = data.columns;
-    AppState.detectedMappings = data.detected_mappings;
-    AppState.customMappings = {};
-    for (const [col, meta] of Object.entries(data.detected_mappings)) {
-      if (meta.mapped_tag) {
-        AppState.customMappings[col] = meta.mapped_tag;
-      }
-    }
-
-    updateHeaderStats();
-    await cleanDataset();
-  } catch (e) {
-    alert(`Erreur: ${e.message}`);
-  } finally {
-    hideLoader();
-  }
-}
-
-async function uploadLinelistFile(file) {
-  showLoader(`Chargement du fichier ${file.name}...`);
+async function uploadLinelistFile(file, skiprows = 0, sheetName = null) {
+  showLoader(`Chargement de votre fichier ${file.name}...`);
   try {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('skiprows', skiprows);
+    if (sheetName) formData.append('sheet_name', sheetName);
+    if (AppState.sessionId) formData.append('session_id', AppState.sessionId);
 
     const res = await fetch('/api/upload', {
       method: 'POST',
       body: formData
     });
 
-    if (!res.ok) throw new Error('Échec du téléversement');
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Échec du chargement du fichier.');
+    }
     const data = await res.json();
 
     AppState.sessionId = data.session_id;
@@ -235,51 +257,112 @@ async function uploadLinelistFile(file) {
       }
     }
 
+    document.getElementById('label-linelist-file').innerText = `✔️ Line list : ${file.name}`;
+    document.getElementById('sublabel-linelist-file').innerText = `${data.rows_count} cas chargés (${data.columns_count} colonnes)`;
+
+    const sheetContainer = document.getElementById('linelist-sheet-container');
+    const sheetSelect = document.getElementById('linelist-sheet-select');
+    const reloadBtn = document.getElementById('btn-reload-linelist');
+
+    if (data.sheets && data.sheets.length > 1 && sheetContainer && sheetSelect) {
+      sheetContainer.classList.remove('hidden');
+      sheetSelect.innerHTML = data.sheets.map(s => `<option value="${escapeHtml(s)}" ${data.selected_sheet === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+      if (reloadBtn) reloadBtn.classList.remove('hidden');
+    }
+
     updateHeaderStats();
     await cleanDataset();
   } catch (e) {
-    alert(`Erreur lors du téléversement : ${e.message}`);
+    alert(`Erreur lors du chargement de la line list : ${e.message}`);
   } finally {
     hideLoader();
   }
 }
 
-async function uploadReferenceFile(file) {
-  if (!AppState.sessionId) {
-    alert('Veuillez d abord charger une line list.');
-    return;
-  }
-  showLoader(`Chargement du référentiel spatial ${file.name}...`);
+async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
+  showLoader(`Chargement et analyse de votre référentiel P-Code ${file.name}...`);
   try {
     const formData = new FormData();
-    formData.append('session_id', AppState.sessionId);
     formData.append('file', file);
+    formData.append('skiprows', skiprows);
+    if (sheetName) formData.append('sheet_name', sheetName);
+    if (AppState.sessionId) formData.append('session_id', AppState.sessionId);
 
     const res = await fetch('/api/upload_reference', {
       method: 'POST',
       body: formData
     });
 
-    if (!res.ok) throw new Error('Échec du chargement du référentiel');
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Échec du chargement du référentiel.');
+    }
     const data = await res.json();
-    alert(`Référentiel P-Code chargé avec succès (${data.reference_rows} entités administratives).`);
-    await cleanDataset();
+
+    AppState.sessionId = data.session_id;
+    AppState.refFilename = data.ref_filename;
+    AppState.referenceColumns = data.reference_columns || [];
+    if (data.detected_spatial_mapping) {
+      AppState.spatialMapping = Object.assign(AppState.spatialMapping, data.detected_spatial_mapping);
+    }
+
+    document.getElementById('label-ref-file').innerText = `✔️ Référentiel : ${file.name}`;
+    document.getElementById('sublabel-ref-file').innerText = `${data.reference_rows} entités administratives prêtes pour la cascade`;
+    document.getElementById('stat-ref-filename').innerText = file.name;
+
+    const sheetContainer = document.getElementById('ref-sheet-container');
+    const sheetSelect = document.getElementById('ref-sheet-select');
+    const reloadBtn = document.getElementById('btn-reload-ref');
+
+    if (data.sheets && data.sheets.length > 1 && sheetContainer && sheetSelect) {
+      sheetContainer.classList.remove('hidden');
+      sheetSelect.innerHTML = data.sheets.map(s => `<option value="${escapeHtml(s)}" ${data.selected_sheet === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+      if (reloadBtn) reloadBtn.classList.remove('hidden');
+    }
+
+    renderReferenceMapping();
+
+    if (AppState.filename) {
+      await cleanDataset();
+    } else {
+      alert(`Référentiel P-Code chargé avec succès (${data.reference_rows} entités). Vous pouvez maintenant charger votre Line List.`);
+    }
   } catch (e) {
-    alert(`Erreur : ${e.message}`);
+    alert(`Erreur lors du chargement du référentiel P-Code : ${e.message}`);
   } finally {
     hideLoader();
   }
 }
 
+async function reloadLinelistWithOptions() {
+  if (!AppState.linelistFile) return;
+  const skiprows = parseInt(document.getElementById('linelist-skiprows').value) || 0;
+  const sheetSelect = document.getElementById('linelist-sheet-select');
+  const sheetName = sheetSelect ? sheetSelect.value : null;
+  await uploadLinelistFile(AppState.linelistFile, skiprows, sheetName);
+}
+
+async function reloadReferenceWithOptions() {
+  if (!AppState.refFile) return;
+  const skiprows = parseInt(document.getElementById('ref-skiprows').value) || 0;
+  const sheetSelect = document.getElementById('ref-sheet-select');
+  const sheetName = sheetSelect ? sheetSelect.value : null;
+  await uploadReferenceFile(AppState.refFile, skiprows, sheetName);
+}
+
 async function cleanDataset() {
-  if (!AppState.sessionId) return;
-  showLoader('Exécution du nettoyage épidémiologique et de la cascade P-Code...');
+  if (!AppState.sessionId || !AppState.filename) {
+    alert('Veuillez d abord charger un fichier de line list.');
+    return;
+  }
+  showLoader('Exécution du nettoyage épidémiologique et du géocodage en cascade...');
 
   try {
     const payload = {
       session_id: AppState.sessionId,
       config: AppState.config,
-      column_mapping: AppState.customMappings
+      column_mapping: AppState.customMappings,
+      spatial_mapping: AppState.spatialMapping
     };
 
     const res = await fetch('/api/clean', {
@@ -303,10 +386,20 @@ async function cleanDataset() {
     AppState.cleanedPreview = data.cleaned_preview;
     AppState.rawPreview = data.raw_preview;
 
+    if (data.reference_columns && data.reference_columns.length > 0) {
+      AppState.referenceColumns = data.reference_columns;
+    }
+
+    const emptyState = document.getElementById('dashboard-empty-state');
+    const activeContent = document.getElementById('dashboard-active-content');
+    if (emptyState) emptyState.classList.add('hidden');
+    if (activeContent) activeContent.classList.remove('hidden');
+
     updateHeaderStats();
     renderDashboard();
     renderTable();
     renderColumnMapper();
+    renderReferenceMapping();
     renderIssues();
     renderCharts();
     if (AppState.activeTab === 'map') {
@@ -321,14 +414,12 @@ async function cleanDataset() {
 
 function updateHeaderStats() {
   const fileElem = document.getElementById('stat-filename');
-  const rowsElem = document.getElementById('stat-rows');
-  const colsElem = document.getElementById('stat-cols');
+  const refFileElem = document.getElementById('stat-ref-filename');
   const scoreElem = document.getElementById('stat-score');
   const issuesBadge = document.getElementById('tab-issues-count');
 
-  if (fileElem) fileElem.innerText = AppState.filename || 'Aucun fichier';
-  if (rowsElem) rowsElem.innerText = `${AppState.report ? AppState.report.cleaned_shape[0] : AppState.rowsCount} cas`;
-  if (colsElem) colsElem.innerText = `${AppState.cleanedColumns.length || AppState.columnsCount} cols`;
+  if (fileElem) fileElem.innerText = AppState.filename ? `${AppState.filename} (${AppState.report ? AppState.report.cleaned_shape[0] : AppState.rowsCount} cas)` : 'Aucun fichier chargé';
+  if (refFileElem) refFileElem.innerText = AppState.refFilename || 'Aucun référentiel chargé';
 
   if (scoreElem && AppState.report) {
     const spatial = AppState.report.spatial_summary;
@@ -337,7 +428,7 @@ function updateHeaderStats() {
       <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
         geoRate >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800'
       }">
-        Géocodage : ${geoRate}%
+        Taux Géocodage : ${geoRate}%
       </span>
     `;
   }
@@ -348,9 +439,6 @@ function updateHeaderStats() {
   }
 }
 
-// -------------------------------------------------------------
-// TAB 1: KPI DASHBOARD & PRECISION BREAKDOWN
-// -------------------------------------------------------------
 function renderDashboard() {
   if (!AppState.report) return;
   const spatial = AppState.report.spatial_summary;
@@ -361,7 +449,6 @@ function renderDashboard() {
   document.getElementById('kpi-avg-score').innerText = spatial ? `${spatial.average_match_score}%` : '0%';
   document.getElementById('kpi-epiweeks-count').innerText = `${AppState.report.epi_weeks_computed} cas`;
 
-  // Render breakdown table
   const tbody = document.getElementById('precision-breakdown-tbody');
   if (tbody && spatial) {
     const levels = [
@@ -397,15 +484,12 @@ function renderDashboard() {
   }
 }
 
-// -------------------------------------------------------------
-// TAB 2: LEAFLET MAP
-// -------------------------------------------------------------
 function renderLeafletMap() {
   const mapContainer = document.getElementById('leaflet-map');
   if (!mapContainer || typeof L === 'undefined') return;
 
   if (!AppState.leafletMap) {
-    AppState.leafletMap = L.map('leaflet-map').setView([11.8333, 13.1500], 9);
+    AppState.leafletMap = L.map('leaflet-map').setView([14.6937, -17.4441], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors | PratiSIG Consulting Services'
     }).addTo(AppState.leafletMap);
@@ -457,9 +541,6 @@ function renderLeafletMap() {
   }
 }
 
-// -------------------------------------------------------------
-// TAB 3: DATA TABLE WITH P-CODES
-// -------------------------------------------------------------
 function renderTable() {
   const tableHead = document.getElementById('data-table-head');
   const tableBody = document.getElementById('data-table-body');
@@ -469,12 +550,10 @@ function renderTable() {
   const cols = isCleanedMode ? AppState.cleanedColumns : AppState.columns;
   let rows = isCleanedMode ? AppState.cleanedPreview : AppState.rawPreview;
 
-  // Filter by Match Level
   if (isCleanedMode && AppState.filterMatchLevel !== 'ALL') {
     rows = rows.filter(r => r['MATCH_LEVEL'] === AppState.filterMatchLevel);
   }
 
-  // Filter by Search Query
   if (AppState.searchQuery) {
     rows = rows.filter(r => {
       return Object.values(r).some(val => String(val).toLowerCase().includes(AppState.searchQuery));
@@ -503,7 +582,7 @@ function renderTable() {
   tableHead.innerHTML = thHtml;
 
   if (rows.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="${cols.length + 1}" class="text-center py-10 text-slate-400">Aucun enregistrement correspondant au filtre sélectionné.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="${cols.length + 1}" class="text-center py-10 text-slate-400">Aucun enregistrement disponible. Veuillez charger une line list.</td></tr>`;
     return;
   }
 
@@ -546,16 +625,17 @@ function renderTable() {
   tableBody.innerHTML = tbHtml;
 }
 
-// -------------------------------------------------------------
-// TAB 4: COLUMN MAPPER
-// -------------------------------------------------------------
 function renderColumnMapper() {
   const container = document.getElementById('column-mapper-tbody');
   if (!container) return;
 
   const rawCols = AppState.columns;
-  let html = '';
+  if (!rawCols || rawCols.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">Veuillez charger une line list pour mapper les colonnes.</td></tr>`;
+    return;
+  }
 
+  let html = '';
   rawCols.forEach(col => {
     const detectedMeta = AppState.detectedMappings[col] || {};
     const selectedTag = AppState.customMappings[col] || detectedMeta.mapped_tag || '';
@@ -606,13 +686,57 @@ function renderColumnMapper() {
   });
 }
 
-// -------------------------------------------------------------
-// TAB 5 & 1: CHARTS (DONUT & WHO EPICURVE)
-// -------------------------------------------------------------
+function renderReferenceMapping() {
+  const container = document.getElementById('reference-mapping-grid');
+  if (!container) return;
+
+  const refCols = AppState.referenceColumns;
+  if (!refCols || refCols.length === 0) {
+    container.innerHTML = `<div class="col-span-3 text-center py-6 text-slate-400">Aucun référentiel P-Code externe chargé. Vous pouvez en charger un dans la zone verte en haut.</div>`;
+    return;
+  }
+
+  const spatialRoles = [
+    { key: 'locality_name', label: '1. Nom Localité / Village', desc: 'Colonne contenant le nom du village' },
+    { key: 'locality_pcode', label: 'P-Code Localité', desc: 'Code P-Code localité' },
+    { key: 'admin3_name', label: '2. Nom Admin 3 / Ward', desc: 'Nom du Ward / Sous-district' },
+    { key: 'admin3_pcode', label: 'P-Code Admin 3', desc: 'Code P-Code Admin 3' },
+    { key: 'admin2_name', label: '3. Nom Admin 2 / LGA', desc: 'Nom du District / LGA' },
+    { key: 'admin2_pcode', label: 'P-Code Admin 2', desc: 'Code P-Code Admin 2' },
+    { key: 'admin1_name', label: '4. Nom Admin 1 / State', desc: 'Nom de la Région / Province' },
+    { key: 'admin1_pcode', label: 'P-Code Admin 1', desc: 'Code P-Code Admin 1' },
+    { key: 'lat', label: 'Latitude (Y)', desc: 'Coordonnée Y (WGS84)' },
+    { key: 'long', label: 'Longitude (X)', desc: 'Coordonnée X (WGS84)' }
+  ];
+
+  let html = '';
+  spatialRoles.forEach(role => {
+    const currentVal = AppState.spatialMapping[role.key] || '';
+    html += `
+      <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+        <label class="block font-semibold text-slate-800 mb-1">${role.label}</label>
+        <select class="ref-map-select w-full text-xs rounded border-slate-300 py-1 px-2 bg-white text-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" data-role="${role.key}">
+          <option value="">-- Non renseigné --</option>
+          ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+        </select>
+        <span class="text-[10px] text-slate-400 mt-1 block">${role.desc}</span>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  document.querySelectorAll('.ref-map-select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const roleKey = e.target.dataset.role;
+      AppState.spatialMapping[roleKey] = e.target.value;
+    });
+  });
+}
+
 function renderCharts() {
   if (typeof Chart === 'undefined') return;
 
-  // 1. Donut chart for cascade precision
   const donutCanvas = document.getElementById('chart-cascade-donut');
   if (donutCanvas && AppState.report && AppState.report.spatial_summary) {
     if (AppState.charts.cascadeDonut) AppState.charts.cascadeDonut.destroy();
@@ -649,7 +773,6 @@ function renderCharts() {
     });
   }
 
-  // 2. WHO EpiCurve Chart
   const epiCanvas = document.getElementById('chart-who-epicurve');
   if (epiCanvas && AppState.epiWeekly) {
     if (AppState.charts.whoEpiCurve) AppState.charts.whoEpiCurve.destroy();
@@ -685,9 +808,6 @@ function renderCharts() {
   }
 }
 
-// -------------------------------------------------------------
-// TAB 6: ISSUES
-// -------------------------------------------------------------
 function renderIssues() {
   if (!AppState.report) return;
   const tbody = document.getElementById('issues-tbody');
@@ -721,9 +841,6 @@ function renderIssues() {
   tbody.innerHTML = html;
 }
 
-// -------------------------------------------------------------
-// EXPORTS
-// -------------------------------------------------------------
 function downloadExcel() {
   if (!AppState.sessionId) return;
   window.open(`/api/export/excel/${AppState.sessionId}`, '_blank');
@@ -739,7 +856,6 @@ function downloadScript() {
   window.open(`/api/export/script/${AppState.sessionId}`, '_blank');
 }
 
-// Helpers
 function showLoader(msg) {
   const overlay = document.getElementById('loader-overlay');
   const text = document.getElementById('loader-text');
