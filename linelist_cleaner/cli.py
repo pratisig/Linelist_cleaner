@@ -12,6 +12,13 @@ from typing import Optional
 import pandas as pd
 from tabulate import tabulate
 
+# Configuration de l'encodage pour compatibilite avec la console Windows
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from linelist_cleaner.schemas.config import CleaningConfig
 from linelist_cleaner.core.pipeline import LinelistCleaner, load_dataset
 from linelist_cleaner.core.column_standardizer import map_linelist_columns
@@ -64,7 +71,6 @@ def cmd_clean(args):
         print(f"[*] Export du fichier nettoye vers : {output_path}")
         cleaner.export_csv(df_clean, output_path)
 
-    # Print summary
     qs = report.quality_scores_after
     print("\n" + "=" * 60)
     print(" SYNTHESE DU TRAITEMENT")
@@ -102,7 +108,7 @@ def cmd_audit(args):
         ["Validite & Conformite", f"{qs.validity_score}%", "Codes valides et plages plausibles"],
         ["Unicite", f"{qs.uniqueness_score}%", "Absence de doublons"],
     ]
-    print("\n" + tabulate(score_table, headers=["Indicateur", "Score", "Description"], tablefmt="fancy_grid"))
+    print("\n" + tabulate(score_table, headers=["Indicateur", "Score", "Description"], tablefmt="grid"))
 
 
 def cmd_inspect(args):
@@ -128,7 +134,7 @@ def cmd_inspect(args):
     print(tabulate(
         table_data,
         headers=["Colonne", "Tag Epidemio / Spatial", "Categorie", "Completude", "Valeurs Uniques", "Exemple"],
-        tablefmt="fancy_grid"
+        tablefmt="grid"
     ))
 
 
@@ -156,7 +162,6 @@ def main():
     )
     subparsers = parser.add_subparsers(dest="command", help="Commandes disponibles")
 
-    # Clean command
     p_clean = subparsers.add_parser("clean", help="Nettoyer et geocoder une line list")
     p_clean.add_argument("input", help="Fichier d'entree (.csv, .xlsx, .json, .tsv)")
     p_clean.add_argument("-o", "--output", help="Chemin du fichier de sortie")
@@ -165,21 +170,17 @@ def main():
     p_clean.add_argument("--anonymize", action="store_true", help="Activer l'anonymisation RGPD")
     p_clean.add_argument("--dedup-action", choices=["flag", "keep_first", "keep_most_complete", "merge"], help="Action sur les doublons")
 
-    # Audit command
     p_audit = subparsers.add_parser("audit", help="Auditer la qualite d'une line list")
     p_audit.add_argument("input", help="Fichier d'entree")
     p_audit.add_argument("-o", "--output", help="Chemin du rapport Excel")
 
-    # Inspect command
     p_inspect = subparsers.add_parser("inspect", help="Inspecter les colonnes et tags dans le terminal")
     p_inspect.add_argument("input", help="Fichier d'entree")
 
-    # Sample command
     p_sample = subparsers.add_parser("sample", help="Generer un jeu de donnees d'exemple")
     p_sample.add_argument("-t", "--type", choices=["borno", "cholera", "covid19", "ebola", "measles", "pcode_reference"], default="borno", help="Type d'epidemie")
     p_sample.add_argument("-o", "--output", help="Fichier de sortie")
 
-    # Serve command
     p_serve = subparsers.add_parser("serve", help="Lancer l'application web interactive")
     p_serve.add_argument("--host", default="0.0.0.0", help="Adresse IP hote (defaut 0.0.0.0)")
     p_serve.add_argument("--port", type=int, default=8000, help="Port TCP (defaut 8000)")
