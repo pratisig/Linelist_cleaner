@@ -85,9 +85,32 @@ def df_to_json_records(df: pd.DataFrame, limit: int = 100) -> List[Dict[str, Any
 
 
 def get_excel_sheets_if_any(contents: bytes) -> List[str]:
-    """Inspects byte content and returns sheet names if Excel, or empty list if CSV."""
+    """Inspects byte content and returns sheet names if Excel (.xlsx, .xls), or empty list if CSV."""
+    if not contents:
+        return []
+    is_xls_binary = contents.startswith(b"\xd0\xcf\x11\xe0")
+    is_zip_excel = contents.startswith(b"PK\x03\x04")
+
+    if is_xls_binary:
+        try:
+            f = pd.ExcelFile(io.BytesIO(contents), engine="xlrd")
+            return list(f.sheet_names)
+        except Exception:
+            try:
+                import xlrd
+                b = xlrd.open_workbook(file_contents=contents)
+                return b.sheet_names()
+            except Exception:
+                pass
+    elif is_zip_excel:
+        try:
+            f = pd.ExcelFile(io.BytesIO(contents), engine="openpyxl")
+            return list(f.sheet_names)
+        except Exception:
+            pass
+
     try:
-        f = pd.ExcelFile(io.BytesIO(contents), engine="openpyxl")
+        f = pd.ExcelFile(io.BytesIO(contents))
         return list(f.sheet_names)
     except Exception:
         return []

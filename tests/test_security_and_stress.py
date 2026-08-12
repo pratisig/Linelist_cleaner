@@ -157,6 +157,26 @@ def test_stress_inverted_and_out_of_bound_coordinates():
     assert geojson["type"] == "FeatureCollection"
 
 
+def test_stress_latin1_and_xls_binary_signatures():
+    """Ensure files starting with 0xd0 (Excel .xls or Latin-1) parse without utf-8 decoding crash."""
+    # 1. Latin-1 text file starting with byte 0xd0 (Ð)
+    latin1_data = b"\xd0_CODE;ADMIN1;ADMIN2\nNG01;Borno;Maiduguri\nNG02;Yobe;Damaturu\n"
+    df_lat = LinelistCleaner().clean(latin1_data)[0]
+    assert df_lat is not None
+    assert len(df_lat) == 2
+
+    # 2. Upload via API
+    res = client.post("/api/upload_reference", files={"file": ("reference.csv", io.BytesIO(latin1_data), "text/csv")})
+    assert res.status_code == 200
+    assert res.json()["reference_rows"] == 2
+
+    # 3. Comma-separated with Latin-1 accents
+    accent_data = "PCode,Région,Localité\nSN01,Dakar,Médina\nSN02,Saint-Louis,Podor\n".encode("latin1")
+    res_acc = client.post("/api/upload_reference", files={"file": ("ref_fr.csv", io.BytesIO(accent_data), "text/csv")})
+    assert res_acc.status_code == 200
+    assert res_acc.json()["reference_rows"] == 2
+
+
 def test_stress_unicode_and_special_characters():
     """Handles accents, Wolof, Arabic and French special characters cleanly."""
     unicode_df = pd.DataFrame({
