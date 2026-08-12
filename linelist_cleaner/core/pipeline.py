@@ -396,18 +396,19 @@ class LinelistCleaner:
                 similarity_threshold=self.config.spatial_similarity_threshold
             )
 
-            col_loc = tag_to_col.get("locality") or tag_to_col.get("admin3") or tag_to_col.get("health_facility")
-            col_a3 = tag_to_col.get("admin3")
-            col_a2 = tag_to_col.get("admin2")
-            col_a1 = tag_to_col.get("admin1")
+            sp_map = self.config.spatial_reference_mapping or {}
+            col_loc = sp_map.get("linelist_locality_col") or tag_to_col.get("locality") or tag_to_col.get("admin3") or tag_to_col.get("health_facility")
+            col_a3 = sp_map.get("linelist_admin3_col") or tag_to_col.get("admin3")
+            col_a2 = sp_map.get("linelist_admin2_col") or tag_to_col.get("admin2")
+            col_a1 = sp_map.get("linelist_admin1_col") or tag_to_col.get("admin1")
 
             for c in df_curr.columns:
                 c_low = c.lower()
-                if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement"]):
+                if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement", "rue", "quartier"]):
                     col_loc = c
-                if not col_a3 and any(k in c_low for k in ["ward", "subdistrict", "aire"]):
+                if not col_a3 and any(k in c_low for k in ["ward", "subdistrict", "aire", "village"]):
                     col_a3 = c
-                if not col_a2 and any(k in c_low for k in ["lga", "district", "zone"]):
+                if not col_a2 and any(k in c_low for k in ["lga", "district", "zone", "commune", "cercle"]):
                     col_a2 = c
                 if not col_a1 and any(k in c_low for k in ["state", "province", "region"]):
                     col_a1 = c

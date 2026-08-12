@@ -1182,12 +1182,21 @@ function renderSpatialMappingPairs() {
   const linelistCols = AppState.columns || [];
   const refCols = AppState.referenceColumns || [];
 
-  const getLinelistColForTag = (tag) => {
+  const getLinelistColForTag = (tag, spatialKey) => {
+    if (AppState.spatialMapping[spatialKey]) return AppState.spatialMapping[spatialKey];
     for (const [col, t] of Object.entries(AppState.customMappings)) {
       if (t === tag) return col;
     }
     for (const [col, meta] of Object.entries(AppState.detectedMappings)) {
       if (meta && meta.mapped_tag === tag) return col;
+    }
+    // Auto-detect by column name keywords
+    for (const col of linelistCols) {
+      const cl = col.toLowerCase();
+      if (tag === 'locality' && (cl.includes('loc') || cl.includes('vil') || cl.includes('rue') || cl.includes('quartier') || cl.includes('site') || cl.includes('camp'))) return col;
+      if (tag === 'admin3' && (cl.includes('ward') || cl.includes('sous') || cl.includes('aire'))) return col;
+      if (tag === 'admin2' && (cl.includes('dist') || cl.includes('lga') || cl.includes('cercle') || cl.includes('commune') || cl.includes('zone'))) return col;
+      if (tag === 'admin1' && (cl.includes('state') || cl.includes('reg') || cl.includes('prov') || cl.includes('dep'))) return col;
     }
     return '';
   };
@@ -1198,6 +1207,7 @@ function renderSpatialMappingPairs() {
       tag: 'locality',
       label: 'Localité / Village / Rue / Quartier (Niveau 1)',
       desc: 'Niveau le plus précis : village, camp, quartier, rue, structure sanitaire',
+      linelistKey: 'linelist_locality_col',
       refNameKey: 'locality_name',
       refPcodeKey: 'locality_pcode',
       badge: 'bg-emerald-100 text-emerald-800'
@@ -1207,6 +1217,7 @@ function renderSpatialMappingPairs() {
       tag: 'admin3',
       label: 'Admin 3 : Ward / Sous-district / Aire de Santé (Niveau 2)',
       desc: 'Division administrative de niveau 3 (Ward, Sous-district, Aire de santé)',
+      linelistKey: 'linelist_admin3_col',
       refNameKey: 'admin3_name',
       refPcodeKey: 'admin3_pcode',
       badge: 'bg-teal-100 text-teal-800'
@@ -1216,6 +1227,7 @@ function renderSpatialMappingPairs() {
       tag: 'admin2',
       label: 'Admin 2 : District / LGA / Cercle / Département (Niveau 3)',
       desc: 'Division administrative de niveau 2 (District sanitaire, LGA, Cercle, Département)',
+      linelistKey: 'linelist_admin2_col',
       refNameKey: 'admin2_name',
       refPcodeKey: 'admin2_pcode',
       badge: 'bg-blue-100 text-blue-800'
@@ -1225,6 +1237,7 @@ function renderSpatialMappingPairs() {
       tag: 'admin1',
       label: 'Admin 1 : Région / État / Province (Niveau 4)',
       desc: 'Division administrative de niveau 1 (Région, État fédéral, Province)',
+      linelistKey: 'linelist_admin1_col',
       refNameKey: 'admin1_name',
       refPcodeKey: 'admin1_pcode',
       badge: 'bg-amber-100 text-amber-800'
@@ -1233,9 +1246,14 @@ function renderSpatialMappingPairs() {
 
   let html = '';
   levels.forEach(lvl => {
-    const currentLinelistCol = getLinelistColForTag(lvl.tag);
+    const currentLinelistCol = getLinelistColForTag(lvl.tag, lvl.linelistKey);
     const currentRefNameCol = AppState.spatialMapping[lvl.refNameKey] || '';
     const currentRefPcodeCol = AppState.spatialMapping[lvl.refPcodeKey] || '';
+
+    // sync state
+    if (currentLinelistCol && !AppState.spatialMapping[lvl.linelistKey]) {
+      AppState.spatialMapping[lvl.linelistKey] = currentLinelistCol;
+    }
 
     html += `
       <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/70 shadow-2xs flex flex-col justify-between">
@@ -1250,7 +1268,7 @@ function renderSpatialMappingPairs() {
               <label class="block text-[11px] font-semibold text-blue-900 mb-1">
                 📊 1. Colonne dans votre Line List :
               </label>
-              <select class="linelist-spatial-select w-full text-xs rounded-lg border-blue-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-blue-500" data-tag="${lvl.tag}">
+              <select class="linelist-spatial-select w-full text-xs rounded-lg border-blue-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-blue-500" data-tag="${lvl.tag}" data-spkey="${lvl.linelistKey}">
                 <option value="">-- Non présente dans ma Line List --</option>
                 ${linelistCols.map(c => `<option value="${escapeHtml(c)}" ${currentLinelistCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
               </select>
@@ -1260,7 +1278,7 @@ function renderSpatialMappingPairs() {
                 🗺️ 2. Colonne Nom dans le Référentiel :
               </label>
               <select class="ref-spatial-select w-full text-xs rounded-lg border-emerald-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="${lvl.refNameKey}">
-                <option value="">-- ${refCols.length > 0 ? 'Non renseigné' : 'COD-AB par défaut'} --</option>
+                <option value="">-- ${refCols.length > 0 ? 'Non renseigné' : 'Référentiel COD-AB par défaut'} --</option>
                 ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentRefNameCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
               </select>
             </div>
@@ -1313,7 +1331,9 @@ function renderSpatialMappingPairs() {
   document.querySelectorAll('.linelist-spatial-select').forEach(sel => {
     sel.addEventListener('change', (e) => {
       const tag = e.target.dataset.tag;
+      const spKey = e.target.dataset.spkey;
       const colName = e.target.value;
+      AppState.spatialMapping[spKey] = colName || '';
       for (const [c, t] of Object.entries(AppState.customMappings)) {
         if (t === tag) delete AppState.customMappings[c];
       }
