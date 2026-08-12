@@ -217,6 +217,17 @@ CANONICAL_TAGS: Dict[str, Dict[str, Any]] = {
             "treatment_center", "cte", "ctc", "hospital_name"
         ],
     },
+    "locality": {
+        "label": "Locality / Village / Settlement / Site",
+        "description": "Lowest geographic level or village name",
+        "type": "string",
+        "category": "geographic",
+        "synonyms": [
+            "locality", "village", "village_name", "localite", "nom_localite", "nom_village",
+            "site", "camp", "settlement", "nom_site", "structure_village", "quartier",
+            "lieu", "place", "community", "point_name", "loc_name"
+        ],
+    },
     "admin1": {
         "label": "Admin Level 1 (Province / Region / State)",
         "description": "Primary administrative division",

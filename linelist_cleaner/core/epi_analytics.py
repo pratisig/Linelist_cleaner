@@ -118,23 +118,98 @@ class EpiAnalytics:
         stratify_by: str = "case_definition"  # "case_definition", "outcome", "sex", "none"
     ) -> Dict[str, Any]:
         """
-        Generates epidemic curve aggregated by Day or ISO EpiWeek.
+        Generates epidemic curve aggregated by Day, ISO EpiWeek, or Month.
+        Robust fallback searches all candidate date columns and precomputed EPI_WEEK.
         """
-        onset_s = self._get_series("date_onset")
-        if onset_s is None:
-            # Fallback to consultation or admission date
-            onset_s = self._get_series("date_consultation") or self._get_series("date_admission")
+        # Strategy A: If weekly curve requested and EPI_WEEK column is available and populated
+        if time_unit == "week" and "EPI_WEEK" in self.df.columns:
+            epi_s = self.df["EPI_WEEK"].astype(str)
+            valid_mask = (epi_s.str.strip().ne("") & epi_s.ne("nan") & epi_s.ne("None") & self.df["EPI_WEEK"].notna()).to_numpy()
+            if valid_mask.any():
+                df_valid = self.df[valid_mask].copy()
+                df_valid["_period"] = df_valid["EPI_WEEK"].astype(str)
+                all_periods = sorted(df_valid["_period"].unique().tolist())
 
-        if onset_s is None:
-            return {"dates": [], "series": {}, "total_by_date": {}}
+                strat_col = None
+                if stratify_by != "none":
+                    strat_s = self._get_series(stratify_by)
+                    if strat_s is not None and strat_s.notna().any():
+                        strat_col = strat_s.name
+
+                if strat_col and strat_col in df_valid.columns:
+                    df_valid["_strat"] = df_valid[strat_col].fillna("Unknown").astype(str)
+                    categories = sorted(df_valid["_strat"].unique().tolist())
+                    series_data: Dict[str, List[int]] = {cat: [] for cat in categories}
+                    totals: Dict[str, int] = {}
+
+                    grouped = df_valid.groupby(["_period", "_strat"]).size().unstack(fill_value=0)
+                    for p in all_periods:
+                        p_sum = 0
+                        for cat in categories:
+                            cnt = int(grouped.at[p, cat]) if (p in grouped.index and cat in grouped.columns) else 0
+                            series_data[cat].append(cnt)
+                            p_sum += cnt
+                        totals[p] = p_sum
+
+                    return {
+                        "time_unit": "week",
+                        "stratified_by": stratify_by,
+                        "periods": all_periods,
+                        "series": series_data,
+                        "total_by_period": totals
+                    }
+                else:
+                    counts = df_valid["_period"].value_counts().to_dict()
+                    total_counts = [int(counts.get(p, 0)) for p in all_periods]
+                    return {
+                        "time_unit": "week",
+                        "stratified_by": "none",
+                        "periods": all_periods,
+                        "series": {"Total Cas": total_counts},
+                        "total_by_period": {p: int(counts.get(p, 0)) for p in all_periods}
+                    }
+
+        # Strategy B: Find best date column from mapped tags or column names
+        onset_s = self._get_series("date_onset")
+        if onset_s is None or onset_s.dropna().empty:
+            for d_tag in ["date_admission", "date_consultation", "date_notification", "date_report", "date_sample_collected", "date_discharge", "date_death"]:
+                cand = self._get_series(d_tag)
+                if cand is not None and not cand.dropna().empty:
+                    onset_s = cand
+                    break
+
+        if onset_s is None or onset_s.dropna().empty:
+            if "DATE_ADMISSION_CLEAN" in self.df.columns and self.df["DATE_ADMISSION_CLEAN"].notna().any():
+                onset_s = self.df["DATE_ADMISSION_CLEAN"]
+
+        # Strategy C: Search any column containing date keywords
+        if onset_s is None or onset_s.dropna().empty:
+            for c in self.df.columns:
+                c_low = c.lower()
+                if any(kw in c_low for kw in ["date", "dt_", "_dt", "fecha", "jour", "admission", "onset", "consult"]):
+                    s = self.df[c]
+                    if s.notna().any():
+                        onset_s = s
+                        break
+
+        # Strategy D: Search any datetime64 column
+        if onset_s is None or onset_s.dropna().empty:
+            for c in self.df.columns:
+                if pd.api.types.is_datetime64_any_dtype(self.df[c]):
+                    onset_s = self.df[c]
+                    break
+
+        if onset_s is None or onset_s.dropna().empty:
+            return {"dates": [], "periods": [], "series": {}, "total_by_period": {}}
 
         # Parse dates safely
         valid_dates = pd.to_datetime(onset_s, errors="coerce")
-        df_valid = self.df[valid_dates.notna()].copy()
-        df_valid["_dt"] = valid_dates[valid_dates.notna()]
+        valid_mask = valid_dates.notna().to_numpy()
+        if not valid_mask.any():
+            return {"dates": [], "periods": [], "series": {}, "total_by_period": {}}
 
-        if df_valid.empty:
-            return {"dates": [], "series": {}, "total_by_date": {}}
+        df_valid = self.df.iloc[valid_mask].copy()
+        df_valid["_dt"] = valid_dates[valid_mask].values
 
         if time_unit == "week":
             df_valid["_period"] = df_valid["_dt"].dt.strftime("%G-W%V")
@@ -146,9 +221,14 @@ class EpiAnalytics:
         all_periods = sorted(df_valid["_period"].unique().tolist())
 
         # Check stratification series
-        strat_s = self._get_series(stratify_by) if stratify_by != "none" else None
-        if strat_s is not None:
-            df_valid["_strat"] = strat_s[valid_dates.notna()].fillna("Unknown").astype(str)
+        strat_col = None
+        if stratify_by != "none":
+            strat_s = self._get_series(stratify_by)
+            if strat_s is not None and strat_s.notna().any():
+                strat_col = strat_s.name
+
+        if strat_col and strat_col in df_valid.columns:
+            df_valid["_strat"] = df_valid[strat_col].fillna("Unknown").astype(str)
             categories = sorted(df_valid["_strat"].unique().tolist())
             series_data: Dict[str, List[int]] = {cat: [] for cat in categories}
             totals: Dict[str, int] = {}
@@ -176,7 +256,7 @@ class EpiAnalytics:
                 "time_unit": time_unit,
                 "stratified_by": "none",
                 "periods": all_periods,
-                "series": {"Total Cases": total_counts},
+                "series": {"Total Cas": total_counts},
                 "total_by_period": {p: int(counts.get(p, 0)) for p in all_periods}
             }
 

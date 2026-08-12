@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer-when-downgrade">
   <title>Linelist Cleaner V2 — Géocodage Spatial & Veille Épidémique | PratiSIG</title>
   <meta name="description" content="PratiSIG Linelist Cleaner V2 — Nettoyage épidémiologique, géocodage en cascade P-Codes OCHA, EpiWeeks OMS & alertes épidémiques.">
   <meta name="theme-color" content="#0d9488">
@@ -86,7 +87,7 @@
               <div class="flex items-center gap-2.5 text-left">
                 <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition">1</div>
                 <div>
-                  <div class="text-xs font-bold text-slate-900" id="label-linelist-file">Charger votre Line List (.xlsx / .csv)</div>
+                  <div class="text-xs font-bold text-slate-900" id="label-linelist-file">Charger votre Line List (.xlsx / .xls / .csv)</div>
                   <div class="text-[11px] text-slate-500" id="sublabel-linelist-file">Glissez-déposez ou cliquez pour sélectionner</div>
                 </div>
               </div>
@@ -116,8 +117,8 @@
               <div class="flex items-center gap-2.5 text-left">
                 <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition">2</div>
                 <div>
-                  <div class="text-xs font-bold text-slate-900" id="label-ref-file">Référentiel P-Code OCHA (.xlsx / .csv)</div>
-                  <div class="text-[11px] text-slate-500" id="sublabel-ref-file">COD-AB ou liste localités & P-Codes — optionnel</div>
+                  <div class="text-xs font-bold text-slate-900" id="label-ref-file">Référentiel P-Code OCHA / Localités (.xlsx / .xls / .csv)</div>
+                  <div class="text-[11px] text-slate-500" id="sublabel-ref-file">COD-AB ou liste des localités & coordonnées — optionnel</div>
                 </div>
               </div>
               <button type="button" id="btn-browse-ref" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center gap-1">
@@ -236,7 +237,7 @@
       <div class="mt-6 flex flex-wrap justify-center gap-3">
         <button onclick="document.getElementById('file-input').click()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          Charger une Linelist (.xlsx / .csv)
+          Charger une Linelist (.xlsx / .xls / .csv)
         </button>
         <button onclick="loadSampleDataset('cholera')" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
@@ -262,7 +263,7 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div class="kpi-card p-3"><div class="text-[11px] font-bold text-teal-600 uppercase">Coords validées</div><div class="text-lg font-bold mt-1" id="kpi-coords">—</div><div class="text-[11px] text-slate-500">WGS84 + swaps auto</div></div>
           <div class="kpi-card p-3"><div class="text-[11px] font-bold text-violet-600 uppercase">Tél. normalisés</div><div class="text-lg font-bold mt-1" id="kpi-phones">—</div><div class="text-[11px] text-slate-500">E.164 international</div></div>
-          <div class="kpi-card p-3"><div class="text-[11px] font-bold text-rose-600 uppercase">Alertes</div><div class="text-lg font-bold mt-1" id="kpi-alerts">—</div><div class="text-[11px] text-slate-500" id="kpi-alerts-sub">semaines > seuil</div></div>
+          <div class="kpi-card p-3"><div class="text-[11px] font-bold text-rose-600 uppercase">Alertes</div><div class="text-lg font-bold mt-1" id="kpi-alerts">—</div><div class="text-[11px] text-slate-500">semaines > seuil</div></div>
           <div class="kpi-card p-3"><div class="text-[11px] font-bold text-slate-600 uppercase">Δ Qualité V2</div><div class="text-lg font-bold mt-1" id="kpi-delta">—</div><div class="text-[11px] text-slate-500">avant → après</div></div>
         </div>
 
@@ -353,43 +354,82 @@
 
       <!-- Tab 4: Mapper -->
       <div id="tab-mapper" class="tab-content hidden space-y-6">
+        <!-- Top action bar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Correspondance des Colonnes (Line List ↔ Référentiel P-Code)</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Associez les colonnes de votre Line List aux niveaux géographiques et aux variables épidémiologiques clés.</p>
+          </div>
+          <button onclick="cleanDataset()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 whitespace-nowrap">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Appliquer & Recalculer le Nettoyage
+          </button>
+        </div>
+
+        <!-- Section 1: Spatial Cascade Pairs (Linelist <-> Reference) -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">🗺️</div>
             <div>
-              <h3 class="text-sm font-bold text-slate-900">Mapping des colonnes — Variables épidémiologiques</h3>
-              <p class="text-xs text-slate-500">Vérifiez la correspondance auto-détectée et ajustez si besoin avant de relancer le nettoyage.</p>
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wide">1. Correspondance Géographique en Cascade (Line List ↔ Référentiel P-Code)</h4>
+              <p class="text-[11px] text-slate-500">Pour chaque niveau, indiquez quelle colonne de votre Line List correspond à quelle colonne du Référentiel.</p>
             </div>
-            <button onclick="cleanDataset()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-xs transition flex items-center gap-1.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              Appliquer & Relancer le Nettoyage
-            </button>
           </div>
-          <div class="overflow-auto border border-slate-200 rounded-xl">
-            <table class="w-full text-xs">
-              <thead class="bg-slate-900 text-white">
-                <tr>
-                  <th class="px-4 py-2.5 text-left">Colonne source</th>
-                  <th class="px-4 py-2.5 text-left">Tag épidémiologique V2</th>
-                  <th class="px-4 py-2.5 text-center">Catégorie</th>
-                  <th class="px-4 py-2.5 text-center">Confiance</th>
-                </tr>
-              </thead>
-              <tbody id="column-mapper-tbody"></tbody>
-            </table>
+          <div id="spatial-mapping-pairs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Rendered dynamically -->
           </div>
         </div>
+
+        <!-- Section 2: Key Linelist Epidemiological Variables -->
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h3 class="text-sm font-bold text-slate-900 mb-1">Mapping spatial — Référentiel P-Code OCHA</h3>
-          <p class="text-xs text-slate-500 mb-3">Associez chaque niveau administratif à la colonne de votre référentiel COD-AB.</p>
-          <div id="reference-mapping-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+          <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+            <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">📋</div>
+            <div>
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wide">2. Variables Épidémiologiques Clés de votre Line List</h4>
+              <p class="text-[11px] text-slate-500">Sélectionnez les colonnes de votre Line List contenant la date, l'identifiant, l'âge, le sexe et l'issue clinique.</p>
+            </div>
+          </div>
+          <div id="key-epi-variables-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Rendered dynamically -->
+          </div>
         </div>
+
+        <!-- Section 3: Detailed Raw Column Mapping (Collapsible) -->
+        <details class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden group">
+          <summary class="p-4 cursor-pointer font-bold text-xs text-slate-800 hover:bg-slate-50 flex items-center justify-between transition select-none">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-mono">⚙️</span>
+              <span>Mapping exhaustif de toutes les colonnes de la Line List (Avancé)</span>
+            </div>
+            <span class="text-xs text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div class="p-4 border-t border-slate-100">
+            <div class="overflow-auto border border-slate-200 rounded-xl max-h-80">
+              <table class="w-full text-xs">
+                <thead class="bg-slate-900 text-white sticky top-0">
+                  <tr>
+                    <th class="px-4 py-2.5 text-left">Colonne de votre Line List</th>
+                    <th class="px-4 py-2.5 text-left">Rôle / Tag épidémiologique attribué</th>
+                    <th class="px-4 py-2.5 text-center">Catégorie</th>
+                    <th class="px-4 py-2.5 text-center">Confiance</th>
+                  </tr>
+                </thead>
+                <tbody id="column-mapper-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </details>
       </div>
 
       <!-- Tab 5: Epicurve -->
       <div id="tab-epicurve" class="tab-content hidden space-y-5">
         <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h3 class="text-sm font-bold text-slate-900">Courbe épidémique détaillée (OMS) & indicateurs V2</h3>
-          <p class="text-xs text-slate-500 mt-1">Stratifiée par issue / classification — courbe épidémiologique normalisée.</p>
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Courbe épidémique détaillée (OMS) & indicateurs V2</h3>
+              <p class="text-xs text-slate-500 mt-1" id="detailed-epicurve-subtitle">Stratification épidémiologique par semaine OMS et classification de cas.</p>
+            </div>
+          </div>
           <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs" id="epicurve-kpis"></div>
           <div class="mt-5"><canvas id="chart-epi-detailed" height="110"></canvas></div>
         </div>

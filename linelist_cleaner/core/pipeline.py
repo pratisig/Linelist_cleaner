@@ -348,9 +348,25 @@ class LinelistCleaner:
                 dates_cleaned_count[d_col] = d_stats["successfully_parsed"]
 
             if self.config.compute_epi_weeks:
-                primary_date_col = tag_to_col.get("date_admission") or tag_to_col.get("date_onset") or tag_to_col.get("date_consultation")
+                primary_date_col = (
+                    tag_to_col.get("date_admission")
+                    or tag_to_col.get("date_onset")
+                    or tag_to_col.get("date_consultation")
+                    or tag_to_col.get("date_notification")
+                    or tag_to_col.get("date_report")
+                    or tag_to_col.get("date_sample_collected")
+                    or tag_to_col.get("date_discharge")
+                    or tag_to_col.get("date_death")
+                )
                 if not primary_date_col and date_cols_to_clean:
                     primary_date_col = list(date_cols_to_clean)[0]
+
+                if not primary_date_col:
+                    for c in df_curr.columns:
+                        c_low = c.lower()
+                        if any(kw in c_low for kw in ["date", "dt_", "_dt", "fecha", "jour", "admission", "onset", "consult", "visit", "notif"]):
+                            primary_date_col = c
+                            break
 
                 if primary_date_col and primary_date_col in df_curr.columns:
                     day_first_pref = (self.config.date_order_preference != "MDY")
@@ -380,7 +396,7 @@ class LinelistCleaner:
                 similarity_threshold=self.config.spatial_similarity_threshold
             )
 
-            col_loc = tag_to_col.get("admin3") or tag_to_col.get("health_facility")
+            col_loc = tag_to_col.get("locality") or tag_to_col.get("admin3") or tag_to_col.get("health_facility")
             col_a3 = tag_to_col.get("admin3")
             col_a2 = tag_to_col.get("admin2")
             col_a1 = tag_to_col.get("admin1")

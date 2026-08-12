@@ -116,7 +116,7 @@ const I18N_TEXTS = {
     btn_export_csv: "Télécharger CSV",
     btn_export_geojson: "Télécharger GeoJSON",
     btn_export_script: "Télécharger .py",
-    reapply_mapping: "Appliquer et Relancer le Nettoyage"
+    reapply_mapping: "Appliquer et Recalculer le Nettoyage"
   },
   EN: {
     header_subtitle: "PratiSIG Consulting Services: GIS in practice, our expertise",
@@ -231,7 +231,6 @@ function setupEventListeners() {
   if (dropZone && fileInput) {
     // Click on drop zone
     dropZone.addEventListener('click', (e) => {
-      // Don't trigger if clicking on select/input/button
       if (e.target.closest('input, select, button, label')) return;
       fileInput.click();
     });
@@ -247,7 +246,6 @@ function setupEventListeners() {
       if (e.target.files && e.target.files[0]) {
         AppState.linelistFile = e.target.files[0];
         uploadLinelistFile(e.target.files[0]);
-        // Reset file input so selecting the same file again triggers change
         fileInput.value = '';
       }
     });
@@ -440,7 +438,6 @@ function switchTab(tabId) {
     }
   });
 
-  // If we have data, make sure the active content container is visible
   if (AppState.report || AppState.filename) {
     safeAddClass('dashboard-empty-state', 'hidden');
     safeRemoveClass('dashboard-active-content', 'hidden');
@@ -465,12 +462,16 @@ function switchTab(tabId) {
       }
     }, 150);
   } else if (tabId === 'epicurve') {
-    setTimeout(renderDetailedEpiChart, 100);
+    setTimeout(() => {
+      renderDetailedEpiChart();
+      renderCharts();
+    }, 100);
   } else if (tabId === 'data') {
     renderTable();
   } else if (tabId === 'mapper') {
+    renderSpatialMappingPairs();
+    renderKeyEpiVariables();
     renderColumnMapper();
-    renderReferenceMapping();
   } else if (tabId === 'issues') {
     renderIssues();
   }
@@ -585,7 +586,7 @@ async function uploadLinelistFile(file, skiprows = 0, sheetName = null) {
 }
 
 async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
-  showLoader(`Chargement et analyse de votre référentiel P-Code ${file.name}...`);
+  showLoader(`Chargement et analyse de votre référentiel ${file.name}...`);
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -614,7 +615,7 @@ async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
     }
 
     safeSetText('label-ref-file', `✔️ Référentiel : ${file.name}`);
-    safeSetText('sublabel-ref-file', `${data.reference_rows} entités administratives prêtes pour la cascade`);
+    safeSetText('sublabel-ref-file', `${data.reference_rows} entités prêtes pour le géocodage`);
     safeSetText('stat-ref-filename', file.name);
 
     const sheetSelect = document.getElementById('ref-sheet-select');
@@ -624,15 +625,17 @@ async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
       safeRemoveClass('btn-reload-ref', 'hidden');
     }
 
-    renderReferenceMapping();
+    renderSpatialMappingPairs();
+    renderKeyEpiVariables();
+    renderColumnMapper();
 
     if (AppState.filename) {
       await cleanDataset();
     } else {
-      alert(`Référentiel P-Code chargé avec succès (${data.reference_rows} entités). Vous pouvez maintenant charger votre Line List.`);
+      alert(`Référentiel chargé avec succès (${data.reference_rows} entités). Vous pouvez maintenant charger votre Line List.`);
     }
   } catch (e) {
-    alert(`Erreur lors du chargement du référentiel P-Code : ${e.message}`);
+    alert(`Erreur lors du chargement du référentiel : ${e.message}`);
   } finally {
     hideLoader();
   }
@@ -719,8 +722,9 @@ async function cleanDataset() {
     updateHeaderStats();
     renderDashboard();
     renderTable();
+    renderSpatialMappingPairs();
+    renderKeyEpiVariables();
     renderColumnMapper();
-    renderReferenceMapping();
     renderIssues();
     renderV2Kpis();
     renderCharts();
@@ -980,10 +984,40 @@ function renderLeafletMap() {
   if (!mapContainer || typeof L === 'undefined') return;
 
   if (!AppState.leafletMap) {
-    AppState.leafletMap = L.map('leaflet-map').setView([11.8333, 13.1500], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors | PratiSIG Consulting Services'
-    }).addTo(AppState.leafletMap);
+    AppState.leafletMap = L.map('leaflet-map').setView([14.6937, -17.4441], 6);
+
+    const cartoVoyager = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a> | PratiSIG',
+      subdomains: 'abcd',
+      maxZoom: 19
+    });
+
+    const cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO | PratiSIG',
+      subdomains: 'abcd',
+      maxZoom: 19
+    });
+
+    const osmFr = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap France | PratiSIG',
+      maxZoom: 20
+    });
+
+    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community | PratiSIG',
+      maxZoom: 18
+    });
+
+    cartoVoyager.addTo(AppState.leafletMap);
+
+    const baseMaps = {
+      "🗺️ Plan CartoDB Voyager": cartoVoyager,
+      "🏢 Plan CartoDB Positron": cartoPositron,
+      "🌍 OpenStreetMap": osmFr,
+      "🛰️ Image Satellite (Esri)": esriSatellite
+    };
+
+    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(AppState.leafletMap);
     AppState.leafletMarkersLayer = L.layerGroup().addTo(AppState.leafletMap);
   }
 
@@ -1141,6 +1175,206 @@ function renderTable() {
   tableBody.innerHTML = tbHtml;
 }
 
+function renderSpatialMappingPairs() {
+  const container = document.getElementById('spatial-mapping-pairs-grid');
+  if (!container) return;
+
+  const linelistCols = AppState.columns || [];
+  const refCols = AppState.referenceColumns || [];
+
+  const getLinelistColForTag = (tag) => {
+    for (const [col, t] of Object.entries(AppState.customMappings)) {
+      if (t === tag) return col;
+    }
+    for (const [col, meta] of Object.entries(AppState.detectedMappings)) {
+      if (meta && meta.mapped_tag === tag) return col;
+    }
+    return '';
+  };
+
+  const levels = [
+    {
+      id: 'locality',
+      tag: 'locality',
+      label: 'Localité / Village / Site (Niveau 1)',
+      desc: 'Village, camp de réfugiés/PDI, quartier, structure sanitaire',
+      refKey: 'locality_name',
+      badge: 'bg-emerald-100 text-emerald-800'
+    },
+    {
+      id: 'admin3',
+      tag: 'admin3',
+      label: 'Admin 3 : Ward / Sous-district / Aire de Santé (Niveau 2)',
+      desc: 'Sous-préfecture, Ward, Aire de santé, Commune rurale',
+      refKey: 'admin3_name',
+      badge: 'bg-teal-100 text-teal-800'
+    },
+    {
+      id: 'admin2',
+      tag: 'admin2',
+      label: 'Admin 2 : District / LGA / Cercle / Département (Niveau 3)',
+      desc: 'District sanitaire, LGA, Département, Cercle, Province',
+      refKey: 'admin2_name',
+      badge: 'bg-blue-100 text-blue-800'
+    },
+    {
+      id: 'admin1',
+      tag: 'admin1',
+      label: 'Admin 1 : Région / État / Province (Niveau 4)',
+      desc: 'Région administrative, État fédéral, Grande Province',
+      refKey: 'admin1_name',
+      badge: 'bg-amber-100 text-amber-800'
+    }
+  ];
+
+  let html = '';
+  levels.forEach(lvl => {
+    const currentLinelistCol = getLinelistColForTag(lvl.tag);
+    const currentRefCol = AppState.spatialMapping[lvl.refKey] || '';
+
+    html += `
+      <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/70 shadow-2xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-bold text-xs text-slate-800">${escapeHtml(lvl.label)}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${lvl.badge}">Cascade #${lvl.id === 'locality' ? '1' : (lvl.id === 'admin3' ? '2' : (lvl.id === 'admin2' ? '3' : '4'))}</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mb-3">${escapeHtml(lvl.desc)}</p>
+          <div class="space-y-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-blue-900 mb-1">
+                📊 Colonne dans votre Line List :
+              </label>
+              <select class="linelist-spatial-select w-full text-xs rounded-lg border-blue-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-blue-500" data-tag="${lvl.tag}">
+                <option value="">-- Non présente dans ma Line List --</option>
+                ${linelistCols.map(c => `<option value="${escapeHtml(c)}" ${currentLinelistCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-emerald-900 mb-1">
+                🗺️ Colonne correspondante du Référentiel :
+              </label>
+              <select class="ref-spatial-select w-full text-xs rounded-lg border-emerald-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="${lvl.refKey}">
+                <option value="">-- ${refCols.length > 0 ? 'Non renseigné' : 'Référentiel COD-AB par défaut'} --</option>
+                ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentRefCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  // Coordinates row
+  const currentLat = AppState.spatialMapping['lat'] || '';
+  const currentLng = AppState.spatialMapping['long'] || '';
+  html += `
+    <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/70 shadow-2xs md:col-span-2">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="font-bold text-xs text-slate-800">Coordonnées GPS du Référentiel (Latitude Y / Longitude X)</span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-violet-100 text-violet-800">WGS84</span>
+      </div>
+      <p class="text-[11px] text-slate-500 mb-3">Position géographique utilisée pour afficher les points sur la carte SIG et générer le GeoJSON.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-700 mb-1">Latitude (Y) Référentiel :</label>
+          <select class="ref-spatial-select w-full text-xs rounded-lg border-slate-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="lat">
+            <option value="">-- ${refCols.length > 0 ? 'Auto-détecté' : 'COD-AB par défaut'} --</option>
+            ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentLat === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-700 mb-1">Longitude (X) Référentiel :</label>
+          <select class="ref-spatial-select w-full text-xs rounded-lg border-slate-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="long">
+            <option value="">-- ${refCols.length > 0 ? 'Auto-détecté' : 'COD-AB par défaut'} --</option>
+            ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentLng === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+
+  document.querySelectorAll('.linelist-spatial-select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const tag = e.target.dataset.tag;
+      const colName = e.target.value;
+      for (const [c, t] of Object.entries(AppState.customMappings)) {
+        if (t === tag) delete AppState.customMappings[c];
+      }
+      if (colName) {
+        AppState.customMappings[colName] = tag;
+      }
+      renderColumnMapper();
+    });
+  });
+
+  document.querySelectorAll('.ref-spatial-select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const roleKey = e.target.dataset.role;
+      AppState.spatialMapping[roleKey] = e.target.value || '';
+    });
+  });
+}
+
+function renderKeyEpiVariables() {
+  const container = document.getElementById('key-epi-variables-grid');
+  if (!container) return;
+
+  const linelistCols = AppState.columns || [];
+
+  const getLinelistColForTag = (tag) => {
+    for (const [col, t] of Object.entries(AppState.customMappings)) {
+      if (t === tag) return col;
+    }
+    for (const [col, meta] of Object.entries(AppState.detectedMappings)) {
+      if (meta && meta.mapped_tag === tag) return col;
+    }
+    return '';
+  };
+
+  const keyVariables = [
+    { tag: 'date_admission', label: '📅 Date Principale (Courbe Épi)', desc: 'Date d admission, de début ou de visite pour la courbe OMS' },
+    { tag: 'case_id', label: '🆔 Identifiant Unique (Case ID)', desc: 'Code ou numéro de patient' },
+    { tag: 'age', label: '🎂 Âge du patient', desc: 'Âge en années, mois ou jours' },
+    { tag: 'sex', label: '⚧ Sexe / Genre', desc: 'Masculin / Féminin' },
+    { tag: 'outcome', label: '🏥 Issue Clinique (Outcome)', desc: 'Guéri, Décédé, Sortie, En cours' },
+    { tag: 'case_definition', label: '🩺 Classification du Cas', desc: 'Confirmé, Suspect, Probable, Non-cas' }
+  ];
+
+  let html = '';
+  keyVariables.forEach(v => {
+    const currentVal = getLinelistColForTag(v.tag);
+    html += `
+      <div class="border border-slate-200 rounded-xl p-3 bg-slate-50/50 shadow-2xs">
+        <label class="block font-bold text-xs text-slate-800 mb-0.5">${escapeHtml(v.label)}</label>
+        <p class="text-[10px] text-slate-500 mb-2">${escapeHtml(v.desc)}</p>
+        <select class="key-epi-select w-full text-xs rounded-lg border-slate-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-blue-500" data-tag="${v.tag}">
+          <option value="">-- Non renseigné / Absent --</option>
+          ${linelistCols.map(c => `<option value="${escapeHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+        </select>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  document.querySelectorAll('.key-epi-select').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const tag = e.target.dataset.tag;
+      const colName = e.target.value;
+      for (const [c, t] of Object.entries(AppState.customMappings)) {
+        if (t === tag) delete AppState.customMappings[c];
+      }
+      if (colName) {
+        AppState.customMappings[colName] = tag;
+      }
+      renderColumnMapper();
+    });
+  });
+}
+
 function renderColumnMapper() {
   const container = document.getElementById('column-mapper-tbody');
   if (!container) return;
@@ -1198,54 +1432,8 @@ function renderColumnMapper() {
       const tagVal = e.target.value;
       if (tagVal) AppState.customMappings[colName] = tagVal;
       else delete AppState.customMappings[colName];
-    });
-  });
-}
-
-function renderReferenceMapping() {
-  const container = document.getElementById('reference-mapping-grid');
-  if (!container) return;
-
-  const refCols = AppState.referenceColumns;
-  if (!refCols || refCols.length === 0) {
-    container.innerHTML = `<div class="col-span-3 text-center py-6 text-slate-400">Aucun référentiel P-Code externe chargé. Le référentiel COD-AB intégré est utilisé par défaut.</div>`;
-    return;
-  }
-
-  const spatialRoles = [
-    { key: 'locality_name', label: '1. Nom Localité / Village', desc: 'Colonne contenant le nom du village' },
-    { key: 'locality_pcode', label: 'P-Code Localité', desc: 'Code P-Code localité' },
-    { key: 'admin3_name', label: '2. Nom Admin 3 / Ward', desc: 'Nom du Ward / Sous-district' },
-    { key: 'admin3_pcode', label: 'P-Code Admin 3', desc: 'Code P-Code Admin 3' },
-    { key: 'admin2_name', label: '3. Nom Admin 2 / LGA', desc: 'Nom du District / LGA' },
-    { key: 'admin2_pcode', label: 'P-Code Admin 2', desc: 'Code P-Code Admin 2' },
-    { key: 'admin1_name', label: '4. Nom Admin 1 / State', desc: 'Nom de la Région / Province' },
-    { key: 'admin1_pcode', label: 'P-Code Admin 1', desc: 'Code P-Code Admin 1' },
-    { key: 'lat', label: 'Latitude (Y)', desc: 'Coordonnée Y (WGS84)' },
-    { key: 'long', label: 'Longitude (X)', desc: 'Coordonnée X (WGS84)' }
-  ];
-
-  let html = '';
-  spatialRoles.forEach(role => {
-    const currentVal = AppState.spatialMapping[role.key] || '';
-    html += `
-      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-        <label class="block font-semibold text-slate-800 text-xs mb-1">${role.label}</label>
-        <select class="ref-map-select w-full text-xs rounded-lg border-slate-300 py-1.5 px-2 bg-white text-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500" data-role="${role.key}">
-          <option value="">-- Non renseigné --</option>
-          ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentVal === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
-        </select>
-        <span class="text-[10px] text-slate-500 mt-1 block">${role.desc}</span>
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
-
-  document.querySelectorAll('.ref-map-select').forEach(sel => {
-    sel.addEventListener('change', (e) => {
-      const roleKey = e.target.dataset.role;
-      AppState.spatialMapping[roleKey] = e.target.value;
+      renderSpatialMappingPairs();
+      renderKeyEpiVariables();
     });
   });
 }
@@ -1292,37 +1480,48 @@ function renderCharts() {
 
   // Bar Chart - Courbe Épidémique Hebdomadaire OMS
   const epiCanvas = document.getElementById('chart-who-epicurve');
-  if (epiCanvas && AppState.epiWeekly) {
+  if (epiCanvas) {
     if (AppState.charts.whoEpiCurve) AppState.charts.whoEpiCurve.destroy();
 
-    const periods = AppState.epiWeekly.periods || [];
-    const seriesObj = AppState.epiWeekly.series || {};
+    const periods = AppState.epiWeekly?.periods || [];
+    const seriesObj = AppState.epiWeekly?.series || {};
     const colors = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6'];
 
-    const datasets = Object.entries(seriesObj).map(([label, vals], idx) => ({
-      label: label,
-      data: vals,
-      backgroundColor: colors[idx % colors.length],
-      borderRadius: 3,
-      stack: 'stack1'
-    }));
-
-    AppState.charts.whoEpiCurve = new Chart(epiCanvas, {
-      type: 'bar',
-      data: { labels: periods, datasets: datasets },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
-          tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-          y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }
-        }
+    const subEl = document.getElementById('epi-curve-subtitle');
+    if (subEl) {
+      if (periods.length > 0) {
+        subEl.innerText = `${periods.length} semaine(s) OMS (${periods[0]} → ${periods[periods.length - 1]})`;
+      } else {
+        subEl.innerText = 'Aucune date valide détectée pour la courbe';
       }
-    });
+    }
+
+    if (periods.length > 0 && Object.keys(seriesObj).length > 0) {
+      const datasets = Object.entries(seriesObj).map(([label, vals], idx) => ({
+        label: label,
+        data: vals,
+        backgroundColor: colors[idx % colors.length],
+        borderRadius: 3,
+        stack: 'stack1'
+      }));
+
+      AppState.charts.whoEpiCurve = new Chart(epiCanvas, {
+        type: 'bar',
+        data: { labels: periods, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+            tooltip: { mode: 'index', intersect: false }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }
+          }
+        }
+      });
+    }
   }
 }
 
@@ -1330,38 +1529,49 @@ function renderDetailedEpiChart() {
   if (typeof Chart === 'undefined') return;
 
   const canvas = document.getElementById('chart-epi-detailed');
-  if (!canvas || !AppState.epiWeekly) return;
+  if (!canvas) return;
 
   if (AppState.charts.detailedEpiCurve) AppState.charts.detailedEpiCurve.destroy();
 
-  const periods = AppState.epiWeekly.periods || [];
-  const seriesObj = AppState.epiWeekly.series || {};
+  const periods = AppState.epiWeekly?.periods || [];
+  const seriesObj = AppState.epiWeekly?.series || {};
   const colors = ['#059669', '#dc2626', '#2563eb', '#d97706', '#7c3aed'];
 
-  const datasets = Object.entries(seriesObj).map(([label, vals], idx) => ({
-    label: label,
-    data: vals,
-    backgroundColor: colors[idx % colors.length],
-    borderRadius: 4,
-    stack: 'stack-detailed'
-  }));
-
-  AppState.charts.detailedEpiCurve = new Chart(canvas, {
-    type: 'bar',
-    data: { labels: periods, datasets: datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', labels: { boxWidth: 14, font: { size: 11, weight: 'bold' } } },
-        tooltip: { mode: 'index', intersect: false }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-        y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }
-      }
+  const subEl = document.getElementById('detailed-epicurve-subtitle');
+  if (subEl) {
+    if (periods.length > 0) {
+      subEl.innerText = `Courbe épidémique agrégée sur ${periods.length} périodes OMS (${periods[0]} → ${periods[periods.length - 1]}).`;
+    } else {
+      subEl.innerText = 'Veuillez mapper la colonne Date dans l\'onglet Mapping pour générer la courbe.';
     }
-  });
+  }
+
+  if (periods.length > 0 && Object.keys(seriesObj).length > 0) {
+    const datasets = Object.entries(seriesObj).map(([label, vals], idx) => ({
+      label: label,
+      data: vals,
+      backgroundColor: colors[idx % colors.length],
+      borderRadius: 4,
+      stack: 'stack-detailed'
+    }));
+
+    AppState.charts.detailedEpiCurve = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: periods, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { boxWidth: 14, font: { size: 11, weight: 'bold' } } },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+          y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { precision: 0 } }
+        }
+      }
+    });
+  }
 }
 
 function renderIssues() {
