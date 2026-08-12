@@ -389,46 +389,54 @@ class LinelistCleaner:
 
         # Step 5: Spatial Fallback Cascade Geocoding (P-Code Matching)
         spatial_summary: Optional[SpatialCascadeSummary] = None
-        if self.config.enable_spatial_cascade and reference_pcode_df is not None and not reference_pcode_df.empty:
-            ref_index = PCodeReferenceIndex(reference_pcode_df, self.config.spatial_reference_mapping)
-            matcher = SpatialCascadeMatcher(
-                ref_index,
-                similarity_threshold=self.config.spatial_similarity_threshold
-            )
+        if self.config.enable_spatial_cascade:
+            if reference_pcode_df is None or reference_pcode_df.empty:
+                from linelist_cleaner.datasets import get_sample_dataset
+                try:
+                    reference_pcode_df = get_sample_dataset("pcode_reference")
+                except Exception:
+                    reference_pcode_df = None
 
-            sp_map = self.config.spatial_reference_mapping or {}
-            col_loc = sp_map.get("linelist_locality_col") or tag_to_col.get("locality") or tag_to_col.get("admin3") or tag_to_col.get("health_facility")
-            col_a3 = sp_map.get("linelist_admin3_col") or tag_to_col.get("admin3")
-            col_a2 = sp_map.get("linelist_admin2_col") or tag_to_col.get("admin2")
-            col_a1 = sp_map.get("linelist_admin1_col") or tag_to_col.get("admin1")
+            if reference_pcode_df is not None and not reference_pcode_df.empty:
+                ref_index = PCodeReferenceIndex(reference_pcode_df, self.config.spatial_reference_mapping)
+                matcher = SpatialCascadeMatcher(
+                    ref_index,
+                    similarity_threshold=self.config.spatial_similarity_threshold
+                )
 
-            for c in df_curr.columns:
-                c_low = c.lower()
-                if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement", "rue", "quartier"]):
-                    col_loc = c
-                if not col_a3 and any(k in c_low for k in ["ward", "subdistrict", "aire", "village"]):
-                    col_a3 = c
-                if not col_a2 and any(k in c_low for k in ["lga", "district", "zone", "commune", "cercle"]):
-                    col_a2 = c
-                if not col_a1 and any(k in c_low for k in ["state", "province", "region"]):
-                    col_a1 = c
+                sp_map = self.config.spatial_reference_mapping or {}
+                col_loc = sp_map.get("linelist_locality_col") or tag_to_col.get("locality") or tag_to_col.get("health_facility")
+                col_a3 = sp_map.get("linelist_admin3_col") or tag_to_col.get("admin3")
+                col_a2 = sp_map.get("linelist_admin2_col") or tag_to_col.get("admin2")
+                col_a1 = sp_map.get("linelist_admin1_col") or tag_to_col.get("admin1")
 
-            df_curr, sp_stats = matcher.process_dataframe(
-                df_curr,
-                col_locality=col_loc,
-                col_admin3=col_a3,
-                col_admin2=col_a2,
-                col_admin1=col_a1
-            )
+                for c in df_curr.columns:
+                    c_low = c.lower()
+                    if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement", "rue", "quartier", "rq_norm", "loc"]):
+                        col_loc = c
+                    if not col_a3 and c != col_loc and any(k in c_low for k in ["ward", "subdistrict", "aire", "village", "adm3"]):
+                        col_a3 = c
+                    if not col_a2 and c not in [col_loc, col_a3] and any(k in c_low for k in ["lga", "district", "zone", "commune", "cercle", "adm2"]):
+                        col_a2 = c
+                    if not col_a1 and c not in [col_loc, col_a3, col_a2] and any(k in c_low for k in ["state", "province", "region", "adm1"]):
+                        col_a1 = c
 
-            spatial_summary = SpatialCascadeSummary(**sp_stats)
-            logs.append(CleaningLogEntry(
-                step="Spatial Fallback Cascade",
-                action=f"Geocodage en cascade execute avec succes (Taux: {sp_stats['geocoded_rate_pct']}%)",
-                affected_rows=sp_stats["geocoded_count"],
-                affected_columns=["PCODE_ASSIGNED", "MATCH_LEVEL", "MATCH_SCORE", "MATCHED_NAME", "LATITUDE", "LONGITUDE"],
-                details=sp_stats
-            ))
+                df_curr, sp_stats = matcher.process_dataframe(
+                    df_curr,
+                    col_locality=col_loc,
+                    col_admin3=col_a3,
+                    col_admin2=col_a2,
+                    col_admin1=col_a1
+                )
+
+                spatial_summary = SpatialCascadeSummary(**sp_stats)
+                logs.append(CleaningLogEntry(
+                    step="Spatial Fallback Cascade",
+                    action=f"Geocodage en cascade execute avec succes (Taux: {sp_stats['geocoded_rate_pct']}%)",
+                    affected_rows=sp_stats["geocoded_count"],
+                    affected_columns=["PCODE_ASSIGNED", "MATCH_LEVEL", "MATCH_SCORE", "MATCHED_NAME", "LATITUDE", "LONGITUDE"],
+                    details=sp_stats
+                ))
 
         # Step 5b: V2 Coordinate & Phone Cleaning
         coords_cleaned = 0

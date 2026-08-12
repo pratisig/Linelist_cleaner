@@ -24,7 +24,7 @@ def normalize_spatial_name(name: Any) -> str:
     if pd.isna(name) or name is None:
         return ""
     s = str(name).strip().lower()
-    if s in ["", "nan", "none", "null", "n/a", "inconnu", "unknown", "-"]:
+    if s in ["", "nan", "none", "null", "n/a", "inconnu", "unknown", "-", "0", "aucun", "sans", "non precise", "non renseigne", "nd"]:
         return ""
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
@@ -167,146 +167,120 @@ class PCodeReferenceIndex:
 
         self._build_indices()
 
+    def _extract_row_pcodes(self, row: pd.Series, idx: int) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str], Optional[str]]:
+        def get_val(col_name: Optional[str]) -> Optional[str]:
+            if col_name and col_name in row and pd.notna(row[col_name]):
+                val = str(row[col_name]).strip()
+                if val and val.lower() not in ["", "nan", "none", "null", "n/a", "-"]:
+                    return val
+            return None
+
+        p_loc = get_val(self.col_loc_pcode)
+        p_a3 = get_val(self.col_adm3_pcode)
+        p_a2 = get_val(self.col_adm2_pcode)
+        p_a1 = get_val(self.col_adm1_pcode)
+
+        p_general = p_loc or p_a3 or p_a2 or p_a1
+        if not p_general:
+            for c in row.index:
+                cl = str(c).lower()
+                if "pcode" in cl or cl == "code":
+                    v = get_val(c)
+                    if v:
+                        p_general = v
+                        break
+
+        return p_loc, p_a3, p_a2, p_a1, p_general
+
     def _build_indices(self):
-        # 1. Localities
-        if self.col_loc_name:
-            for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_loc_name]).strip() if pd.notna(row[self.col_loc_name]) else ""
+        for idx, row in self.ref_df.iterrows():
+            p_loc, p_a3, p_a2, p_a1, p_gen = self._extract_row_pcodes(row, idx)
+
+            lat = None
+            lon = None
+            if self.col_lat and pd.notna(row.get(self.col_lat)):
+                try:
+                    lat = float(row[self.col_lat])
+                except (ValueError, TypeError):
+                    lat = None
+            if self.col_long and pd.notna(row.get(self.col_long)):
+                try:
+                    lon = float(row[self.col_long])
+                except (ValueError, TypeError):
+                    lon = None
+
+            # 1. Locality
+            if self.col_loc_name and pd.notna(row.get(self.col_loc_name)):
+                raw_name = str(row[self.col_loc_name]).strip()
                 norm = normalize_spatial_name(raw_name)
-                pcode_loc = str(row[self.col_loc_pcode]).strip() if (self.col_loc_pcode and pd.notna(row[self.col_loc_pcode]) and str(row[self.col_loc_pcode]).strip() != "") else None
-                pcode_a3 = str(row[self.col_adm3_pcode]).strip() if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode]) and str(row[self.col_adm3_pcode]).strip() != "") else None
-                pcode_a2 = str(row[self.col_adm2_pcode]).strip() if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode]) and str(row[self.col_adm2_pcode]).strip() != "") else None
-                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
-
-                best_pcode = pcode_loc or pcode_a3 or pcode_a2 or pcode_a1
-
                 if norm and norm not in self.lookups["Locality"]:
-                    lat = None
-                    lon = None
-                    if self.col_lat and pd.notna(row[self.col_lat]):
-                        try:
-                            lat = float(row[self.col_lat])
-                        except (ValueError, TypeError):
-                            lat = None
-                    if self.col_long and pd.notna(row[self.col_long]):
-                        try:
-                            lon = float(row[self.col_long])
-                        except (ValueError, TypeError):
-                            lon = None
+                    best_p = p_loc or p_a3 or p_a2 or p_a1 or p_gen
                     self.lookups["Locality"][norm] = {
-                        "pcode": best_pcode,
-                        "pcode_loc": pcode_loc,
-                        "pcode_adm3": pcode_a3,
-                        "pcode_adm2": pcode_a2,
-                        "pcode_adm1": pcode_a1,
+                        "pcode": best_p,
+                        "pcode_loc": p_loc,
+                        "pcode_adm3": p_a3,
+                        "pcode_adm2": p_a2,
+                        "pcode_adm1": p_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
                     }
-            self.unique_names["Locality"] = list(self.lookups["Locality"].keys())
 
-        # 2. Admin 3
-        if self.col_adm3_name:
-            for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_adm3_name]).strip() if pd.notna(row[self.col_adm3_name]) else ""
+            # 2. Admin 3
+            if self.col_adm3_name and pd.notna(row.get(self.col_adm3_name)):
+                raw_name = str(row[self.col_adm3_name]).strip()
                 norm = normalize_spatial_name(raw_name)
-                pcode_a3 = str(row[self.col_adm3_pcode]).strip() if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode]) and str(row[self.col_adm3_pcode]).strip() != "") else None
-                pcode_a2 = str(row[self.col_adm2_pcode]).strip() if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode]) and str(row[self.col_adm2_pcode]).strip() != "") else None
-                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
-
-                best_pcode = pcode_a3 or pcode_a2 or pcode_a1
-
                 if norm and norm not in self.lookups["Admin3_Ward"]:
-                    lat = None
-                    lon = None
-                    if self.col_lat and pd.notna(row[self.col_lat]):
-                        try:
-                            lat = float(row[self.col_lat])
-                        except (ValueError, TypeError):
-                            lat = None
-                    if self.col_long and pd.notna(row[self.col_long]):
-                        try:
-                            lon = float(row[self.col_long])
-                        except (ValueError, TypeError):
-                            lon = None
+                    best_p = p_a3 or p_loc or p_a2 or p_a1 or p_gen
                     self.lookups["Admin3_Ward"][norm] = {
-                        "pcode": best_pcode,
-                        "pcode_loc": None,
-                        "pcode_adm3": pcode_a3,
-                        "pcode_adm2": pcode_a2,
-                        "pcode_adm1": pcode_a1,
+                        "pcode": best_p,
+                        "pcode_loc": p_loc,
+                        "pcode_adm3": p_a3,
+                        "pcode_adm2": p_a2,
+                        "pcode_adm1": p_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
                     }
-            self.unique_names["Admin3_Ward"] = list(self.lookups["Admin3_Ward"].keys())
 
-        # 3. Admin 2
-        if self.col_adm2_name:
-            for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_adm2_name]).strip() if pd.notna(row[self.col_adm2_name]) else ""
+            # 3. Admin 2
+            if self.col_adm2_name and pd.notna(row.get(self.col_adm2_name)):
+                raw_name = str(row[self.col_adm2_name]).strip()
                 norm = normalize_spatial_name(raw_name)
-                pcode_a2 = str(row[self.col_adm2_pcode]).strip() if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode]) and str(row[self.col_adm2_pcode]).strip() != "") else None
-                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
-
-                best_pcode = pcode_a2 or pcode_a1
-
                 if norm and norm not in self.lookups["Admin2_LGA"]:
-                    lat = None
-                    lon = None
-                    if self.col_lat and pd.notna(row[self.col_lat]):
-                        try:
-                            lat = float(row[self.col_lat])
-                        except (ValueError, TypeError):
-                            lat = None
-                    if self.col_long and pd.notna(row[self.col_long]):
-                        try:
-                            lon = float(row[self.col_long])
-                        except (ValueError, TypeError):
-                            lon = None
+                    best_p = p_a2 or p_a3 or p_loc or p_a1 or p_gen
                     self.lookups["Admin2_LGA"][norm] = {
-                        "pcode": best_pcode,
-                        "pcode_loc": None,
-                        "pcode_adm3": None,
-                        "pcode_adm2": pcode_a2,
-                        "pcode_adm1": pcode_a1,
+                        "pcode": best_p,
+                        "pcode_loc": p_loc,
+                        "pcode_adm3": p_a3,
+                        "pcode_adm2": p_a2,
+                        "pcode_adm1": p_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
                     }
-            self.unique_names["Admin2_LGA"] = list(self.lookups["Admin2_LGA"].keys())
 
-        # 4. Admin 1
-        if self.col_adm1_name:
-            for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_adm1_name]).strip() if pd.notna(row[self.col_adm1_name]) else ""
+            # 4. Admin 1
+            if self.col_adm1_name and pd.notna(row.get(self.col_adm1_name)):
+                raw_name = str(row[self.col_adm1_name]).strip()
                 norm = normalize_spatial_name(raw_name)
-                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
-
                 if norm and norm not in self.lookups["Admin1_State"]:
-                    lat = None
-                    lon = None
-                    if self.col_lat and pd.notna(row[self.col_lat]):
-                        try:
-                            lat = float(row[self.col_lat])
-                        except (ValueError, TypeError):
-                            lat = None
-                    if self.col_long and pd.notna(row[self.col_long]):
-                        try:
-                            lon = float(row[self.col_long])
-                        except (ValueError, TypeError):
-                            lon = None
+                    best_p = p_a1 or p_a2 or p_a3 or p_loc or p_gen
                     self.lookups["Admin1_State"][norm] = {
-                        "pcode": pcode_a1,
-                        "pcode_loc": None,
-                        "pcode_adm3": None,
-                        "pcode_adm2": None,
-                        "pcode_adm1": pcode_a1,
+                        "pcode": best_p,
+                        "pcode_loc": p_loc,
+                        "pcode_adm3": p_a3,
+                        "pcode_adm2": p_a2,
+                        "pcode_adm1": p_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
                     }
-            self.unique_names["Admin1_State"] = list(self.lookups["Admin1_State"].keys())
+
+        self.unique_names["Locality"] = list(self.lookups["Locality"].keys())
+        self.unique_names["Admin3_Ward"] = list(self.lookups["Admin3_Ward"].keys())
+        self.unique_names["Admin2_LGA"] = list(self.lookups["Admin2_LGA"].keys())
+        self.unique_names["Admin1_State"] = list(self.lookups["Admin1_State"].keys())
 
 
 class SpatialCascadeMatcher:
@@ -345,12 +319,13 @@ class SpatialCascadeMatcher:
             self.fuzzy_cache[cache_key] = (None, 0.0)
             return None, 0.0
 
+        # 1. Exact lookup
         if norm in level_lookup:
             res = (level_lookup[norm], 100.0)
             self.fuzzy_cache[cache_key] = res
             return res
 
-        # 1. WRatio matcher (handles token reordering, partial matches, case/diacritics, and length weighting)
+        # 2. WRatio matcher (handles token reordering, partial matches, case/diacritics, and length weighting)
         best_match = process.extractOne(
             norm,
             candidates,
@@ -364,7 +339,7 @@ class SpatialCascadeMatcher:
             self.fuzzy_cache[cache_key] = res
             return res
 
-        # 2. Token Set Ratio fallback (handles subset names e.g. "Bolori I Ward" vs "Bolori I")
+        # 3. Token Set Ratio fallback (handles subset names e.g. "Bolori I Ward" vs "Bolori I")
         best_match_set = process.extractOne(
             norm,
             candidates,
@@ -377,7 +352,7 @@ class SpatialCascadeMatcher:
             self.fuzzy_cache[cache_key] = res
             return res
 
-        # 3. Partial Ratio fallback
+        # 4. Partial Ratio fallback
         best_match_partial = process.extractOne(
             norm,
             candidates,
@@ -542,10 +517,6 @@ class SpatialCascadeMatcher:
         if self.index.col_adm1_pcode and any(p is not None for p in pcodes_a1):
             df_out["PCODE_ADMIN1"] = pcodes_a1
 
-        df_out["LATITUDE"] = latitudes
-        df_out["LONGITUDE"] = longitudes
-        df_out["MATCH_SCORE"] = match_scores
-        df_out["MATCHED_NAME"] = matched_names
         df_out["LATITUDE"] = latitudes
         df_out["LONGITUDE"] = longitudes
 
