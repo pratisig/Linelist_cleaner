@@ -16,19 +16,19 @@ from rapidfuzz import fuzz, process
 def normalize_spatial_name(name: Any) -> str:
     """
     Normalizes a place name for robust string and fuzzy matching:
-    - Strips accents/diacritics ('Béni' -> 'Beni', 'Équateur' -> 'Equateur')
+    - Strips leading/trailing whitespace
+    - Normalizes accents/diacritics ('Béni' -> 'beni', 'Équateur' -> 'equateur', 'Thiès' -> 'thies')
     - Converts to lowercase
-    - Removes common prefixes/suffixes ('ward', 'lga', 'district', 'village', 'cs', 'centre de sante')
-    - Collapses whitespace and punctuation
+    - Normalizes punctuation and separators to single spaces
     """
     if pd.isna(name) or name is None:
         return ""
     s = str(name).strip().lower()
+    if s in ["", "nan", "none", "null", "n/a", "inconnu", "unknown", "-"]:
+        return ""
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
-
-    s = re.sub(r"\b(village|localite|localite|ward|lga|district|zone de sante|commune|city|ville)\b", " ", s)
-    s = re.sub(r"[^\w\s]", " ", s)
+    s = re.sub(r"[\'\"_,\.\-\/\\:;]+", " ", s)
     s = re.sub(r"\s+", " ", s).strip()
     return s
 
@@ -350,10 +350,11 @@ class SpatialCascadeMatcher:
             self.fuzzy_cache[cache_key] = res
             return res
 
+        # 1. WRatio matcher (handles token reordering, partial matches, case/diacritics, and length weighting)
         best_match = process.extractOne(
             norm,
             candidates,
-            scorer=fuzz.token_sort_ratio,
+            scorer=fuzz.WRatio,
             score_cutoff=self.similarity_threshold
         )
 
@@ -363,6 +364,20 @@ class SpatialCascadeMatcher:
             self.fuzzy_cache[cache_key] = res
             return res
 
+        # 2. Token Set Ratio fallback (handles subset names e.g. "Bolori I Ward" vs "Bolori I")
+        best_match_set = process.extractOne(
+            norm,
+            candidates,
+            scorer=fuzz.token_set_ratio,
+            score_cutoff=max(self.similarity_threshold, 80.0)
+        )
+        if best_match_set:
+            matched_norm, score, _ = best_match_set
+            res = (level_lookup[matched_norm], float(score))
+            self.fuzzy_cache[cache_key] = res
+            return res
+
+        # 3. Partial Ratio fallback
         best_match_partial = process.extractOne(
             norm,
             candidates,

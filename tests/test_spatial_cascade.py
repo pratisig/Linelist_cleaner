@@ -9,10 +9,13 @@ from linelist_cleaner.datasets import get_sample_dataset
 
 
 def test_normalize_spatial_name():
-    assert normalize_spatial_name("Béni Village") == "beni"
-    assert normalize_spatial_name("Ward Bolori I") == "bolori i"
-    assert normalize_spatial_name("Maiduguri LGA") == "maiduguri"
-    assert normalize_spatial_name("Zone de Sante de Goma") == "de goma"
+    assert normalize_spatial_name("Béni Village") == "beni village"
+    assert normalize_spatial_name("Ward Bolori I") == "ward bolori i"
+    assert normalize_spatial_name("Maiduguri LGA") == "maiduguri lga"
+    assert normalize_spatial_name("Zone de Santé de Goma") == "zone de sante de goma"
+    assert normalize_spatial_name("Inconnu") == ""
+    assert normalize_spatial_name("unknown") == ""
+    assert normalize_spatial_name("N/A") == ""
 
 
 def test_spatial_cascade_matching():
