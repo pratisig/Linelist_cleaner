@@ -21,14 +21,18 @@ const AppState = {
   customMappings: {},
   referenceColumns: [],
   spatialMapping: {
-    admin1_name: '',
-    admin1_pcode: '',
-    admin2_name: '',
-    admin2_pcode: '',
-    admin3_name: '',
-    admin3_pcode: '',
+    linelist_locality_col: '',
     locality_name: '',
     locality_pcode: '',
+    linelist_admin3_col: '',
+    admin3_name: '',
+    admin3_pcode: '',
+    linelist_admin2_col: '',
+    admin2_name: '',
+    admin2_pcode: '',
+    linelist_admin1_col: '',
+    admin1_name: '',
+    admin1_pcode: '',
     lat: '',
     long: ''
   },
@@ -229,7 +233,6 @@ function setupEventListeners() {
   const btnBrowseLinelist = document.getElementById('btn-browse-linelist');
 
   if (dropZone && fileInput) {
-    // Click on drop zone
     dropZone.addEventListener('click', (e) => {
       if (e.target.closest('input, select, button, label')) return;
       fileInput.click();
@@ -250,7 +253,6 @@ function setupEventListeners() {
       }
     });
 
-    // Drag & Drop events
     ['dragenter', 'dragover'].forEach(eventName => {
       dropZone.addEventListener(eventName, (e) => {
         e.preventDefault();
@@ -804,13 +806,22 @@ function renderV2Kpis() {
   const r = AppState.report;
   if (!r) return;
   const s = r.spatial_summary;
+  const ind = AppState.indicators || {};
 
   safeSetText('kpi-total', String(r.cleaned_shape ? r.cleaned_shape[0] : AppState.rowsCount));
   safeSetText('kpi-total-sub', `${r.original_shape ? r.original_shape[0] : AppState.rowsCount} brutes → ${r.cleaned_shape ? r.cleaned_shape[0] : '-'} nettoyées`);
 
   if (s) {
     safeSetText('kpi-geo', `${s.geocoded_rate_pct}%`);
-    safeSetText('kpi-geo-sub', `${s.geocoded_count}/${s.total_records} géocodés`);
+    const lvlBreakdown = [];
+    if (s.level_distribution) {
+      if (s.level_distribution['Locality']) lvlBreakdown.push(`${s.level_distribution['Locality']} localité`);
+      if (s.level_distribution['Admin3_Ward']) lvlBreakdown.push(`${s.level_distribution['Admin3_Ward']} admin3`);
+      if (s.level_distribution['Admin2_LGA']) lvlBreakdown.push(`${s.level_distribution['Admin2_LGA']} admin2`);
+      if (s.level_distribution['Admin1_State']) lvlBreakdown.push(`${s.level_distribution['Admin1_State']} admin1`);
+    }
+    const breakdownText = lvlBreakdown.length > 0 ? lvlBreakdown.join(' • ') : '0 localisés';
+    safeSetText('kpi-geo-sub', `${s.geocoded_count}/${s.total_records} cas (${breakdownText})`);
   } else {
     safeSetText('kpi-geo', 'N/A');
     safeSetText('kpi-geo-sub', '0 géocodés');
@@ -819,7 +830,7 @@ function renderV2Kpis() {
   const qs = r.quality_scores_after;
   if (qs) {
     safeSetText('kpi-quality', `${qs.overall_score}%`);
-    safeSetText('kpi-quality-grade', `Grade ${qs.grade} Δ ${(AppState.qualityDelta ?? 0) > 0 ? '+' + AppState.qualityDelta : AppState.qualityDelta}%`);
+    safeSetText('kpi-quality-grade', `Grade ${qs.grade} • Complétude: ${qs.completeness_score}% • Validité: ${qs.validity_score}%`);
   }
 
   safeSetText('kpi-epi', String(r.epi_weeks_computed || 0));
@@ -848,7 +859,7 @@ function renderV2Kpis() {
     safeSetText('kpi-trend', `${label} ${g ?? 0}%`);
     const el = document.getElementById('kpi-trend');
     if (el) el.className = 'text-sm font-extrabold mt-1 ' + cls;
-    safeSetText('kpi-trend-sub', peak ? `pic ${peak}` : '');
+    safeSetText('kpi-trend-sub', peak ? `Pic ${peak}` : (ind.peak_week ? `Pic ${ind.peak_week}` : ''));
   }
 
   // Outbreak banner
@@ -856,7 +867,7 @@ function renderV2Kpis() {
   if (alerts && alerts.length > 0 && banner) {
     banner.classList.remove('hidden');
     safeSetText('outbreak-title', `🚨 ${alerts.length} alerte(s) épidémique(s) détectée(s) (V2)`);
-    safeSetText('outbreak-details', `Tendance: ${tr ? tr.trend : '—'} | Pic: ${tr ? tr.peak_week : '—'} | Croissance hebdo: ${tr ? tr.weekly_growth_pct : 0}%`);
+    safeSetText('outbreak-details', `Tendance: ${tr ? tr.trend : '—'} | Pic: ${ind.peak_week || (tr ? tr.peak_week : '—')} | Croissance hebdo: ${tr ? tr.weekly_growth_pct : 0}%`);
     const list = document.getElementById('outbreak-list');
     if (list) {
       list.innerHTML = alerts.slice(0, 5).map(a => `<span class="px-2 py-1 bg-amber-100 border border-amber-200 rounded font-mono text-[11px]">${escapeHtml(a.epi_week)}: ${escapeHtml(a.cases)} cas</span>`).join('');
@@ -867,54 +878,67 @@ function renderV2Kpis() {
 
   // Advanced metrics & Epi summary
   const adv = AppState.advancedMetrics;
-  if (adv) {
-    safeSetText('epi-doubling', adv.estimated_doubling_time_weeks ? `Doubling: ${adv.estimated_doubling_time_weeks} sem` : 'Doubling: N/A');
-    const cfrVals = Object.values(adv.cfr_by_age_group_pct || {});
-    const avgCfr = cfrVals.length ? (cfrVals.reduce((a, b) => a + b, 0) / cfrVals.length).toFixed(1) : '—';
-    safeSetText('epi-cfr', `CFR moyen âge: ${avgCfr}%`);
+  if (adv || ind) {
+    const doublingText = adv && adv.estimated_doubling_time_weeks ? `Doubling: ${adv.estimated_doubling_time_weeks} sem` : (ind.peak_week ? `Pic: ${ind.peak_week}` : 'Doubling: N/A');
+    safeSetText('epi-doubling', doublingText);
+
+    let cfrText = 'CFR: N/A (non renseigné)';
+    if (ind.has_outcome) {
+      cfrText = `CFR Global: ${ind.case_fatality_ratio_pct}% (${ind.deaths} décès)`;
+    } else if (ind.deaths > 0) {
+      cfrText = `CFR Global: ${ind.case_fatality_ratio_pct}% (${ind.deaths} décès)`;
+    } else {
+      cfrText = '0 décès documenté';
+    }
+    safeSetText('epi-cfr', cfrText);
 
     const cont = document.getElementById('advanced-metrics');
     if (cont) {
-      const cfrSex = adv.cfr_by_sex_pct || {};
-      const sexStr = Object.entries(cfrSex).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}%`).join(' | ') || 'N/A';
+      const cfrSex = adv?.cfr_by_sex_pct || {};
+      const sexStr = Object.entries(cfrSex).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}%`).join(' | ') || 'Non stratifié';
       cont.innerHTML = `
-        <div class="flex justify-between"><span>CFR par sexe</span><span class="font-mono font-semibold">${sexStr}</span></div>
-        <div class="flex justify-between"><span>Croissance hebdo</span><span class="font-mono font-bold ${adv.weekly_growth_pct > 0 ? 'text-rose-600' : 'text-emerald-600'}">${adv.weekly_growth_pct}%</span></div>
-        <div class="flex justify-between"><span>Doubling time</span><span class="font-mono">${adv.estimated_doubling_time_weeks ? adv.estimated_doubling_time_weeks + ' sem' : 'N/A'}</span></div>
+        <div class="flex justify-between border-b pb-1.5"><span>Période épidémie</span><span class="font-mono font-semibold">${escapeHtml(ind.first_week || '—')} → ${escapeHtml(ind.last_week || '—')} (${ind.total_weeks || 0} sem)</span></div>
+        <div class="flex justify-between border-b py-1.5"><span>Semaine Pic</span><span class="font-mono font-bold text-rose-600">${escapeHtml(ind.peak_week || '—')} (${ind.peak_cases || 0} cas)</span></div>
+        <div class="flex justify-between border-b py-1.5"><span>Moyenne hebdo</span><span class="font-mono font-semibold">${ind.mean_weekly_cases || 0} cas / sem</span></div>
+        <div class="flex justify-between border-b py-1.5"><span>CFR par sexe</span><span class="font-mono">${sexStr}</span></div>
+        <div class="flex justify-between pt-1.5"><span>Temps de doublement</span><span class="font-mono">${adv?.estimated_doubling_time_weeks ? adv.estimated_doubling_time_weeks + ' sem' : '—'}</span></div>
       `;
     }
 
     const ek = document.getElementById('epicurve-kpis');
     if (ek) {
       ek.innerHTML = `
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
-          <div class="text-[11px] font-bold text-slate-500 uppercase">CFR Global</div>
-          <div class="text-lg font-extrabold text-rose-600">${AppState.indicators?.case_fatality_ratio_pct ?? '—'}%</div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 shadow-2xs">
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Semaine Pic (Max Cas)</div>
+          <div class="text-lg font-extrabold text-rose-600 mt-0.5">${escapeHtml(ind.peak_week || '—')}</div>
+          <div class="text-[11px] text-slate-500">${ind.peak_cases || 0} cas enregistrés</div>
         </div>
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
-          <div class="text-[11px] font-bold text-slate-500 uppercase">Croissance hebdo</div>
-          <div class="text-lg font-bold ${adv.weekly_growth_pct > 0 ? 'text-rose-600' : 'text-emerald-600'}">${adv.weekly_growth_pct}% / sem</div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 shadow-2xs">
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Moyenne Hebdomadaire</div>
+          <div class="text-lg font-extrabold text-slate-900 mt-0.5">${ind.mean_weekly_cases || 0} cas / sem</div>
+          <div class="text-[11px] text-slate-500">Min: ${ind.min_weekly_cases || 0} • Max: ${ind.max_weekly_cases || 0}</div>
         </div>
-        <div class="bg-slate-50 border border-slate-200 rounded-lg p-2.5">
-          <div class="text-[11px] font-bold text-slate-500 uppercase">Temps de doublement</div>
-          <div class="text-lg font-bold">${adv.estimated_doubling_time_weeks ? adv.estimated_doubling_time_weeks + ' sem' : '—'}</div>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 shadow-2xs">
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Étendue & Létalité</div>
+          <div class="text-lg font-extrabold text-indigo-700 mt-0.5">${ind.total_weeks || 0} semaines</div>
+          <div class="text-[11px] text-slate-500">${ind.has_outcome ? `CFR: ${ind.case_fatality_ratio_pct}% (${ind.deaths} décès)` : '0 décès documenté'}</div>
         </div>
       `;
     }
 
     const cards = document.getElementById('epi-advanced-cards');
     if (cards) {
-      const byAge = adv.cfr_by_age_group_pct || {};
+      const byAge = adv?.cfr_by_age_group_pct || {};
       const entries = Object.entries(byAge);
       if (entries.length > 0) {
         cards.innerHTML = entries.slice(0, 6).map(([k, v]) => `
           <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
-            <div class="text-[11px] font-semibold text-slate-500">CFR Tranche : ${escapeHtml(k)}</div>
+            <div class="text-[11px] font-semibold text-slate-500">Létalité Tranche : ${escapeHtml(k)}</div>
             <div class="text-lg font-bold text-rose-700 mt-1">${v}%</div>
           </div>
         `).join('');
       } else {
-        cards.innerHTML = '<div class="text-xs text-slate-500 col-span-3">Pas de stratification par âge disponible.</div>';
+        cards.innerHTML = '<div class="text-xs text-slate-500 col-span-3">Aucune issue fatale ou stratification par âge nécessaire.</div>';
       }
     }
   }
@@ -927,20 +951,25 @@ function renderV2Kpis() {
     qb.className = `px-2.5 py-1 rounded-full font-bold text-[11px] ${qs.overall_score >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800'}`;
   }
 
-  // Duplicates container
+  // Duplicates container with explanation
   const dups = r.duplicate_groups || [];
   const dupsCont = document.getElementById('dups-container');
   if (dupsCont) {
     if (dups.length === 0) {
-      dupsCont.innerHTML = '<div class="text-slate-500 py-2">Aucun doublon détecté.</div>';
+      dupsCont.innerHTML = '<div class="text-slate-500 py-2">Aucun doublon patient détecté sur les clés d\'identité.</div>';
     } else {
-      dupsCont.innerHTML = dups.slice(0, 8).map(g => `
-        <div class="border border-amber-200 rounded-lg p-2.5 bg-amber-50/70">
-          <div class="font-bold text-slate-800 text-xs">Groupe #${escapeHtml(g.group_id)} • ${escapeHtml(g.duplicate_type)} • score ${Math.round((g.match_score || 0) * 100)}%</div>
-          <div class="font-mono text-[11px] text-slate-600 mt-0.5">Lignes: ${escapeHtml(g.row_indices ? g.row_indices.join(', ') : '')}</div>
-          <div class="text-[11px] text-slate-500">IDs: ${(g.case_ids || []).map(escapeHtml).join(', ')}</div>
+      dupsCont.innerHTML = `
+        <div class="text-[11px] text-slate-500 mb-2">
+          ${dups.length} groupe(s) de doublons potentiels identifiés sur les critères d'identité (Nom, Âge, Sexe, Date).
         </div>
-      `).join('');
+        ${dups.slice(0, 8).map(g => `
+          <div class="border border-amber-200 rounded-lg p-2.5 bg-amber-50/70">
+            <div class="font-bold text-slate-800 text-xs">Groupe #${escapeHtml(g.group_id)} • ${escapeHtml(g.duplicate_type)} • Score de similarité : ${Math.round((g.match_score || 0) * 100)}%</div>
+            <div class="font-mono text-[11px] text-slate-600 mt-0.5">Lignes concernées : ${escapeHtml(g.row_indices ? g.row_indices.join(', ') : '')}</div>
+            <div class="text-[11px] text-slate-500">IDs Patients : ${(g.case_ids || []).map(escapeHtml).join(', ') || 'N/A'}</div>
+          </div>
+        `).join('')}
+      `;
     }
   }
 
@@ -963,15 +992,15 @@ function renderV2Kpis() {
   if (dCont) {
     const entries = Object.entries(delays).filter(([k, v]) => v && v.count > 0);
     if (entries.length === 0) {
-      dCont.innerHTML = '<div class="text-slate-500 py-2">Pas de délais calculables (dates manquantes ou non mappées).</div>';
+      dCont.innerHTML = '<div class="text-slate-500 py-2">Pas de délais calculables (dates d\'apparition, d\'admission ou de sortie manquantes).</div>';
     } else {
       dCont.innerHTML = entries.map(([k, v]) => `
         <div class="border border-slate-200 rounded-lg p-2.5 bg-slate-50/50">
           <div class="font-bold text-slate-800 text-xs">${escapeHtml(v.name || k)}</div>
           <div class="flex justify-between text-[11px] text-slate-600 mt-1">
-            <span>Médiane: <strong class="text-slate-900">${v.median_days} j</strong></span>
-            <span>Moyenne: <strong class="text-slate-900">${v.mean_days} j</strong></span>
-            <span>n = ${v.count}</span>
+            <span>Médiane : <strong class="text-slate-900">${v.median_days} j</strong></span>
+            <span>Moyenne : <strong class="text-slate-900">${v.mean_days} j</strong></span>
+            <span>n = ${v.count} cas</span>
           </div>
         </div>
       `).join('');
@@ -1190,7 +1219,6 @@ function renderSpatialMappingPairs() {
     for (const [col, meta] of Object.entries(AppState.detectedMappings)) {
       if (meta && meta.mapped_tag === tag) return col;
     }
-    // Auto-detect by column name keywords
     for (const col of linelistCols) {
       const cl = col.toLowerCase();
       if (tag === 'locality' && (cl.includes('loc') || cl.includes('vil') || cl.includes('rue') || cl.includes('quartier') || cl.includes('site') || cl.includes('camp'))) return col;
@@ -1250,7 +1278,6 @@ function renderSpatialMappingPairs() {
     const currentRefNameCol = AppState.spatialMapping[lvl.refNameKey] || '';
     const currentRefPcodeCol = AppState.spatialMapping[lvl.refPcodeKey] || '';
 
-    // sync state
     if (currentLinelistCol && !AppState.spatialMapping[lvl.linelistKey]) {
       AppState.spatialMapping[lvl.linelistKey] = currentLinelistCol;
     }
@@ -1278,7 +1305,7 @@ function renderSpatialMappingPairs() {
                 🗺️ 2. Colonne Nom dans le Référentiel :
               </label>
               <select class="ref-spatial-select w-full text-xs rounded-lg border-emerald-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="${lvl.refNameKey}">
-                <option value="">-- ${refCols.length > 0 ? 'Non renseigné' : 'Référentiel COD-AB par défaut'} --</option>
+                <option value="">-- ${refCols.length > 0 ? 'Non renseigné' : 'COD-AB par défaut'} --</option>
                 ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentRefNameCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
               </select>
             </div>
@@ -1646,36 +1673,56 @@ function renderIssues() {
   tbody.innerHTML = html;
 }
 
-function downloadExcel() {
+async function triggerDownload(url, fallbackFilename) {
   if (!AppState.sessionId) {
     alert('Veuillez d abord charger un jeu de données.');
     return;
   }
-  window.open(`/api/export/excel/${AppState.sessionId}`, '_blank');
+  showLoader('Génération et téléchargement du fichier...');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Erreur lors de la génération du fichier (${res.status})`);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get('content-disposition');
+    let filename = fallbackFilename;
+    if (disposition && disposition.includes('filename=')) {
+      const match = disposition.match(/filename=["']?([^"';]+)["']?/);
+      if (match && match[1]) filename = match[1];
+    }
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    }, 1000);
+  } catch (e) {
+    window.location.href = url;
+  } finally {
+    hideLoader();
+  }
+}
+
+function downloadExcel() {
+  triggerDownload(`/api/export/excel/${AppState.sessionId}`, 'LineList_Nettoyee_PCode_PratiSIG_V2.xlsx');
 }
 
 function downloadCSV() {
-  if (!AppState.sessionId) {
-    alert('Veuillez d abord charger un jeu de données.');
-    return;
-  }
-  window.open(`/api/export/csv/${AppState.sessionId}`, '_blank');
+  triggerDownload(`/api/export/csv/${AppState.sessionId}`, 'LineList_Nettoyee_PCode_PratiSIG.csv');
 }
 
 function downloadGeoJSON() {
-  if (!AppState.sessionId) {
-    alert('Veuillez d abord charger un jeu de données.');
-    return;
-  }
-  window.open(`/api/export/geojson/${AppState.sessionId}`, '_blank');
+  triggerDownload(`/api/export/geojson/${AppState.sessionId}`, 'LineList_Geocoded_V2.geojson');
 }
 
 function downloadScript() {
-  if (!AppState.sessionId) {
-    alert('Veuillez d abord charger un jeu de données.');
-    return;
-  }
-  window.open(`/api/export/script/${AppState.sessionId}`, '_blank');
+  triggerDownload(`/api/export/script/${AppState.sessionId}`, 'linelist_spatial_pipeline.py');
 }
 
 function showLoader(msg) {

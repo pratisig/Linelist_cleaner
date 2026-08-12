@@ -22,7 +22,7 @@ class EpiAnalytics:
         return None
 
     def get_summary_indicators(self) -> Dict[str, Any]:
-        """Calculates key public health indicators: CFR, Hospitalization Rate, Sex Ratio, Median Age."""
+        """Calculates key public health indicators: Total Cases, Peak Week, Weekly Mean, CFR, Hospitalization Rate, Sex Ratio, Median Age."""
         n_total = len(self.df)
         if n_total == 0:
             return {}
@@ -36,9 +36,10 @@ class EpiAnalytics:
         # Deaths & CFR
         deaths = 0
         recovered = 0
-        if outcome_s is not None:
-            deaths = int((outcome_s.str.lower() == "dead").sum())
-            recovered = int((outcome_s.str.lower() == "recovered").sum())
+        has_outcome = bool(outcome_s is not None and outcome_s.notna().any())
+        if has_outcome and outcome_s is not None:
+            deaths = int((outcome_s.str.lower().isin(["dead", "decede", "deces", "dcd", "mort"])).sum())
+            recovered = int((outcome_s.str.lower().isin(["recovered", "gueri", "guerie", "cured", "discharged", "sortie"])).sum())
 
         cfr_total = round((deaths / n_total) * 100, 2) if n_total > 0 else 0.0
         closed_cases = deaths + recovered
@@ -47,7 +48,7 @@ class EpiAnalytics:
         # Hospitalization
         hosp_count = 0
         if hosp_s is not None:
-            hosp_count = int((hosp_s.str.lower() == "yes").sum())
+            hosp_count = int((hosp_s.str.lower().isin(["yes", "oui", "1", "true"])).sum())
         elif self._get_series("date_admission") is not None:
             hosp_count = int(self._get_series("date_admission").notna().sum())
         hosp_rate = round((hosp_count / n_total) * 100, 2) if n_total > 0 else 0.0
@@ -56,19 +57,20 @@ class EpiAnalytics:
         conf_count = 0
         prob_count = 0
         susp_count = 0
-        if case_def_s is not None:
+        has_case_def = bool(case_def_s is not None and case_def_s.notna().any())
+        if has_case_def and case_def_s is not None:
             s_lower = case_def_s.str.lower()
-            conf_count = int((s_lower == "confirmed").sum())
-            prob_count = int((s_lower == "probable").sum())
-            susp_count = int((s_lower == "suspect").sum())
+            conf_count = int((s_lower.isin(["confirmed", "confirme", "confirmee", "pcr+", "pos", "positive"])).sum())
+            prob_count = int((s_lower.isin(["probable", "prob"])).sum())
+            susp_count = int((s_lower.isin(["suspect", "susp"])).sum())
 
         # Demographics
         m_count = 0
         f_count = 0
         sex_ratio = 1.0
         if sex_s is not None:
-            m_count = int((sex_s.str.lower() == "male").sum())
-            f_count = int((sex_s.str.lower() == "female").sum())
+            m_count = int((sex_s.str.lower().isin(["male", "masculin", "m", "homme"])).sum())
+            f_count = int((sex_s.str.lower().isin(["female", "feminin", "f", "femme"])).sum())
             sex_ratio = round(m_count / f_count, 2) if f_count > 0 else (m_count if m_count > 0 else 1.0)
 
         # Age stats
@@ -88,13 +90,40 @@ class EpiAnalytics:
                 min_age = round(float(numeric_ages.min()), 1)
                 max_age = round(float(numeric_ages.max()), 1)
 
+        # Weekly Epi curve metrics (Peak week, mean/min/max weekly cases)
+        weekly = self.get_epi_curve(time_unit="week", stratify_by="none")
+        periods = weekly.get("periods", [])
+        totals_dict = weekly.get("total_by_period", {})
+        weekly_vals = list(totals_dict.values())
+
+        peak_week = None
+        peak_cases = 0
+        mean_weekly = 0.0
+        min_weekly = 0
+        max_weekly = 0
+        first_week = periods[0] if periods else None
+        last_week = periods[-1] if periods else None
+        total_weeks = len(periods)
+
+        if weekly_vals:
+            max_weekly = int(max(weekly_vals))
+            min_weekly = int(min(weekly_vals))
+            mean_weekly = round(float(np.mean(weekly_vals)), 1)
+            for p, cnt in totals_dict.items():
+                if cnt == max_weekly:
+                    peak_week = p
+                    peak_cases = cnt
+                    break
+
         return {
             "total_cases": n_total,
             "confirmed_cases": conf_count,
             "probable_cases": prob_count,
             "suspect_cases": susp_count,
+            "has_case_definition": has_case_def,
             "deaths": deaths,
             "recovered": recovered,
+            "has_outcome": has_outcome,
             "case_fatality_ratio_pct": cfr_total,
             "closed_case_cfr_pct": cfr_closed,
             "hospitalized_count": hosp_count,
@@ -102,6 +131,14 @@ class EpiAnalytics:
             "male_count": m_count,
             "female_count": f_count,
             "sex_ratio_m_f": sex_ratio,
+            "peak_week": peak_week,
+            "peak_cases": peak_cases,
+            "first_week": first_week,
+            "last_week": last_week,
+            "total_weeks": total_weeks,
+            "mean_weekly_cases": mean_weekly,
+            "min_weekly_cases": min_weekly,
+            "max_weekly_cases": max_weekly,
             "age_stats": {
                 "median": median_age,
                 "mean": mean_age,
