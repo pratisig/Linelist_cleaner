@@ -1196,33 +1196,37 @@ function renderSpatialMappingPairs() {
     {
       id: 'locality',
       tag: 'locality',
-      label: 'Localité / Village / Site (Niveau 1)',
-      desc: 'Village, camp de réfugiés/PDI, quartier, structure sanitaire',
-      refKey: 'locality_name',
+      label: 'Localité / Village / Rue / Quartier (Niveau 1)',
+      desc: 'Niveau le plus précis : village, camp, quartier, rue, structure sanitaire',
+      refNameKey: 'locality_name',
+      refPcodeKey: 'locality_pcode',
       badge: 'bg-emerald-100 text-emerald-800'
     },
     {
       id: 'admin3',
       tag: 'admin3',
       label: 'Admin 3 : Ward / Sous-district / Aire de Santé (Niveau 2)',
-      desc: 'Sous-préfecture, Ward, Aire de santé, Commune rurale',
-      refKey: 'admin3_name',
+      desc: 'Division administrative de niveau 3 (Ward, Sous-district, Aire de santé)',
+      refNameKey: 'admin3_name',
+      refPcodeKey: 'admin3_pcode',
       badge: 'bg-teal-100 text-teal-800'
     },
     {
       id: 'admin2',
       tag: 'admin2',
       label: 'Admin 2 : District / LGA / Cercle / Département (Niveau 3)',
-      desc: 'District sanitaire, LGA, Département, Cercle, Province',
-      refKey: 'admin2_name',
+      desc: 'Division administrative de niveau 2 (District sanitaire, LGA, Cercle, Département)',
+      refNameKey: 'admin2_name',
+      refPcodeKey: 'admin2_pcode',
       badge: 'bg-blue-100 text-blue-800'
     },
     {
       id: 'admin1',
       tag: 'admin1',
       label: 'Admin 1 : Région / État / Province (Niveau 4)',
-      desc: 'Région administrative, État fédéral, Grande Province',
-      refKey: 'admin1_name',
+      desc: 'Division administrative de niveau 1 (Région, État fédéral, Province)',
+      refNameKey: 'admin1_name',
+      refPcodeKey: 'admin1_pcode',
       badge: 'bg-amber-100 text-amber-800'
     }
   ];
@@ -1230,20 +1234,21 @@ function renderSpatialMappingPairs() {
   let html = '';
   levels.forEach(lvl => {
     const currentLinelistCol = getLinelistColForTag(lvl.tag);
-    const currentRefCol = AppState.spatialMapping[lvl.refKey] || '';
+    const currentRefNameCol = AppState.spatialMapping[lvl.refNameKey] || '';
+    const currentRefPcodeCol = AppState.spatialMapping[lvl.refPcodeKey] || '';
 
     html += `
       <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/70 shadow-2xs flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-1.5">
             <span class="font-bold text-xs text-slate-800">${escapeHtml(lvl.label)}</span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${lvl.badge}">Cascade #${lvl.id === 'locality' ? '1' : (lvl.id === 'admin3' ? '2' : (lvl.id === 'admin2' ? '3' : '4'))}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${lvl.badge}">Étape #${lvl.id === 'locality' ? '1' : (lvl.id === 'admin3' ? '2' : (lvl.id === 'admin2' ? '3' : '4'))}</span>
           </div>
           <p class="text-[11px] text-slate-500 mb-3">${escapeHtml(lvl.desc)}</p>
           <div class="space-y-2.5">
             <div>
               <label class="block text-[11px] font-semibold text-blue-900 mb-1">
-                📊 Colonne dans votre Line List :
+                📊 1. Colonne dans votre Line List :
               </label>
               <select class="linelist-spatial-select w-full text-xs rounded-lg border-blue-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-blue-500" data-tag="${lvl.tag}">
                 <option value="">-- Non présente dans ma Line List --</option>
@@ -1252,11 +1257,20 @@ function renderSpatialMappingPairs() {
             </div>
             <div>
               <label class="block text-[11px] font-semibold text-emerald-900 mb-1">
-                🗺️ Colonne correspondante du Référentiel :
+                🗺️ 2. Colonne Nom dans le Référentiel :
               </label>
-              <select class="ref-spatial-select w-full text-xs rounded-lg border-emerald-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="${lvl.refKey}">
-                <option value="">-- ${refCols.length > 0 ? 'Non renseigné' : 'Référentiel COD-AB par défaut'} --</option>
-                ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentRefCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+              <select class="ref-spatial-select w-full text-xs rounded-lg border-emerald-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="${lvl.refNameKey}">
+                <option value="">-- ${refCols.length > 0 ? 'Non renseigné' : 'COD-AB par défaut'} --</option>
+                ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentRefNameCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-teal-900 mb-1">
+                🏷️ 3. Colonne P-Code à extraire du Référentiel :
+              </label>
+              <select class="ref-spatial-select w-full text-xs rounded-lg border-teal-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-teal-500" data-role="${lvl.refPcodeKey}">
+                <option value="">-- ${refCols.length > 0 ? 'Non renseigné (Auto-généré)' : 'COD-AB P-Code par défaut'} --</option>
+                ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentRefPcodeCol === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
               </select>
             </div>
           </div>
@@ -1271,20 +1285,20 @@ function renderSpatialMappingPairs() {
   html += `
     <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/70 shadow-2xs md:col-span-2">
       <div class="flex items-center justify-between mb-1.5">
-        <span class="font-bold text-xs text-slate-800">Coordonnées GPS du Référentiel (Latitude Y / Longitude X)</span>
+        <span class="font-bold text-xs text-slate-800">Coordonnées GPS dans le Référentiel (Latitude Y / Longitude X)</span>
         <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-violet-100 text-violet-800">WGS84</span>
       </div>
-      <p class="text-[11px] text-slate-500 mb-3">Position géographique utilisée pour afficher les points sur la carte SIG et générer le GeoJSON.</p>
+      <p class="text-[11px] text-slate-500 mb-3">Colonnes de coordonnées géographiques à extraire du référentiel pour la carte SIG et l'export GeoJSON.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="block text-[11px] font-semibold text-slate-700 mb-1">Latitude (Y) Référentiel :</label>
+          <label class="block text-[11px] font-semibold text-slate-700 mb-1">🌐 Latitude (Y) Référentiel :</label>
           <select class="ref-spatial-select w-full text-xs rounded-lg border-slate-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="lat">
             <option value="">-- ${refCols.length > 0 ? 'Auto-détecté' : 'COD-AB par défaut'} --</option>
             ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentLat === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}
           </select>
         </div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-700 mb-1">Longitude (X) Référentiel :</label>
+          <label class="block text-[11px] font-semibold text-slate-700 mb-1">🌐 Longitude (X) Référentiel :</label>
           <select class="ref-spatial-select w-full text-xs rounded-lg border-slate-300 py-1.5 px-2 bg-white text-slate-800 focus:ring-1 focus:ring-emerald-500" data-role="long">
             <option value="">-- ${refCols.length > 0 ? 'Auto-détecté' : 'COD-AB par défaut'} --</option>
             ${refCols.map(c => `<option value="${escapeHtml(c)}" ${currentLng === c ? 'selected' : ''}>${escapeHtml(c)}</option>`).join('')}

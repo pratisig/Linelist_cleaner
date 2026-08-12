@@ -171,7 +171,11 @@ class PCodeReferenceIndex:
             for idx, row in self.ref_df.iterrows():
                 raw_name = str(row[self.col_loc_name]) if pd.notna(row[self.col_loc_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode = str(row[self.col_loc_pcode]) if (self.col_loc_pcode and pd.notna(row[self.col_loc_pcode])) else f"LOC_{idx+1}"
+                pcode_loc = str(row[self.col_loc_pcode]) if (self.col_loc_pcode and pd.notna(row[self.col_loc_pcode])) else f"LOC_{idx+1}"
+                pcode_a3 = str(row[self.col_adm3_pcode]) if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode])) else None
+                pcode_a2 = str(row[self.col_adm2_pcode]) if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode])) else None
+                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else None
+
                 if norm and norm not in self.lookups["Locality"]:
                     lat = None
                     lon = None
@@ -186,7 +190,11 @@ class PCodeReferenceIndex:
                         except (ValueError, TypeError):
                             lon = None
                     self.lookups["Locality"][norm] = {
-                        "pcode": pcode,
+                        "pcode": pcode_loc,
+                        "pcode_loc": pcode_loc,
+                        "pcode_adm3": pcode_a3,
+                        "pcode_adm2": pcode_a2,
+                        "pcode_adm1": pcode_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
@@ -198,7 +206,10 @@ class PCodeReferenceIndex:
             for idx, row in self.ref_df.iterrows():
                 raw_name = str(row[self.col_adm3_name]) if pd.notna(row[self.col_adm3_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode = str(row[self.col_adm3_pcode]) if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode])) else f"ADM3_{idx+1}"
+                pcode_a3 = str(row[self.col_adm3_pcode]) if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode])) else f"ADM3_{idx+1}"
+                pcode_a2 = str(row[self.col_adm2_pcode]) if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode])) else None
+                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else None
+
                 if norm and norm not in self.lookups["Admin3_Ward"]:
                     lat = None
                     lon = None
@@ -213,7 +224,11 @@ class PCodeReferenceIndex:
                         except (ValueError, TypeError):
                             lon = None
                     self.lookups["Admin3_Ward"][norm] = {
-                        "pcode": pcode,
+                        "pcode": pcode_a3,
+                        "pcode_loc": None,
+                        "pcode_adm3": pcode_a3,
+                        "pcode_adm2": pcode_a2,
+                        "pcode_adm1": pcode_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
@@ -225,7 +240,9 @@ class PCodeReferenceIndex:
             for idx, row in self.ref_df.iterrows():
                 raw_name = str(row[self.col_adm2_name]) if pd.notna(row[self.col_adm2_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode = str(row[self.col_adm2_pcode]) if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode])) else f"ADM2_{idx+1}"
+                pcode_a2 = str(row[self.col_adm2_pcode]) if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode])) else f"ADM2_{idx+1}"
+                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else None
+
                 if norm and norm not in self.lookups["Admin2_LGA"]:
                     lat = None
                     lon = None
@@ -240,7 +257,11 @@ class PCodeReferenceIndex:
                         except (ValueError, TypeError):
                             lon = None
                     self.lookups["Admin2_LGA"][norm] = {
-                        "pcode": pcode,
+                        "pcode": pcode_a2,
+                        "pcode_loc": None,
+                        "pcode_adm3": None,
+                        "pcode_adm2": pcode_a2,
+                        "pcode_adm1": pcode_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
@@ -252,7 +273,8 @@ class PCodeReferenceIndex:
             for idx, row in self.ref_df.iterrows():
                 raw_name = str(row[self.col_adm1_name]) if pd.notna(row[self.col_adm1_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else f"ADM1_{idx+1}"
+                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else f"ADM1_{idx+1}"
+
                 if norm and norm not in self.lookups["Admin1_State"]:
                     lat = None
                     lon = None
@@ -267,7 +289,11 @@ class PCodeReferenceIndex:
                         except (ValueError, TypeError):
                             lon = None
                     self.lookups["Admin1_State"][norm] = {
-                        "pcode": pcode,
+                        "pcode": pcode_a1,
+                        "pcode_loc": None,
+                        "pcode_adm3": None,
+                        "pcode_adm2": None,
+                        "pcode_adm1": pcode_a1,
                         "name": raw_name,
                         "lat": lat,
                         "long": lon
@@ -359,6 +385,10 @@ class SpatialCascadeMatcher:
                     "MATCH_LEVEL": "Locality",
                     "MATCH_SCORE": score,
                     "MATCHED_NAME": match_data["name"],
+                    "PCODE_LOCALITY": match_data.get("pcode_loc"),
+                    "PCODE_ADMIN3": match_data.get("pcode_adm3"),
+                    "PCODE_ADMIN2": match_data.get("pcode_adm2"),
+                    "PCODE_ADMIN1": match_data.get("pcode_adm1"),
                     "LATITUDE": match_data["lat"],
                     "LONGITUDE": match_data["long"]
                 }
@@ -371,6 +401,10 @@ class SpatialCascadeMatcher:
                     "MATCH_LEVEL": "Admin3_Ward",
                     "MATCH_SCORE": score,
                     "MATCHED_NAME": match_data["name"],
+                    "PCODE_LOCALITY": None,
+                    "PCODE_ADMIN3": match_data.get("pcode_adm3"),
+                    "PCODE_ADMIN2": match_data.get("pcode_adm2"),
+                    "PCODE_ADMIN1": match_data.get("pcode_adm1"),
                     "LATITUDE": match_data["lat"],
                     "LONGITUDE": match_data["long"]
                 }
@@ -383,6 +417,10 @@ class SpatialCascadeMatcher:
                     "MATCH_LEVEL": "Admin2_LGA",
                     "MATCH_SCORE": score,
                     "MATCHED_NAME": match_data["name"],
+                    "PCODE_LOCALITY": None,
+                    "PCODE_ADMIN3": None,
+                    "PCODE_ADMIN2": match_data.get("pcode_adm2"),
+                    "PCODE_ADMIN1": match_data.get("pcode_adm1"),
                     "LATITUDE": match_data["lat"],
                     "LONGITUDE": match_data["long"]
                 }
@@ -395,6 +433,10 @@ class SpatialCascadeMatcher:
                     "MATCH_LEVEL": "Admin1_State",
                     "MATCH_SCORE": score,
                     "MATCHED_NAME": match_data["name"],
+                    "PCODE_LOCALITY": None,
+                    "PCODE_ADMIN3": None,
+                    "PCODE_ADMIN2": None,
+                    "PCODE_ADMIN1": match_data.get("pcode_adm1"),
                     "LATITUDE": match_data["lat"],
                     "LONGITUDE": match_data["long"]
                 }
@@ -404,6 +446,10 @@ class SpatialCascadeMatcher:
             "MATCH_LEVEL": "Unmatched",
             "MATCH_SCORE": 0.0,
             "MATCHED_NAME": None,
+            "PCODE_LOCALITY": None,
+            "PCODE_ADMIN3": None,
+            "PCODE_ADMIN2": None,
+            "PCODE_ADMIN1": None,
             "LATITUDE": None,
             "LONGITUDE": None
         }
@@ -422,6 +468,10 @@ class SpatialCascadeMatcher:
         match_levels = []
         match_scores = []
         matched_names = []
+        pcodes_loc = []
+        pcodes_a3 = []
+        pcodes_a2 = []
+        pcodes_a1 = []
         latitudes = []
         longitudes = []
 
@@ -445,6 +495,10 @@ class SpatialCascadeMatcher:
             match_levels.append(res["MATCH_LEVEL"])
             match_scores.append(res["MATCH_SCORE"])
             matched_names.append(res["MATCHED_NAME"])
+            pcodes_loc.append(res["PCODE_LOCALITY"])
+            pcodes_a3.append(res["PCODE_ADMIN3"])
+            pcodes_a2.append(res["PCODE_ADMIN2"])
+            pcodes_a1.append(res["PCODE_ADMIN1"])
             latitudes.append(res["LATITUDE"])
             longitudes.append(res["LONGITUDE"])
 
@@ -452,6 +506,21 @@ class SpatialCascadeMatcher:
 
         df_out["PCODE_ASSIGNED"] = pcodes
         df_out["MATCH_LEVEL"] = match_levels
+        df_out["MATCH_SCORE"] = match_scores
+        df_out["MATCHED_NAME"] = matched_names
+
+        # Add granular level P-Codes if mapped in reference
+        if self.index.col_loc_pcode and any(p is not None for p in pcodes_loc):
+            df_out["PCODE_LOCALITY"] = pcodes_loc
+        if self.index.col_adm3_pcode and any(p is not None for p in pcodes_a3):
+            df_out["PCODE_ADMIN3"] = pcodes_a3
+        if self.index.col_adm2_pcode and any(p is not None for p in pcodes_a2):
+            df_out["PCODE_ADMIN2"] = pcodes_a2
+        if self.index.col_adm1_pcode and any(p is not None for p in pcodes_a1):
+            df_out["PCODE_ADMIN1"] = pcodes_a1
+
+        df_out["LATITUDE"] = latitudes
+        df_out["LONGITUDE"] = longitudes
         df_out["MATCH_SCORE"] = match_scores
         df_out["MATCHED_NAME"] = matched_names
         df_out["LATITUDE"] = latitudes
