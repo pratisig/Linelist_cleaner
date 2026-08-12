@@ -55,10 +55,10 @@ def auto_detect_reference_mapping(ref_df: pd.DataFrame) -> Dict[str, Optional[st
     role_synonyms = {
         "admin1_name": [
             "admin1_name", "adm1_name", "adm1_fr", "adm1_en", "state", "province", "region",
-            "nom_region", "nom_province", "departement", "admin1", "adm1", "state_name", "province_name", "region_name"
+            "nom_region", "nom_province", "nom_state", "departement", "admin1", "adm1", "state_name", "province_name", "region_name"
         ],
         "admin1_pcode": [
-            "admin1_pcode", "adm1_pcode", "pcode_adm1", "code_adm1", "code_region", "code_province",
+            "admin1_pcode", "adm1_pcode", "pcode_adm1", "code_adm1", "code_region", "code_province", "code_state",
             "pcode1", "adm1_code", "admin1_code", "pcode_admin1", "adm1_pcode_code"
         ],
         "admin2_name": [
@@ -78,12 +78,14 @@ def auto_detect_reference_mapping(ref_df: pd.DataFrame) -> Dict[str, Optional[st
             "adm3_code", "admin3_code", "pcode_admin3", "pcode_ward"
         ],
         "locality_name": [
-            "locality_name", "loc_name", "village", "village_name", "settlement", "localite",
-            "nom_localite", "nom_village", "site", "camp", "center", "centre", "structure", "point_name", "nom_site", "locality"
+            "locality_name", "loc_name", "loc_nr", "village", "village_name", "settlement", "localite",
+            "nom_localite", "nom_village", "nom_loc", "rue_quartier", "rq_norm", "ville_village", "site", "camp",
+            "center", "centre", "structure", "point_name", "nom_site", "locality"
         ],
         "locality_pcode": [
-            "locality_pcode", "loc_pcode", "pcode_loc", "pcode_village", "code_localite", "code_village",
-            "pcode_site", "pcode_locality", "locality_code", "loc_code"
+            "pcode", "locality_pcode", "loc_pcode", "pcode_loc", "pcode_vil", "pcode_rue", "pcode_village",
+            "pcode_localite", "code_localite", "code_village", "pcode_site", "pcode_locality", "locality_code",
+            "loc_code", "code_pcode", "id_pcode", "code_loc", "pcode_final", "p_code", "code"
         ],
         "lat": [
             "latitude", "lat", "lat_y", "y", "y_coord", "coord_y", "latitude_y", "lat_dd"
@@ -169,12 +171,14 @@ class PCodeReferenceIndex:
         # 1. Localities
         if self.col_loc_name:
             for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_loc_name]) if pd.notna(row[self.col_loc_name]) else ""
+                raw_name = str(row[self.col_loc_name]).strip() if pd.notna(row[self.col_loc_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode_loc = str(row[self.col_loc_pcode]) if (self.col_loc_pcode and pd.notna(row[self.col_loc_pcode])) else f"LOC_{idx+1}"
-                pcode_a3 = str(row[self.col_adm3_pcode]) if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode])) else None
-                pcode_a2 = str(row[self.col_adm2_pcode]) if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode])) else None
-                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else None
+                pcode_loc = str(row[self.col_loc_pcode]).strip() if (self.col_loc_pcode and pd.notna(row[self.col_loc_pcode]) and str(row[self.col_loc_pcode]).strip() != "") else None
+                pcode_a3 = str(row[self.col_adm3_pcode]).strip() if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode]) and str(row[self.col_adm3_pcode]).strip() != "") else None
+                pcode_a2 = str(row[self.col_adm2_pcode]).strip() if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode]) and str(row[self.col_adm2_pcode]).strip() != "") else None
+                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
+
+                best_pcode = pcode_loc or pcode_a3 or pcode_a2 or pcode_a1
 
                 if norm and norm not in self.lookups["Locality"]:
                     lat = None
@@ -190,7 +194,7 @@ class PCodeReferenceIndex:
                         except (ValueError, TypeError):
                             lon = None
                     self.lookups["Locality"][norm] = {
-                        "pcode": pcode_loc,
+                        "pcode": best_pcode,
                         "pcode_loc": pcode_loc,
                         "pcode_adm3": pcode_a3,
                         "pcode_adm2": pcode_a2,
@@ -204,11 +208,13 @@ class PCodeReferenceIndex:
         # 2. Admin 3
         if self.col_adm3_name:
             for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_adm3_name]) if pd.notna(row[self.col_adm3_name]) else ""
+                raw_name = str(row[self.col_adm3_name]).strip() if pd.notna(row[self.col_adm3_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode_a3 = str(row[self.col_adm3_pcode]) if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode])) else f"ADM3_{idx+1}"
-                pcode_a2 = str(row[self.col_adm2_pcode]) if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode])) else None
-                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else None
+                pcode_a3 = str(row[self.col_adm3_pcode]).strip() if (self.col_adm3_pcode and pd.notna(row[self.col_adm3_pcode]) and str(row[self.col_adm3_pcode]).strip() != "") else None
+                pcode_a2 = str(row[self.col_adm2_pcode]).strip() if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode]) and str(row[self.col_adm2_pcode]).strip() != "") else None
+                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
+
+                best_pcode = pcode_a3 or pcode_a2 or pcode_a1
 
                 if norm and norm not in self.lookups["Admin3_Ward"]:
                     lat = None
@@ -224,7 +230,7 @@ class PCodeReferenceIndex:
                         except (ValueError, TypeError):
                             lon = None
                     self.lookups["Admin3_Ward"][norm] = {
-                        "pcode": pcode_a3,
+                        "pcode": best_pcode,
                         "pcode_loc": None,
                         "pcode_adm3": pcode_a3,
                         "pcode_adm2": pcode_a2,
@@ -238,10 +244,12 @@ class PCodeReferenceIndex:
         # 3. Admin 2
         if self.col_adm2_name:
             for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_adm2_name]) if pd.notna(row[self.col_adm2_name]) else ""
+                raw_name = str(row[self.col_adm2_name]).strip() if pd.notna(row[self.col_adm2_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode_a2 = str(row[self.col_adm2_pcode]) if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode])) else f"ADM2_{idx+1}"
-                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else None
+                pcode_a2 = str(row[self.col_adm2_pcode]).strip() if (self.col_adm2_pcode and pd.notna(row[self.col_adm2_pcode]) and str(row[self.col_adm2_pcode]).strip() != "") else None
+                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
+
+                best_pcode = pcode_a2 or pcode_a1
 
                 if norm and norm not in self.lookups["Admin2_LGA"]:
                     lat = None
@@ -257,7 +265,7 @@ class PCodeReferenceIndex:
                         except (ValueError, TypeError):
                             lon = None
                     self.lookups["Admin2_LGA"][norm] = {
-                        "pcode": pcode_a2,
+                        "pcode": best_pcode,
                         "pcode_loc": None,
                         "pcode_adm3": None,
                         "pcode_adm2": pcode_a2,
@@ -271,9 +279,9 @@ class PCodeReferenceIndex:
         # 4. Admin 1
         if self.col_adm1_name:
             for idx, row in self.ref_df.iterrows():
-                raw_name = str(row[self.col_adm1_name]) if pd.notna(row[self.col_adm1_name]) else ""
+                raw_name = str(row[self.col_adm1_name]).strip() if pd.notna(row[self.col_adm1_name]) else ""
                 norm = normalize_spatial_name(raw_name)
-                pcode_a1 = str(row[self.col_adm1_pcode]) if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode])) else f"ADM1_{idx+1}"
+                pcode_a1 = str(row[self.col_adm1_pcode]).strip() if (self.col_adm1_pcode and pd.notna(row[self.col_adm1_pcode]) and str(row[self.col_adm1_pcode]).strip() != "") else None
 
                 if norm and norm not in self.lookups["Admin1_State"]:
                     lat = None

@@ -64,3 +64,53 @@ def test_spatial_cascade_matching():
     res_unmatch = matcher.match_row(locality_val="Outside Continent", admin1_val="Nowhere")
     assert res_unmatch["MATCH_LEVEL"] == "Unmatched"
     assert res_unmatch["PCODE_ASSIGNED"] is None
+
+
+def test_spatial_cascade_custom_powerquery_like_reference():
+    """Test matching with custom column names like in the user's Power Query workflow."""
+    # Custom reference dataframe with columns: loc_nr, adm3, adm2, pcode, pcode_adm3, pcode_adm2, lat, long
+    ref_data = pd.DataFrame({
+        "loc_nr": ["Rue des Fleurs", "Quartier Médina", "Village Camp A"],
+        "pcode": ["SEN_DK_001_01", "SEN_DK_001_02", "SEN_TH_002_01"],
+        "adm3": ["Médina", "Médina", "Pout"],
+        "pcode_adm3": ["SEN_DK_001", "SEN_DK_001", "SEN_TH_002"],
+        "adm2": ["Dakar", "Dakar", "Thiès"],
+        "pcode_adm2": ["SEN_DK", "SEN_DK", "SEN_TH"],
+        "lat": [14.69, 14.70, 14.75],
+        "long": [-17.44, -17.45, -16.92]
+    })
+
+    # Custom spatial mapping
+    mapping = {
+        "linelist_locality_col": "rq_norm",
+        "locality_name": "loc_nr",
+        "locality_pcode": "pcode",
+        "linelist_admin3_col": "village",
+        "admin3_name": "adm3",
+        "admin3_pcode": "pcode_adm3",
+        "linelist_admin2_col": "district",
+        "admin2_name": "adm2",
+        "admin2_pcode": "pcode_adm2",
+        "lat": "lat",
+        "long": "long"
+    }
+
+    ref_index = PCodeReferenceIndex(ref_data, mapping)
+    matcher = SpatialCascadeMatcher(ref_index, similarity_threshold=80.0)
+
+    # Linelist row 1: matches locality rq_norm -> Rue des Fleurs
+    res1 = matcher.match_row(locality_val="Rue des Fleurs", admin3_val="Médina", admin2_val="Dakar")
+    assert res1["MATCH_LEVEL"] == "Locality"
+    assert res1["PCODE_ASSIGNED"] == "SEN_DK_001_01"  # Real PCode from reference
+    assert res1["PCODE_LOCALITY"] == "SEN_DK_001_01"
+    assert res1["PCODE_ADMIN3"] == "SEN_DK_001"
+    assert res1["PCODE_ADMIN2"] == "SEN_DK"
+    assert not str(res1["PCODE_ASSIGNED"]).startswith("LOC_")  # Never synthetic
+
+    # Linelist row 2: locality is unknown, fallback to admin3 village -> Pout
+    res2 = matcher.match_row(locality_val="Inconnu", admin3_val="Pout", admin2_val="Thiès")
+    assert res2["MATCH_LEVEL"] == "Admin3_Ward"
+    assert res2["PCODE_ASSIGNED"] == "SEN_TH_002"
+    assert res2["PCODE_ADMIN3"] == "SEN_TH_002"
+    assert not str(res2["PCODE_ASSIGNED"]).startswith("LOC_")
+
