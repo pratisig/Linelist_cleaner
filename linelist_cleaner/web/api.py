@@ -119,8 +119,8 @@ def get_excel_sheets_if_any(contents: bytes) -> List[str]:
 class CleanRequest(BaseModel):
     session_id: str
     config: Optional[CleaningConfig] = None
-    column_mapping: Optional[Dict[str, str]] = None
-    spatial_mapping: Optional[Dict[str, str]] = None
+    column_mapping: Optional[Dict[str, Optional[str]]] = None
+    spatial_mapping: Optional[Dict[str, Optional[str]]] = None
     skiprows: int = 0
 
     @field_validator("session_id")
@@ -344,10 +344,12 @@ async def execute_clean(request: CleanRequest):
     raw_df = session["raw_df"]
     ref_df = session.get("ref_df")
     config = request.config or CleaningConfig()
-    custom_mapping = request.column_mapping or session.get("mapping", {})
+    raw_mapping = request.column_mapping if request.column_mapping is not None else session.get("mapping", {})
+    custom_mapping = {k: v for k, v in raw_mapping.items() if v}
 
     if request.spatial_mapping:
-        config.spatial_reference_mapping.update(request.spatial_mapping)
+        clean_spatial_mapping = {k: v for k, v in request.spatial_mapping.items() if v}
+        config.spatial_reference_mapping.update(clean_spatial_mapping)
 
     try:
         cleaner = LinelistCleaner(config=config)

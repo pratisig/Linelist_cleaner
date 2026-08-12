@@ -148,6 +148,24 @@ const I18N_TEXTS = {
   }
 };
 
+function formatApiError(err) {
+  if (!err) return 'Une erreur est survenue.';
+  if (typeof err === 'string') return err;
+  if (typeof err.detail === 'string') return err.detail;
+  if (Array.isArray(err.detail)) {
+    return err.detail.map(d => {
+      if (typeof d === 'string') return d;
+      const field = d.loc ? d.loc.filter(x => x !== 'body').join('.') : '';
+      return (field ? `${field}: ` : '') + (d.msg || JSON.stringify(d));
+    }).join('\n');
+  }
+  if (err.detail && typeof err.detail === 'object') {
+    return JSON.stringify(err.detail);
+  }
+  if (err.message) return err.message;
+  return JSON.stringify(err);
+}
+
 // Safe DOM Manipulation helpers
 function safeSetText(id, text) {
   const el = document.getElementById(id);
@@ -369,7 +387,7 @@ function setupEventListeners() {
     });
   }
 
-  // View mode switcher (Cleaned / Raw / Diff)
+  // View mode switcher (Cleaned / Raw)
   document.querySelectorAll('.view-mode-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.querySelectorAll('.view-mode-btn').forEach(b => {
@@ -471,8 +489,8 @@ async function loadSampleDataset(sampleType = 'cholera') {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Erreur lors du chargement de l\'exemple.');
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(formatApiError(err) || 'Erreur lors du chargement de l\'exemple.');
     }
 
     const data = await res.json();
@@ -492,7 +510,9 @@ async function loadSampleDataset(sampleType = 'cholera') {
     AppState.refFilename = data.ref_filename;
     AppState.referenceColumns = data.reference_columns || [];
     if (data.detected_spatial_mapping) {
-      AppState.spatialMapping = Object.assign(AppState.spatialMapping, data.detected_spatial_mapping);
+      for (const [k, v] of Object.entries(data.detected_spatial_mapping)) {
+        if (v) AppState.spatialMapping[k] = v;
+      }
     }
 
     safeSetText('label-linelist-file', `✔️ Linelist : ${data.filename}`);
@@ -526,8 +546,8 @@ async function uploadLinelistFile(file, skiprows = 0, sheetName = null) {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Échec du chargement du fichier.');
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(formatApiError(err) || 'Échec du chargement du fichier.');
     }
     const data = await res.json();
 
@@ -579,8 +599,8 @@ async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Échec du chargement du référentiel.');
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(formatApiError(err) || 'Échec du chargement du référentiel.');
     }
     const data = await res.json();
 
@@ -588,7 +608,9 @@ async function uploadReferenceFile(file, skiprows = 0, sheetName = null) {
     AppState.refFilename = data.ref_filename;
     AppState.referenceColumns = data.reference_columns || [];
     if (data.detected_spatial_mapping) {
-      AppState.spatialMapping = Object.assign(AppState.spatialMapping, data.detected_spatial_mapping);
+      for (const [k, v] of Object.entries(data.detected_spatial_mapping)) {
+        if (v) AppState.spatialMapping[k] = v;
+      }
     }
 
     safeSetText('label-ref-file', `✔️ Référentiel : ${file.name}`);
@@ -644,11 +666,20 @@ async function cleanDataset() {
   showLoader('Exécution du nettoyage épidémiologique et du géocodage en cascade...');
 
   try {
+    const cleanColMapping = {};
+    for (const [k, v] of Object.entries(AppState.customMappings)) {
+      if (v) cleanColMapping[k] = v;
+    }
+    const cleanSpatialMapping = {};
+    for (const [k, v] of Object.entries(AppState.spatialMapping)) {
+      if (v) cleanSpatialMapping[k] = v;
+    }
+
     const payload = {
       session_id: AppState.sessionId,
       config: AppState.config,
-      column_mapping: AppState.customMappings,
-      spatial_mapping: AppState.spatialMapping
+      column_mapping: cleanColMapping,
+      spatial_mapping: cleanSpatialMapping
     };
 
     const res = await fetch('/api/clean', {
@@ -658,8 +689,8 @@ async function cleanDataset() {
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Erreur lors du nettoyage');
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(formatApiError(err) || 'Erreur lors du nettoyage');
     }
 
     const data = await res.json();
@@ -824,7 +855,7 @@ function renderV2Kpis() {
     safeSetText('outbreak-details', `Tendance: ${tr ? tr.trend : '—'} | Pic: ${tr ? tr.peak_week : '—'} | Croissance hebdo: ${tr ? tr.weekly_growth_pct : 0}%`);
     const list = document.getElementById('outbreak-list');
     if (list) {
-      list.innerHTML = alerts.slice(0, 5).map(a => `<span class="px-2 py-1 bg-amber-100 border border-amber-200 rounded font-mono text-[11px]">${a.epi_week}: ${a.cases} cas</span>`).join('');
+      list.innerHTML = alerts.slice(0, 5).map(a => `<span class="px-2 py-1 bg-amber-100 border border-amber-200 rounded font-mono text-[11px]">${escapeHtml(a.epi_week)}: ${escapeHtml(a.cases)} cas</span>`).join('');
     }
   } else if (banner) {
     banner.classList.add('hidden');
@@ -841,7 +872,7 @@ function renderV2Kpis() {
     const cont = document.getElementById('advanced-metrics');
     if (cont) {
       const cfrSex = adv.cfr_by_sex_pct || {};
-      const sexStr = Object.entries(cfrSex).map(([k, v]) => `${k}: ${v}%`).join(' | ') || 'N/A';
+      const sexStr = Object.entries(cfrSex).map(([k, v]) => `${escapeHtml(k)}: ${escapeHtml(v)}%`).join(' | ') || 'N/A';
       cont.innerHTML = `
         <div class="flex justify-between"><span>CFR par sexe</span><span class="font-mono font-semibold">${sexStr}</span></div>
         <div class="flex justify-between"><span>Croissance hebdo</span><span class="font-mono font-bold ${adv.weekly_growth_pct > 0 ? 'text-rose-600' : 'text-emerald-600'}">${adv.weekly_growth_pct}%</span></div>
@@ -874,7 +905,7 @@ function renderV2Kpis() {
       if (entries.length > 0) {
         cards.innerHTML = entries.slice(0, 6).map(([k, v]) => `
           <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-xs">
-            <div class="text-[11px] font-semibold text-slate-500">CFR Tranche : ${k}</div>
+            <div class="text-[11px] font-semibold text-slate-500">CFR Tranche : ${escapeHtml(k)}</div>
             <div class="text-lg font-bold text-rose-700 mt-1">${v}%</div>
           </div>
         `).join('');
