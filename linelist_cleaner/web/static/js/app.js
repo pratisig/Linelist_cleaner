@@ -440,10 +440,8 @@ function switchTab(tabId) {
     }
   });
 
-  if (AppState.report || AppState.filename) {
-    safeAddClass('dashboard-empty-state', 'hidden');
-    safeRemoveClass('dashboard-active-content', 'hidden');
-  }
+  safeAddClass('dashboard-empty-state', 'hidden');
+  safeRemoveClass('dashboard-active-content', 'hidden');
 
   document.querySelectorAll('.tab-content').forEach(pane => {
     if (pane.id === `tab-${tabId}`) {

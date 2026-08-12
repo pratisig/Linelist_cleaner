@@ -81,21 +81,21 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Linelist Card -->
         <div class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl p-4 bg-blue-50/40 transition flex flex-col justify-between hover:shadow-md group">
-          <div id="drop-zone" class="cursor-pointer text-center flex flex-col items-center justify-center gap-2 pb-2">
-            <input type="file" id="file-input" class="hidden" accept=".csv, .xlsx, .xls, .tsv">
+          <input type="file" id="file-input" class="hidden" accept=".csv, .xlsx, .xls, .tsv">
+          <label for="file-input" id="drop-zone" class="cursor-pointer text-center flex flex-col items-center justify-center gap-2 pb-2 block w-full">
             <div class="flex items-center justify-between w-full">
               <div class="flex items-center gap-2.5 text-left">
                 <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition">1</div>
                 <div>
                   <div class="text-xs font-bold text-slate-900" id="label-linelist-file">Charger votre Line List (.xlsx / .xls / .csv)</div>
-                  <div class="text-[11px] text-slate-500" id="sublabel-linelist-file">Glissez-déposez ou cliquez pour sélectionner</div>
+                  <div class="text-[11px] text-slate-500" id="sublabel-linelist-file">Cliquez ici ou glissez-déposez un fichier</div>
                 </div>
               </div>
-              <button type="button" id="btn-browse-linelist" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center gap-1">
+              <span class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center gap-1">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg> Parcourir
-              </button>
+              </span>
             </div>
-          </div>
+          </label>
           <div class="pt-2.5 border-t border-blue-200/70 flex items-center justify-between gap-2 text-xs text-slate-600">
             <div class="flex items-center gap-1.5">
               <label for="linelist-skiprows" class="font-medium text-[11px] text-slate-700">Ignorer lignes:</label>
@@ -111,8 +111,8 @@
 
         <!-- Reference P-Code Card -->
         <div class="border-2 border-dashed border-emerald-300 hover:border-emerald-500 rounded-xl p-4 bg-emerald-50/40 transition flex flex-col justify-between hover:shadow-md group">
-          <div id="ref-drop-zone" class="cursor-pointer text-center flex flex-col items-center justify-center gap-2 pb-2">
-            <input type="file" id="ref-file-input" class="hidden" accept=".csv, .xlsx, .xls, .tsv">
+          <input type="file" id="ref-file-input" class="hidden" accept=".csv, .xlsx, .xls, .tsv">
+          <label for="ref-file-input" id="ref-drop-zone" class="cursor-pointer text-center flex flex-col items-center justify-center gap-2 pb-2 block w-full">
             <div class="flex items-center justify-between w-full">
               <div class="flex items-center gap-2.5 text-left">
                 <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs group-hover:scale-105 transition">2</div>
@@ -121,11 +121,11 @@
                   <div class="text-[11px] text-slate-500" id="sublabel-ref-file">COD-AB ou liste des localités & coordonnées — optionnel</div>
                 </div>
               </div>
-              <button type="button" id="btn-browse-ref" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center gap-1">
+              <span class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-xs flex items-center gap-1">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg> Parcourir
-              </button>
+              </span>
             </div>
-          </div>
+          </label>
           <div class="pt-2.5 border-t border-emerald-200/70 flex items-center justify-between gap-2 text-xs text-slate-600">
             <div class="flex items-center gap-1.5">
               <label for="ref-skiprows" class="font-medium text-[11px] text-slate-700">Ignorer:</label>
