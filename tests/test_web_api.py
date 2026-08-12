@@ -88,3 +88,20 @@ def test_api_upload_csv_file():
     assert response.status_code == 200
     data = response.json()
     assert data["rows_count"] == 2
+
+
+def test_api_load_sample():
+    response = client.post("/api/load_sample", data={"sample_type": "cholera", "load_ref": "true"})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["rows_count"] > 0
+    assert data["has_reference"] is True
+    session_id = data["session_id"]
+
+    res_clean = client.post("/api/clean", json={"session_id": session_id})
+    assert res_clean.status_code == 200
+    clean_data = res_clean.json()
+    assert clean_data["success"] is True
+    assert len(clean_data["cleaned_columns"]) > 0
+

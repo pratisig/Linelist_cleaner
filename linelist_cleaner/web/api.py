@@ -5,10 +5,11 @@ Auteur : Youssoupha MBODJI (pratisig.consulting@gmail.com)
 """
 
 import io
+import re
 import json
 from typing import Dict, List, Optional, Any
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 import pandas as pd
 import numpy as np
 
@@ -24,6 +25,54 @@ from linelist_cleaner.core.phone_cleaner import clean_phone_column
 router = APIRouter(prefix="/api")
 
 SESSIONS: Dict[str, Dict[str, Any]] = {}
+
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+ALLOWED_EXTENSIONS = {".csv", ".xlsx", ".xls", ".tsv", ".txt"}
+SESSION_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-]+$")
+
+
+def validate_session_id(session_id: str) -> str:
+    """Validates session ID format to prevent injection attacks."""
+    if not session_id or not SESSION_ID_PATTERN.match(session_id):
+        raise HTTPException(status_code=400, detail="Identifiant de session invalide.")
+    return session_id
+
+
+def validate_uploaded_file(file: UploadFile, contents: bytes) -> None:
+    """Validates file extension and size limits."""
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Fichier trop volumineux ({len(contents) / (1024 * 1024):.1f} Mo). La limite est de 50 Mo."
+        )
+    filename = file.filename or ""
+    ext = "." + filename.split(".")[-1].lower() if "." in filename else ""
+    if ext and ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Extension de fichier non supportée '{ext}'. Formats autorisés : {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+
+
+def sanitize_csv_cell(val: Any) -> Any:
+    """Mitigate CSV / Formula injection (DDE) by neutralizing leading formula symbols."""
+    if isinstance(val, str) and val.startswith(("=", "+", "-", "@", "\t", "\r")):
+        # If it's a negative number or pure number, don't prefix with quote
+        try:
+            float(val)
+            return val
+        except ValueError:
+            return "'" + val
+    return val
+
+
+def sanitize_dataframe_for_csv(df: pd.DataFrame) -> pd.DataFrame:
+    """Applies formula injection sanitization to string columns in DataFrame."""
+    df_copy = df.copy()
+    for col in df_copy.columns:
+        if pd.api.types.is_object_dtype(df_copy[col]) or pd.api.types.is_string_dtype(df_copy[col]):
+            df_copy[col] = df_copy[col].apply(sanitize_csv_cell)
+    return df_copy
 
 
 def df_to_json_records(df: pd.DataFrame, limit: int = 100) -> List[Dict[str, Any]]:
@@ -51,16 +100,29 @@ class CleanRequest(BaseModel):
     spatial_mapping: Optional[Dict[str, str]] = None
     skiprows: int = 0
 
+    @field_validator("session_id")
+    def validate_session(cls, v: str) -> str:
+        if not v or not SESSION_ID_PATTERN.match(v):
+            raise ValueError("Identifiant de session invalide.")
+        return v
+
 
 @router.get("/health")
 async def get_health():
     """V2 Health & version endpoint."""
-    return {"status": "ok", "version": "2.0.0", "name": "Linelist Cleaner V2", "maintainer": "PratiSIG Consulting Services"}
+    return {
+        "status": "ok",
+        "version": "2.0.0",
+        "name": "Linelist Cleaner V2",
+        "maintainer": "PratiSIG Consulting Services - Dakar, Sénégal"
+    }
+
 
 @router.get("/dictionary")
 async def get_dictionary():
     """Returns canonical epidemiological variable dictionary."""
     return CANONICAL_TAGS
+
 
 @router.get("/config/presets")
 async def get_presets():
@@ -76,6 +138,60 @@ async def get_presets():
     }
 
 
+@router.post("/load_sample")
+async def load_sample_dataset(
+    sample_type: str = Form("cholera"),
+    load_ref: bool = Form(True)
+):
+    """Loads built-in sample outbreak dataset with OCHA P-Code reference."""
+    from linelist_cleaner.datasets import get_sample_dataset
+    try:
+        # Sanitize sample type
+        safe_sample = re.sub(r"[^a-zA-Z0-9_]", "", sample_type).lower()
+        df = get_sample_dataset(safe_sample)
+        ref_df = get_sample_dataset("pcode_reference") if load_ref else None
+
+        active_session_id = f"sess_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S_%f')}"
+        mapping_res = map_linelist_columns(df)
+        mapped_dict = {col: m["mapped_tag"] for col, m in mapping_res.items() if m["mapped_tag"]}
+
+        ref_filename = "ocha_pcode_reference_nigeria.csv" if ref_df is not None else None
+
+        SESSIONS[active_session_id] = {
+            "raw_df": df,
+            "filename": f"sample_{safe_sample}_linelist.csv",
+            "mapping": mapped_dict,
+            "skiprows": 0,
+            "sheet_name": None,
+            "ref_df": ref_df,
+            "ref_filename": ref_filename
+        }
+
+        preview = df_to_json_records(df, 25)
+        auto_ref_mapping = auto_detect_reference_mapping(ref_df) if ref_df is not None else {}
+
+        return {
+            "success": True,
+            "session_id": active_session_id,
+            "filename": f"sample_{safe_sample}_linelist.csv",
+            "rows_count": len(df),
+            "columns_count": len(df.columns),
+            "columns": list(df.columns),
+            "sheets": [],
+            "selected_sheet": None,
+            "skiprows": 0,
+            "detected_mappings": mapping_res,
+            "preview": preview,
+            "has_reference": ref_df is not None,
+            "ref_filename": ref_filename,
+            "reference_rows": len(ref_df) if ref_df is not None else 0,
+            "reference_columns": list(ref_df.columns) if ref_df is not None else [],
+            "detected_spatial_mapping": auto_ref_mapping
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erreur chargement exemple : {str(e)}")
+
+
 @router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
@@ -86,9 +202,15 @@ async def upload_file(
     """Uploads raw line list CSV or Excel file with optional header offset (skiprows) and sheet selection."""
     try:
         contents = await file.read()
+        validate_uploaded_file(file, contents)
         sheets = get_excel_sheets_if_any(contents)
         df = load_dataset(contents, skiprows=skiprows, sheet_name=sheet_name)
 
+        if df is None or df.empty:
+            raise ValueError("Le fichier chargé est vide ou illisible.")
+
+        if session_id:
+            validate_session_id(session_id)
         active_session_id = session_id if (session_id and session_id in SESSIONS) else f"sess_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S_%f')}"
         mapping_res = map_linelist_columns(df)
         mapped_dict = {col: m["mapped_tag"] for col, m in mapping_res.items() if m["mapped_tag"]}
@@ -96,9 +218,11 @@ async def upload_file(
         existing_ref = SESSIONS.get(active_session_id, {}).get("ref_df")
         existing_ref_fn = SESSIONS.get(active_session_id, {}).get("ref_filename")
 
+        safe_filename = re.sub(r"[^\w\s\.-]", "_", file.filename or "linelist.csv")
+
         SESSIONS[active_session_id] = {
             "raw_df": df,
-            "filename": file.filename,
+            "filename": safe_filename,
             "mapping": mapped_dict,
             "skiprows": skiprows,
             "sheet_name": sheet_name,
@@ -110,7 +234,7 @@ async def upload_file(
 
         return {
             "session_id": active_session_id,
-            "filename": file.filename,
+            "filename": safe_filename,
             "rows_count": len(df),
             "columns_count": len(df.columns),
             "columns": list(df.columns),
@@ -123,6 +247,8 @@ async def upload_file(
             "ref_filename": existing_ref_fn,
             "reference_columns": list(existing_ref.columns) if existing_ref is not None else [],
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lors du traitement du fichier line list : {str(e)}")
 
@@ -140,12 +266,15 @@ async def upload_reference(
     """
     try:
         contents = await file.read()
+        validate_uploaded_file(file, contents)
         sheets = get_excel_sheets_if_any(contents)
         ref_df = load_dataset(contents, skiprows=skiprows, sheet_name=sheet_name)
 
-        if ref_df.empty:
+        if ref_df is None or ref_df.empty:
             raise ValueError("Le fichier de référentiel est vide ou toutes les lignes ont été ignorées.")
 
+        if session_id:
+            validate_session_id(session_id)
         active_session_id = session_id if (session_id and session_id in SESSIONS) else f"sess_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S_%f')}"
         if active_session_id not in SESSIONS:
             SESSIONS[active_session_id] = {
@@ -154,8 +283,10 @@ async def upload_reference(
                 "mapping": {}
             }
 
+        safe_filename = re.sub(r"[^\w\s\.-]", "_", file.filename or "reference.csv")
+
         SESSIONS[active_session_id]["ref_df"] = ref_df
-        SESSIONS[active_session_id]["ref_filename"] = file.filename
+        SESSIONS[active_session_id]["ref_filename"] = safe_filename
         SESSIONS[active_session_id]["ref_skiprows"] = skiprows
         SESSIONS[active_session_id]["ref_sheet_name"] = sheet_name
 
@@ -164,7 +295,7 @@ async def upload_reference(
         return {
             "success": True,
             "session_id": active_session_id,
-            "ref_filename": file.filename,
+            "ref_filename": safe_filename,
             "reference_rows": len(ref_df),
             "reference_columns": list(ref_df.columns),
             "sheets": sheets,
@@ -173,6 +304,8 @@ async def upload_reference(
             "detected_spatial_mapping": auto_ref_mapping,
             "reference_preview": df_to_json_records(ref_df, 15)
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lors du chargement du référentiel P-Code : {str(e)}")
 
@@ -180,6 +313,7 @@ async def upload_reference(
 @router.post("/clean")
 async def execute_clean(request: CleanRequest):
     """Runs cleaning pipeline and hierarchical spatial fallback cascade on session dataset."""
+    validate_session_id(request.session_id)
     session = SESSIONS.get(request.session_id)
     if not session or session.get("raw_df") is None:
         raise HTTPException(status_code=404, detail="Aucune line list chargée pour cette session. Veuillez charger un fichier.")
@@ -209,23 +343,28 @@ async def execute_clean(request: CleanRequest):
         delays = epi.get_delay_distributions()
         pyramid = epi.get_demographic_pyramid()
         advanced = epi.get_advanced_metrics()
-        # V2 diff stats: before/after quality
         quality_delta = round(report.quality_scores_after.overall_score - report.quality_scores_before.overall_score, 1)
 
         map_points = []
         if "LATITUDE" in df_clean.columns and "LONGITUDE" in df_clean.columns:
             valid_coords = df_clean[df_clean["LATITUDE"].notna() & df_clean["LONGITUDE"].notna()]
             for idx, r in valid_coords.head(300).iterrows():
-                map_points.append({
-                    "id": str(r.get("case_id", f"Cas {idx+1}")),
-                    "lat": float(r["LATITUDE"]),
-                    "lng": float(r["LONGITUDE"]),
-                    "name": str(r.get("MATCHED_NAME", "")),
-                    "pcode": str(r.get("PCODE_ASSIGNED", "")),
-                    "match_level": str(r.get("MATCH_LEVEL", "")),
-                    "score": float(r.get("MATCH_SCORE", 100.0)),
-                    "epi_week": str(r.get("EPI_WEEK", ""))
-                })
+                try:
+                    lat_v = float(r["LATITUDE"])
+                    lng_v = float(r["LONGITUDE"])
+                    if -90 <= lat_v <= 90 and -180 <= lng_v <= 180:
+                        map_points.append({
+                            "id": str(r.get("case_id", f"Cas {idx+1}")),
+                            "lat": lat_v,
+                            "lng": lng_v,
+                            "name": str(r.get("MATCHED_NAME", "")),
+                            "pcode": str(r.get("PCODE_ASSIGNED", "")),
+                            "match_level": str(r.get("MATCH_LEVEL", "")),
+                            "score": float(r.get("MATCH_SCORE", 100.0)),
+                            "epi_week": str(r.get("EPI_WEEK", ""))
+                        })
+                except (ValueError, TypeError):
+                    continue
 
         session["cleaned_df"] = df_clean
         session["report"] = report
@@ -255,14 +394,13 @@ async def execute_clean(request: CleanRequest):
             "raw_preview": raw_preview,
         }
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erreur lors du nettoyage de la line list : {str(e)}")
 
 
 @router.get("/export/excel/{session_id}")
 async def export_excel_download(session_id: str):
     """Generates and streams the 6-tab Excel report workbook V2."""
+    validate_session_id(session_id)
     session = SESSIONS.get(session_id)
     if not session or "cleaned_df" not in session:
         raise HTTPException(status_code=404, detail="Données nettoyées non disponibles pour cette session.")
@@ -275,32 +413,34 @@ async def export_excel_download(session_id: str):
     LinelistCleaner.export_excel(df_clean, report, buffer, reference_df=ref_df)
     buffer.seek(0)
 
-    filename = f"LineList_Nettoyee_PCode_PratiSIG_V2.xlsx"
+    filename = "LineList_Nettoyee_PCode_PratiSIG_V2.xlsx"
     return Response(
         content=buffer.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
+
 
 @router.get("/export/geojson/{session_id}")
 async def export_geojson_download(session_id: str):
     """V2: Generates and streams cleaned GeoJSON FeatureCollection."""
+    validate_session_id(session_id)
     session = SESSIONS.get(session_id)
     if not session or "cleaned_df" not in session:
         raise HTTPException(status_code=404, detail="Données nettoyées non disponibles pour GeoJSON.")
     df_clean = session["cleaned_df"]
-    # Build geojson
     geo = LinelistCleaner.export_geojson(df_clean)
-    import json as _json
     return Response(
-        content=_json.dumps(geo, ensure_ascii=False, indent=2),
+        content=json.dumps(geo, ensure_ascii=False, indent=2),
         media_type="application/geo+json",
-        headers={"Content-Disposition": f"attachment; filename=LineList_Geocoded_V2.geojson"}
+        headers={"Content-Disposition": 'attachment; filename="LineList_Geocoded_V2.geojson"'}
     )
+
 
 @router.get("/analytics/advanced/{session_id}")
 async def get_advanced_analytics(session_id: str):
     """V2: Returns advanced epidemiological metrics for a session without re-cleaning."""
+    validate_session_id(session_id)
     session = SESSIONS.get(session_id)
     if not session or "cleaned_df" not in session:
         raise HTTPException(status_code=404, detail="Données nettoyées non disponibles.")
@@ -317,6 +457,7 @@ async def get_advanced_analytics(session_id: str):
         "epi_curve_weekly": epi.get_epi_curve(time_unit="week", stratify_by="outcome"),
     }
 
+
 @router.post("/validate")
 async def validate_dataset(
     file: UploadFile = File(...),
@@ -325,6 +466,7 @@ async def validate_dataset(
     """V2: Quick validation without full cleaning (profile + issues preview)."""
     try:
         contents = await file.read()
+        validate_uploaded_file(file, contents)
         df = load_dataset(contents)
         from linelist_cleaner.core.column_standardizer import map_linelist_columns as _map
         from linelist_cleaner.core.logic_validator import LogicValidator
@@ -347,18 +489,21 @@ async def validate_dataset(
             "duplicate_groups": len(dups),
             "profiles": {k: v.model_dump() for k, v in profiles.items()},
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur validation: {str(e)}")
+
 
 @router.post("/preview_diff/{session_id}")
 async def preview_diff(session_id: str):
     """V2: Returns side-by-side diff of raw vs cleaned preview (first 50 rows)."""
+    validate_session_id(session_id)
     session = SESSIONS.get(session_id)
     if not session or "raw_df" not in session or "cleaned_df" not in session:
         raise HTTPException(status_code=404, detail="Previews non disponibles (lancer nettoyage d'abord).")
     raw = session["raw_df"].head(50)
     cleaned = session["cleaned_df"].head(50)
-    # Build column diff
     added_cols = [c for c in cleaned.columns if c not in raw.columns]
     return {
         "raw_columns": list(raw.columns),
@@ -371,25 +516,27 @@ async def preview_diff(session_id: str):
 
 @router.get("/export/csv/{session_id}")
 async def export_csv_download(session_id: str):
-    """Generates and streams cleaned CSV."""
+    """Generates and streams cleaned CSV with CSV injection protection."""
+    validate_session_id(session_id)
     session = SESSIONS.get(session_id)
     if not session or "cleaned_df" not in session:
         raise HTTPException(status_code=404, detail="Données nettoyées non disponibles.")
 
-    df_clean = session["cleaned_df"]
+    df_clean = sanitize_dataframe_for_csv(session["cleaned_df"])
     csv_str = df_clean.to_csv(index=False)
-    filename = f"LineList_Nettoyee_PCode_PratiSIG.csv"
+    filename = "LineList_Nettoyee_PCode_PratiSIG.csv"
 
     return Response(
         content=csv_str,
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'}
     )
 
 
 @router.get("/export/script/{session_id}")
 async def export_script_download(session_id: str):
     """Generates reproducible Python script for this cleaning configuration."""
+    validate_session_id(session_id)
     session = SESSIONS.get(session_id)
     config = session.get("config", CleaningConfig()) if session else CleaningConfig()
     script_text = LinelistCleaner.generate_reproducible_python_script(config)
@@ -397,5 +544,5 @@ async def export_script_download(session_id: str):
     return Response(
         content=script_text,
         media_type="text/x-python",
-        headers={"Content-Disposition": "attachment; filename=linelist_spatial_pipeline.py"}
+        headers={"Content-Disposition": 'attachment; filename="linelist_spatial_pipeline.py"'}
     )
