@@ -135,22 +135,23 @@ class PCodeReferenceIndex:
             auto_map.update({k: v for k, v in mapping.items() if v})
         self.mapping = auto_map
 
-        def get_col(role: str) -> Optional[str]:
-            col = self.mapping.get(role)
-            if col and col in ref_df.columns:
-                return col
+        def get_col(*roles: str) -> Optional[str]:
+            for role in roles:
+                col = self.mapping.get(role)
+                if col and col in ref_df.columns:
+                    return col
             return None
 
-        self.col_adm1_name = get_col("admin1_name")
-        self.col_adm1_pcode = get_col("admin1_pcode")
-        self.col_adm2_name = get_col("admin2_name")
-        self.col_adm2_pcode = get_col("admin2_pcode")
-        self.col_adm3_name = get_col("admin3_name")
-        self.col_adm3_pcode = get_col("admin3_pcode")
-        self.col_loc_name = get_col("locality_name")
-        self.col_loc_pcode = get_col("locality_pcode")
-        self.col_lat = get_col("lat")
-        self.col_long = get_col("long")
+        self.col_adm1_name = get_col("admin1_name", "ref_a1", "nom_adm1", "nom_region")
+        self.col_adm1_pcode = get_col("admin1_pcode", "ref_a1_pcode", "pcode_adm1", "code_adm1")
+        self.col_adm2_name = get_col("admin2_name", "ref_a2", "nom_adm2", "nom_district")
+        self.col_adm2_pcode = get_col("admin2_pcode", "ref_a2_pcode", "pcode_adm2", "code_adm2")
+        self.col_adm3_name = get_col("admin3_name", "ref_a3", "nom_adm3", "nom_ward")
+        self.col_adm3_pcode = get_col("admin3_pcode", "ref_a3_pcode", "pcode_adm3", "code_adm3")
+        self.col_loc_name = get_col("locality_name", "ref_loc", "nom_loc", "nom_village")
+        self.col_loc_pcode = get_col("locality_pcode", "ref_loc_pcode", "pcode_loc", "pcode")
+        self.col_lat = get_col("lat", "ref_lat", "latitude")
+        self.col_long = get_col("long", "ref_long", "longitude", "lon", "lng")
 
         self.lookups: Dict[str, Dict[str, Dict[str, Any]]] = {
             "Locality": {},

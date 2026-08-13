@@ -357,40 +357,45 @@
         <!-- Top action bar -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
           <div>
-            <h3 class="text-sm font-bold text-slate-900">Correspondance des Colonnes (Line List ↔ Référentiel P-Code)</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Associez les colonnes de votre Line List aux niveaux géographiques et aux variables épidémiologiques clés.</p>
+            <h3 class="text-base font-bold text-slate-900">Correspondance des Colonnes (Column Mapping)</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Associez les colonnes de votre Line List aux niveaux géographiques et P-Codes de votre Référentiel.</p>
           </div>
-          <button onclick="cleanDataset()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 whitespace-nowrap">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            Appliquer & Recalculer le Nettoyage
+          <button onclick="cleanDataset()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2 whitespace-nowrap">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            🚀 Lancer le Nettoyage & la Cascade de Géocodage
           </button>
         </div>
 
-        <!-- Section 1: Spatial Cascade Pairs (Linelist <-> Reference) -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-            <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">🗺️</div>
-            <div>
-              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wide">1. Correspondance Géographique en Cascade (Line List ↔ Référentiel P-Code)</h4>
-              <p class="text-[11px] text-slate-500">Pour chaque niveau, indiquez quelle colonne de votre Line List correspond à quelle colonne du Référentiel.</p>
+        <!-- 2-Column Side-by-Side Mapping (Like Version 1) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Column 1: Line List Columns -->
+          <div class="bg-white rounded-xl border border-blue-200 p-5 shadow-sm space-y-4">
+            <div class="flex items-center gap-2 pb-3 border-b border-blue-100">
+              <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">📄</div>
+              <div>
+                <h4 class="text-xs font-bold text-blue-950 uppercase tracking-wide">Colonnes de la Line List (Données Brutes)</h4>
+                <p class="text-[11px] text-slate-500">Sélectionnez la colonne correspondante dans votre fichier patient</p>
+              </div>
             </div>
-          </div>
-          <div id="spatial-mapping-pairs-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
 
-        <!-- Section 2: Key Linelist Epidemiological Variables -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-            <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">📋</div>
-            <div>
-              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wide">2. Variables Épidémiologiques Clés de votre Line List</h4>
-              <p class="text-[11px] text-slate-500">Sélectionnez les colonnes de votre Line List contenant la date, l'identifiant, l'âge, le sexe et l'issue clinique.</p>
+            <div class="space-y-3 text-xs" id="ll-mapping-container">
+              <!-- Rendered dynamically -->
             </div>
           </div>
-          <div id="key-epi-variables-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <!-- Rendered dynamically -->
+
+          <!-- Column 2: Reference Columns -->
+          <div class="bg-white rounded-xl border border-emerald-200 p-5 shadow-sm space-y-4">
+            <div class="flex items-center gap-2 pb-3 border-b border-emerald-100">
+              <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">🗺️</div>
+              <div>
+                <h4 class="text-xs font-bold text-emerald-950 uppercase tracking-wide">Colonnes du Référentiel Spatial (P-Codes)</h4>
+                <p class="text-[11px] text-slate-500">Sélectionnez les colonnes de noms, P-Codes et coordonnées GPS</p>
+              </div>
+            </div>
+
+            <div class="space-y-3 text-xs" id="ref-mapping-container">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
         </div>
 
@@ -399,7 +404,7 @@
           <summary class="p-4 cursor-pointer font-bold text-xs text-slate-800 hover:bg-slate-50 flex items-center justify-between transition select-none">
             <div class="flex items-center gap-2">
               <span class="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-mono">⚙️</span>
-              <span>Mapping exhaustif de toutes les colonnes de la Line List (Avancé)</span>
+              <span>Tableau exhaustif de toutes les colonnes détectées (Avancé)</span>
             </div>
             <span class="text-xs text-slate-400 group-open:rotate-180 transition-transform">▼</span>
           </summary>

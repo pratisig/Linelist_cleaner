@@ -405,20 +405,21 @@ class LinelistCleaner:
                 )
 
                 sp_map = self.config.spatial_reference_mapping or {}
-                col_loc = sp_map.get("linelist_locality_col") or tag_to_col.get("locality") or tag_to_col.get("health_facility")
-                col_a3 = sp_map.get("linelist_admin3_col") or tag_to_col.get("admin3")
-                col_a2 = sp_map.get("linelist_admin2_col") or tag_to_col.get("admin2")
-                col_a1 = sp_map.get("linelist_admin1_col") or tag_to_col.get("admin1")
+                sp_map = self.config.spatial_reference_mapping or {}
+                col_loc = sp_map.get("linelist_locality_col") or sp_map.get("ll_loc") or tag_to_col.get("locality") or tag_to_col.get("health_facility")
+                col_a3 = sp_map.get("linelist_admin3_col") or sp_map.get("ll_a3") or tag_to_col.get("admin3")
+                col_a2 = sp_map.get("linelist_admin2_col") or sp_map.get("ll_a2") or tag_to_col.get("admin2")
+                col_a1 = sp_map.get("linelist_admin1_col") or sp_map.get("ll_a1") or tag_to_col.get("admin1")
 
                 for c in df_curr.columns:
                     c_low = c.lower()
                     if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement", "rue", "quartier", "rq_norm", "loc"]):
                         col_loc = c
-                    if not col_a3 and c != col_loc and any(k in c_low for k in ["ward", "subdistrict", "aire", "village", "adm3"]):
+                    if not col_a3 and c != col_loc and any(k in c_low for k in ["ward", "subdistrict", "aire", "village", "adm3", "sous"]):
                         col_a3 = c
                     if not col_a2 and c not in [col_loc, col_a3] and any(k in c_low for k in ["lga", "district", "zone", "commune", "cercle", "adm2"]):
                         col_a2 = c
-                    if not col_a1 and c not in [col_loc, col_a3, col_a2] and any(k in c_low for k in ["state", "province", "region", "adm1"]):
+                    if not col_a1 and c not in [col_loc, col_a3, col_a2] and any(k in c_low for k in ["state", "province", "region", "adm1", "dep"]):
                         col_a1 = c
 
                 df_curr, sp_stats = matcher.process_dataframe(
