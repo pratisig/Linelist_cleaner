@@ -68,37 +68,47 @@ def _find_best_header_row(df_raw_no_header: pd.DataFrame) -> int:
     return best_row
 
 
-def load_dataset(
-    source: Union[str, bytes, io.BytesIO, pd.DataFrame],
+def _load_bytes_into_dataframe(
+    raw_bytes: bytes,
     skiprows: int = 0,
     sheet_name: Optional[Union[str, int]] = None
 ) -> pd.DataFrame:
     """
-    Robust dataset loader for CSV, TSV, Excel (.xlsx, .xls) files from filepaths, byte streams, or DataFrames.
-    Supports skipping title/metadata header lines (skiprows) and multi-sheet selection.
+    Ultra-robust byte stream loader supporting:
+    - Excel .xlsx (openpyxl, calamine)
+    - Legacy Excel .xls (xlrd OLE2 binary format)
+    - Excel .xlsb / .ods
+    - CSV / TSV with automatic encoding detection (UTF-8, UTF-8-sig, Latin-1, CP1252, ISO-8859-1, UTF-16)
+    - CSV / TSV with automatic separator detection (comma, semicolon, tab, pipe)
     """
-    if isinstance(source, pd.DataFrame):
-        df = source.copy()
-        if skiprows > 0 and len(df) > skiprows:
-            new_headers = df.iloc[skiprows - 1]
-            df = df.iloc[skiprows:].reset_index(drop=True)
-            df.columns = [str(c).strip() for c in new_headers]
-        else:
-            df.columns = [str(c).strip() for c in df.columns]
-        return df
+    if not raw_bytes or len(raw_bytes.strip()) == 0:
+        raise ValueError("Le fichier chargé est vide (0 octets).")
 
-    if isinstance(source, bytes):
-        source = io.BytesIO(source)
+    is_xls_binary = raw_bytes.startswith(b"\xd0\xcf\x11\xe0")
+    is_zip_excel = raw_bytes.startswith(b"PK\x03\x04")
 
-    if isinstance(source, io.BytesIO):
-        source.seek(0)
+    # 1. Attempt Excel loading
+    excel_engines: List[Optional[str]] = []
+    if is_xls_binary:
+        excel_engines = ["xlrd", None]
+    elif is_zip_excel:
+        excel_engines = ["openpyxl", None]
+    else:
+        excel_engines = ["openpyxl", "xlrd", None]
+
+    for engine in excel_engines:
         try:
-            excel_file = pd.ExcelFile(source, engine="openpyxl")
-            target_sheet = sheet_name if (sheet_name and sheet_name in excel_file.sheet_names) else excel_file.sheet_names[0]
-            
-            if sheet_name is None and len(excel_file.sheet_names) > 1:
+            kwargs = {"engine": engine} if engine else {}
+            excel_file = pd.ExcelFile(io.BytesIO(raw_bytes), **kwargs)
+            sheets = excel_file.sheet_names
+            if not sheets:
+                continue
+
+            target_sheet = sheet_name if (sheet_name and sheet_name in sheets) else sheets[0]
+
+            if sheet_name is None and len(sheets) > 1:
                 max_cells = 0
-                for s_name in excel_file.sheet_names:
+                for s_name in sheets:
                     try:
                         df_s = excel_file.parse(s_name, header=None)
                         cells = len(df_s) * len(df_s.columns)
@@ -119,52 +129,108 @@ def load_dataset(
                     if best_h > 0:
                         df = excel_file.parse(target_sheet, skiprows=best_h)
 
-            df.columns = [str(c).strip() for c in df.columns]
-            return df
-        except Exception:
-            source.seek(0)
-            try:
-                if skiprows > 0:
-                    df = pd.read_csv(source, sep=None, engine="python", skiprows=skiprows, encoding="utf-8-sig")
-                else:
-                    df = pd.read_csv(source, sep=None, engine="python", encoding="utf-8-sig")
+            if df is not None and not df.empty:
                 df.columns = [str(c).strip() for c in df.columns]
                 return df
+        except Exception:
+            continue
+
+    # If it is a binary .xls file and pd.ExcelFile failed, try xlrd directly
+    if is_xls_binary:
+        try:
+            import xlrd
+            book = xlrd.open_workbook(file_contents=raw_bytes)
+            sheet = book.sheet_by_name(sheet_name) if (sheet_name and sheet_name in book.sheet_names()) else book.sheet_by_index(0)
+            rows = [sheet.row_values(rx) for rx in range(sheet.nrows)]
+            if skiprows > 0 and len(rows) > skiprows:
+                headers = [str(c).strip() for c in rows[skiprows]]
+                df = pd.DataFrame(rows[skiprows + 1:], columns=headers)
+            elif len(rows) > 0:
+                headers = [str(c).strip() for c in rows[0]]
+                df = pd.DataFrame(rows[1:], columns=headers)
+            else:
+                df = pd.DataFrame()
+            if not df.empty:
+                return df
+        except Exception as e:
+            raise ValueError(f"Impossible de lire le fichier Excel .xls : {str(e)}")
+
+    # 2. Text / CSV / TSV parsing with multiple encodings and separators
+    encodings_to_try = ["utf-8-sig", "utf-8", "latin1", "cp1252", "iso-8859-1", "utf-16"]
+
+    try:
+        import chardet
+        detected = chardet.detect(raw_bytes[:10000])
+        if detected and detected.get("encoding"):
+            det_enc = detected["encoding"].lower()
+            if det_enc not in encodings_to_try:
+                encodings_to_try.insert(0, det_enc)
+            else:
+                encodings_to_try.remove(det_enc)
+                encodings_to_try.insert(0, det_enc)
+    except Exception:
+        pass
+
+    separators: List[Optional[str]] = [None, ",", ";", "\t", "|"]
+    best_df = None
+    max_cols = 0
+
+    for enc in encodings_to_try:
+        for sep in separators:
+            try:
+                buf = io.BytesIO(raw_bytes)
+                if sep is None:
+                    df = pd.read_csv(buf, sep=None, engine="python", skiprows=skiprows, encoding=enc)
+                else:
+                    df = pd.read_csv(buf, sep=sep, skiprows=skiprows, encoding=enc)
+
+                if df is not None and not df.empty and len(df.columns) > max_cols:
+                    max_cols = len(df.columns)
+                    best_df = df
+                    if max_cols >= 2:
+                        best_df.columns = [str(c).strip() for c in best_df.columns]
+                        return best_df
             except Exception:
-                source.seek(0)
-                try:
-                    df = pd.read_csv(source, sep=";", skiprows=skiprows, encoding="latin1")
-                    df.columns = [str(c).strip() for c in df.columns]
-                    return df
-                except Exception:
-                    source.seek(0)
-                    df = pd.read_csv(source, skiprows=skiprows)
-                    df.columns = [str(c).strip() for c in df.columns]
-                    return df
+                continue
+
+    if best_df is not None and not best_df.empty:
+        best_df.columns = [str(c).strip() for c in best_df.columns]
+        return best_df
+
+    raise ValueError("Impossible de décoder ou d'analyser le fichier. Veuillez vérifier qu'il s'agit d'un fichier CSV, TSV ou Excel (.xlsx, .xls) valide.")
+
+
+def load_dataset(
+    source: Union[str, bytes, io.BytesIO, pd.DataFrame],
+    skiprows: int = 0,
+    sheet_name: Optional[Union[str, int]] = None
+) -> pd.DataFrame:
+    """
+    Robust dataset loader for CSV, TSV, Excel (.xlsx, .xls) files from filepaths, byte streams, or DataFrames.
+    Supports skipping title/metadata header lines (skiprows) and multi-sheet selection.
+    """
+    if isinstance(source, pd.DataFrame):
+        df = source.copy()
+        if skiprows > 0 and len(df) > skiprows:
+            new_headers = df.iloc[skiprows - 1]
+            df = df.iloc[skiprows:].reset_index(drop=True)
+            df.columns = [str(c).strip() for c in new_headers]
+        else:
+            df.columns = [str(c).strip() for c in df.columns]
+        return df
+
+    if isinstance(source, bytes):
+        return _load_bytes_into_dataframe(source, skiprows=skiprows, sheet_name=sheet_name)
+
+    if isinstance(source, io.BytesIO):
+        source.seek(0)
+        return _load_bytes_into_dataframe(source.read(), skiprows=skiprows, sheet_name=sheet_name)
 
     if isinstance(source, str):
-        if source.endswith((".xlsx", ".xls")):
-            excel_file = pd.ExcelFile(source)
-            target_sheet = sheet_name if (sheet_name and sheet_name in excel_file.sheet_names) else excel_file.sheet_names[0]
-            if skiprows > 0:
-                df = excel_file.parse(target_sheet, skiprows=skiprows)
-            else:
-                df = excel_file.parse(target_sheet, header=0)
-            df.columns = [str(c).strip() for c in df.columns]
-            return df
-        elif source.endswith(".tsv"):
-            df = pd.read_csv(source, sep="\t", skiprows=skiprows)
-            df.columns = [str(c).strip() for c in df.columns]
-            return df
-        elif source.endswith(".json"):
-            return pd.read_json(source)
-        else:
-            try:
-                df = pd.read_csv(source, sep=None, engine="python", skiprows=skiprows)
-            except Exception:
-                df = pd.read_csv(source, skiprows=skiprows)
-            df.columns = [str(c).strip() for c in df.columns]
-            return df
+        with open(source, "rb") as f:
+            return _load_bytes_into_dataframe(f.read(), skiprows=skiprows, sheet_name=sheet_name)
+
+    raise ValueError("Format de fichier non pris en charge.")
 
     raise ValueError("Format de fichier non pris en charge.")
 
@@ -282,9 +348,25 @@ class LinelistCleaner:
                 dates_cleaned_count[d_col] = d_stats["successfully_parsed"]
 
             if self.config.compute_epi_weeks:
-                primary_date_col = tag_to_col.get("date_admission") or tag_to_col.get("date_onset") or tag_to_col.get("date_consultation")
+                primary_date_col = (
+                    tag_to_col.get("date_admission")
+                    or tag_to_col.get("date_onset")
+                    or tag_to_col.get("date_consultation")
+                    or tag_to_col.get("date_notification")
+                    or tag_to_col.get("date_report")
+                    or tag_to_col.get("date_sample_collected")
+                    or tag_to_col.get("date_discharge")
+                    or tag_to_col.get("date_death")
+                )
                 if not primary_date_col and date_cols_to_clean:
                     primary_date_col = list(date_cols_to_clean)[0]
+
+                if not primary_date_col:
+                    for c in df_curr.columns:
+                        c_low = c.lower()
+                        if any(kw in c_low for kw in ["date", "dt_", "_dt", "fecha", "jour", "admission", "onset", "consult", "visit", "notif"]):
+                            primary_date_col = c
+                            break
 
                 if primary_date_col and primary_date_col in df_curr.columns:
                     day_first_pref = (self.config.date_order_preference != "MDY")
@@ -307,45 +389,55 @@ class LinelistCleaner:
 
         # Step 5: Spatial Fallback Cascade Geocoding (P-Code Matching)
         spatial_summary: Optional[SpatialCascadeSummary] = None
-        if self.config.enable_spatial_cascade and reference_pcode_df is not None and not reference_pcode_df.empty:
-            ref_index = PCodeReferenceIndex(reference_pcode_df, self.config.spatial_reference_mapping)
-            matcher = SpatialCascadeMatcher(
-                ref_index,
-                similarity_threshold=self.config.spatial_similarity_threshold
-            )
+        if self.config.enable_spatial_cascade:
+            if reference_pcode_df is None or reference_pcode_df.empty:
+                from linelist_cleaner.datasets import get_sample_dataset
+                try:
+                    reference_pcode_df = get_sample_dataset("pcode_reference")
+                except Exception:
+                    reference_pcode_df = None
 
-            col_loc = tag_to_col.get("admin3") or tag_to_col.get("health_facility")
-            col_a3 = tag_to_col.get("admin3")
-            col_a2 = tag_to_col.get("admin2")
-            col_a1 = tag_to_col.get("admin1")
+            if reference_pcode_df is not None and not reference_pcode_df.empty:
+                ref_index = PCodeReferenceIndex(reference_pcode_df, self.config.spatial_reference_mapping)
+                matcher = SpatialCascadeMatcher(
+                    ref_index,
+                    similarity_threshold=self.config.spatial_similarity_threshold
+                )
 
-            for c in df_curr.columns:
-                c_low = c.lower()
-                if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement"]):
-                    col_loc = c
-                if not col_a3 and any(k in c_low for k in ["ward", "subdistrict", "aire"]):
-                    col_a3 = c
-                if not col_a2 and any(k in c_low for k in ["lga", "district", "zone"]):
-                    col_a2 = c
-                if not col_a1 and any(k in c_low for k in ["state", "province", "region"]):
-                    col_a1 = c
+                sp_map = self.config.spatial_reference_mapping or {}
+                sp_map = self.config.spatial_reference_mapping or {}
+                col_loc = sp_map.get("linelist_locality_col") or sp_map.get("ll_loc") or tag_to_col.get("locality") or tag_to_col.get("health_facility")
+                col_a3 = sp_map.get("linelist_admin3_col") or sp_map.get("ll_a3") or tag_to_col.get("admin3")
+                col_a2 = sp_map.get("linelist_admin2_col") or sp_map.get("ll_a2") or tag_to_col.get("admin2")
+                col_a1 = sp_map.get("linelist_admin1_col") or sp_map.get("ll_a1") or tag_to_col.get("admin1")
 
-            df_curr, sp_stats = matcher.process_dataframe(
-                df_curr,
-                col_locality=col_loc,
-                col_admin3=col_a3,
-                col_admin2=col_a2,
-                col_admin1=col_a1
-            )
+                for c in df_curr.columns:
+                    c_low = c.lower()
+                    if not col_loc and any(k in c_low for k in ["localit", "village", "site", "camp", "settlement", "rue", "quartier", "rq_norm", "loc"]):
+                        col_loc = c
+                    if not col_a3 and c != col_loc and any(k in c_low for k in ["ward", "subdistrict", "aire", "village", "adm3", "sous"]):
+                        col_a3 = c
+                    if not col_a2 and c not in [col_loc, col_a3] and any(k in c_low for k in ["lga", "district", "zone", "commune", "cercle", "adm2"]):
+                        col_a2 = c
+                    if not col_a1 and c not in [col_loc, col_a3, col_a2] and any(k in c_low for k in ["state", "province", "region", "adm1", "dep"]):
+                        col_a1 = c
 
-            spatial_summary = SpatialCascadeSummary(**sp_stats)
-            logs.append(CleaningLogEntry(
-                step="Spatial Fallback Cascade",
-                action=f"Geocodage en cascade execute avec succes (Taux: {sp_stats['geocoded_rate_pct']}%)",
-                affected_rows=sp_stats["geocoded_count"],
-                affected_columns=["PCODE_ASSIGNED", "MATCH_LEVEL", "MATCH_SCORE", "MATCHED_NAME", "LATITUDE", "LONGITUDE"],
-                details=sp_stats
-            ))
+                df_curr, sp_stats = matcher.process_dataframe(
+                    df_curr,
+                    col_locality=col_loc,
+                    col_admin3=col_a3,
+                    col_admin2=col_a2,
+                    col_admin1=col_a1
+                )
+
+                spatial_summary = SpatialCascadeSummary(**sp_stats)
+                logs.append(CleaningLogEntry(
+                    step="Spatial Fallback Cascade",
+                    action=f"Geocodage en cascade execute avec succes (Taux: {sp_stats['geocoded_rate_pct']}%)",
+                    affected_rows=sp_stats["geocoded_count"],
+                    affected_columns=["PCODE_ASSIGNED", "MATCH_LEVEL", "MATCH_SCORE", "MATCHED_NAME", "LATITUDE", "LONGITUDE"],
+                    details=sp_stats
+                ))
 
         # Step 5b: V2 Coordinate & Phone Cleaning
         coords_cleaned = 0
